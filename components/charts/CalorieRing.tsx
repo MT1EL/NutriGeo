@@ -1,12 +1,22 @@
-import { Canvas, Path } from "@shopify/react-native-skia";
+import { Canvas, Path, Skia } from "@shopify/react-native-skia";
+import React, { useEffect } from "react";
 import { Text, View } from "react-native";
+import {
+  useDerivedValue,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 type Props = {
   size?: number;
   strokeWidth?: number;
   progress: number; // 0 to 1
   caloriesLeft: number;
+  goal?: number;
   color?: string;
+  textColor?: string;
+  trackColor?: string;
+  label?: string;
 };
 
 export const CalorieRing = ({
@@ -14,32 +24,40 @@ export const CalorieRing = ({
   strokeWidth = 14,
   progress,
   caloriesLeft,
+  goal,
   color = "#50E3C2",
+  textColor = "#FFFFFF",
+  trackColor = "rgba(255,255,255,0.2)",
+  label = "KCAL LEFT",
 }: Props) => {
   const center = size / 2;
   const radius = (size - strokeWidth) / 2;
 
-  // Clamp progress between 0 and 1
-  const clampedProgress = Math.min(Math.max(progress, 0), 1);
+  const animated = useSharedValue(0);
 
-  // Background circle — full ring
-  const backgroundPath = `
-    M ${center} ${strokeWidth / 2}
-    A ${radius} ${radius} 0 1 1 ${center - 0.001} ${strokeWidth / 2}
-  `;
+  useEffect(() => {
+    animated.value = withTiming(Math.min(Math.max(progress, 0), 1), {
+      duration: 900,
+    });
+  }, [progress, animated]);
 
-  // Progress arc
-  const angle = clampedProgress * 2 * Math.PI;
-  const startX = center;
-  const startY = strokeWidth / 2;
-  const endX = center + radius * Math.sin(angle);
-  const endY = center - radius * Math.cos(angle);
-  const largeArc = clampedProgress > 0.5 ? 1 : 0;
+  const backgroundPath = React.useMemo(() => {
+    const p = Skia.Path.Make();
+    p.addCircle(center, center, radius);
+    return p;
+  }, [center, radius]);
 
-  const progressPath =
-    clampedProgress >= 1
-      ? backgroundPath
-      : `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArc} 1 ${endX} ${endY}`;
+  const animatedPath = useDerivedValue(() => {
+    const p = Skia.Path.Make();
+    p.addCircle(center, center, radius);
+    return p;
+  }, [center, radius]);
+
+  // We animate via the `end` prop on Path (Skia draws fraction of the path).
+  const end = useDerivedValue(() => animated.value);
+  // Skia rotates the path so the start sits at the top.
+  const transform = [{ rotate: -Math.PI / 2 }];
+  const origin = { x: center, y: center };
 
   return (
     <View
@@ -51,33 +69,60 @@ export const CalorieRing = ({
       }}
     >
       <Canvas style={{ position: "absolute", width: size, height: size }}>
-        {/* Background ring */}
         <Path
           path={backgroundPath}
           style="stroke"
           strokeWidth={strokeWidth}
-          color="rgba(255,255,255,0.2)"
+          color={trackColor}
           strokeCap="round"
         />
-        {/* Progress ring */}
-        {clampedProgress > 0 && (
-          <Path
-            path={progressPath}
-            style="stroke"
-            strokeWidth={strokeWidth}
-            color={color}
-            strokeCap="round"
-          />
-        )}
+        <Path
+          path={animatedPath}
+          style="stroke"
+          strokeWidth={strokeWidth}
+          color={color}
+          strokeCap="round"
+          start={0}
+          end={end}
+          origin={origin}
+          transform={transform}
+        />
       </Canvas>
 
-      {/* Center text */}
-      <Text style={{ fontSize: 40, fontWeight: "bold", color: "white" }}>
+      <Text
+        style={{
+          fontSize: 44,
+          fontWeight: "700",
+          color: textColor,
+          letterSpacing: -1,
+        }}
+      >
         {caloriesLeft}
       </Text>
-      <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>
-        KCAL LEFT
+      <Text
+        style={{
+          fontSize: 11,
+          color: textColor,
+          opacity: 0.85,
+          letterSpacing: 1.5,
+          fontWeight: "600",
+          marginTop: 2,
+        }}
+      >
+        {label}
       </Text>
+      {goal !== undefined && (
+        <Text
+          style={{
+            fontSize: 12,
+            color: textColor,
+            opacity: 0.7,
+            marginTop: 4,
+          }}
+        >
+          {`${goal - caloriesLeft} / ${goal}`}
+        </Text>
+      )}
     </View>
   );
 };

@@ -1,5 +1,5 @@
-import { Colors } from "@/constants/theme";
-import { PieChart } from "lucide-react-native";
+import { Colors, Spacing, Type } from "@/constants/theme";
+import { Beef, Droplet, PieChart, Wheat } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import { MacroBar } from "../charts/MacroBar";
@@ -8,35 +8,41 @@ import BaseCard from "./BaseCard";
 
 const MacrosCard = () => {
   const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
   const macros = [
     {
       label: "ცილა",
       consumed: 120,
       goal: 150,
-      color: Colors[colorScheme].error,
+      color: theme.macroProtein,
+      Icon: Beef,
     },
     {
       label: "ნახშირწყალი",
-      consumed: 120,
-      goal: 150,
-      color: Colors[colorScheme].warning,
+      consumed: 180,
+      goal: 250,
+      color: theme.macroCarbs,
+      Icon: Wheat,
     },
     {
       label: "ცხიმი",
-      consumed: 120,
-      goal: 150,
-      color: Colors[colorScheme].success,
+      consumed: 45,
+      goal: 70,
+      color: theme.macroFat,
+      Icon: Droplet,
     },
   ];
   return (
     <BaseCard>
       <View style={styles.row}>
-        <PieChart size={20} color={Colors[colorScheme].brand} />
+        <PieChart size={18} color={theme.brand} />
         <ThemedText style={styles.title}>მაკრონუტრიენტები</ThemedText>
       </View>
-      {macros.map((item) => (
-        <MacroBar key={item.label} {...item} />
-      ))}
+      <View style={{ gap: Spacing.md }}>
+        {macros.map((item) => (
+          <MacroBar key={item.label} {...item} />
+        ))}
+      </View>
     </BaseCard>
   );
 };
@@ -45,15 +51,11 @@ export default MacrosCard;
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    gap: 4,
+    gap: Spacing.sm,
     alignItems: "center",
   },
   title: {
-    fontSize: 16,
-    fontWeight: "semibold",
-  },
-  macroText: {
-    fontSize: 12,
-    fontWeight: "semibold",
+    fontSize: Type.lg,
+    fontWeight: "700",
   },
 });

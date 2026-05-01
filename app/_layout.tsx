@@ -20,6 +20,18 @@ export default function RootLayout() {
       <Stack initialRouteName="(auth)">
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="articles" options={{ headerShown: false }} />
+        <Stack.Screen name="recipes" options={{ headerShown: false }} />
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="meal/[meal]"
+          options={{
+            headerShown: false,
+            presentation: "modal",
+            sheetAllowedDetents: "fitToContents",
+            contentStyle: { backgroundColor: "transparent" },
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
       {/* </SafeAreaView> */}

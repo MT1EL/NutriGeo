@@ -1,6 +1,6 @@
-import { Colors } from "@/constants/theme";
+import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Beef } from "lucide-react-native";
+import { LucideIcon } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 import ThemedText from "../ui/ThemedText";
 
@@ -10,6 +10,7 @@ type Props = {
   goal: number;
   color: string;
   unit?: string;
+  Icon?: LucideIcon;
 };
 
 export const MacroBar = ({
@@ -18,26 +19,31 @@ export const MacroBar = ({
   goal,
   color,
   unit = "გ",
+  Icon,
 }: Props) => {
   const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
   const progress = Math.min(consumed / goal, 1);
 
   return (
     <View style={styles.container}>
       <View style={[styles.row, { justifyContent: "space-between" }]}>
         <View style={styles.row}>
-          <Beef size={15} color={color} />
+          {Icon && <Icon size={14} color={color} />}
           <ThemedText style={styles.macroText}>{label}</ThemedText>
         </View>
-        <ThemedText style={styles.macroText} type="secondary">
-          {consumed}/{goal}
-          {unit}
+        <ThemedText style={styles.macroValue} type="secondary">
+          {consumed}
+          <ThemedText style={styles.macroValueGoal} type="secondary">
+            {" "}/ {goal}
+            {unit}
+          </ThemedText>
         </ThemedText>
       </View>
       <View
         style={[
           styles.track,
-          { backgroundColor: Colors[colorScheme].borderLight },
+          { backgroundColor: theme.borderLight },
         ]}
       >
         <View
@@ -56,24 +62,32 @@ export const MacroBar = ({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 8,
+    gap: Spacing.sm,
   },
   row: {
     flexDirection: "row",
-    gap: 4,
+    gap: Spacing.xs + 2,
     alignItems: "center",
   },
   macroText: {
-    fontSize: 12,
-    fontWeight: "bold",
+    fontSize: Type.sm,
+    fontWeight: "600",
+  },
+  macroValue: {
+    fontSize: Type.sm,
+    fontWeight: "700",
+  },
+  macroValueGoal: {
+    fontSize: Type.xs,
+    fontWeight: "500",
   },
   track: {
-    height: 10,
-    borderRadius: 99,
+    height: 8,
+    borderRadius: Radius.pill,
     overflow: "hidden",
   },
   fill: {
     height: "100%",
-    borderRadius: 99,
+    borderRadius: Radius.pill,
   },
 });

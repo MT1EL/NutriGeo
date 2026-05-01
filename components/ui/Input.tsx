@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/theme";
+import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import React from "react";
 import {
   KeyboardTypeOptions,
@@ -18,8 +18,12 @@ type Props = {
   actionText?: string;
   errorText?: string;
   defaultValue?: string;
+  value?: string;
+  onChangeText?: (text: string) => void;
   keyboardType?: KeyboardTypeOptions;
   disabled?: boolean;
+  compact?: boolean;
+  secure?: boolean;
 };
 
 const Input = ({
@@ -30,47 +34,75 @@ const Input = ({
   errorText,
   onActionTextPress,
   defaultValue,
+  value,
+  onChangeText,
   keyboardType,
   disabled,
+  compact,
+  secure,
 }: Props) => {
   const [isFocused, setIsFocused] = React.useState(false);
   const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
+
+  const borderColor = errorText
+    ? theme.error
+    : isFocused
+      ? theme.brand
+      : theme.border;
 
   return (
-    <View>
-      {label && <ThemedText>{label}</ThemedText>}
+    <View style={{ gap: Spacing.xs }}>
+      {label && (
+        <ThemedText style={styles.label} type="secondary">
+          {label}
+        </ThemedText>
+      )}
       <View
         style={[
           styles.inputContainer,
+          compact && styles.inputContainerCompact,
           {
-            backgroundColor: Colors[colorScheme].background,
-            borderColor: Colors[colorScheme].border,
+            backgroundColor: theme.background,
+            borderColor,
           },
-          errorText && { borderColor: Colors[colorScheme].error },
-          isFocused && { borderColor: Colors[colorScheme].brand },
+          isFocused &&
+            !errorText && {
+              shadowColor: theme.brand,
+              shadowOpacity: 0.18,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 4 },
+              elevation: 2,
+            },
         ]}
       >
         <Icon
           color={
             isFocused
-              ? Colors[colorScheme].brand
+              ? theme.brand
               : errorText
-                ? Colors[colorScheme].error
-                : Colors[colorScheme].textSecondary
+                ? theme.error
+                : theme.textSecondary
           }
         />
         <TextInput
           placeholder={placeholder}
-          style={styles.input}
+          placeholderTextColor={theme.textSecondary}
+          style={[styles.input, { color: theme.text }]}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           defaultValue={defaultValue}
+          value={value}
+          onChangeText={onChangeText}
           keyboardType={keyboardType}
           editable={!disabled}
+          secureTextEntry={!!secure}
+          autoCapitalize={secure ? "none" : undefined}
+          autoCorrect={!secure}
         />
       </View>
       {errorText && (
-        <ThemedText style={styles.errorText} color={Colors[colorScheme].error}>
+        <ThemedText style={styles.errorText} color={theme.error}>
           {errorText}
         </ThemedText>
       )}
@@ -88,31 +120,37 @@ const Input = ({
 export default Input;
 
 const styles = StyleSheet.create({
-  inputsContainer: {
-    gap: 20,
-  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: Spacing.lg,
     height: 56,
-    gap: 16,
-    borderRadius: 14,
-    backgroundColor: Colors.light.background,
+    gap: Spacing.md,
+    borderRadius: Radius.lg,
     borderWidth: 1.5,
-    borderColor: Colors.light.border,
+  },
+  inputContainerCompact: {
+    height: 44,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
   },
   input: {
     flex: 1,
     height: "100%",
+    fontSize: Type.base,
+  },
+  label: {
+    fontSize: Type.sm,
+    marginLeft: Spacing.xs,
   },
   errorText: {
-    fontSize: 14,
-    marginLeft: 4,
-    marginTop: 4,
+    fontSize: Type.sm,
+    marginLeft: Spacing.xs,
   },
   forgotPasswordText: {
-    fontSize: 14,
+    fontSize: Type.sm,
     textAlign: "right",
+    marginTop: Spacing.xs,
   },
 });

@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import React from "react";
 
 import { HapticTab } from "@/components/haptic-tab";
-import { Colors } from "@/constants/theme";
+import { Colors, Radius } from "@/constants/theme";
 import {
   ChartLine,
   CirclePlus,
@@ -10,57 +10,105 @@ import {
   Search,
   User,
 } from "lucide-react-native";
-import { StyleSheet, useColorScheme } from "react-native";
-export const TAB_BAR_HEIGHT = 92;
+import { Platform, StyleSheet, useColorScheme, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const TAB_BAR_BASE = 64;
+// Generous static estimate (icon area + worst-case bottom inset) so screens can
+// safely add their own bottom padding without importing the safe-area hook.
+export const TAB_BAR_HEIGHT = 100;
+
+type IconRenderProps = {
+  Icon: React.ComponentType<{ size: number; color: string }>;
+  focused: boolean;
+  theme: ReturnType<typeof getTheme>;
+};
+
+const getTheme = (scheme: "light" | "dark") => Colors[scheme];
+
+const TabIcon = ({ Icon, focused, theme }: IconRenderProps) => (
+  <View
+    style={[
+      styles.iconWrap,
+      focused && {
+        backgroundColor: theme.brandSoft,
+      },
+    ]}
+  >
+    <Icon
+      size={22}
+      color={focused ? theme.brand : theme.tabIconDefault}
+    />
+  </View>
+);
+
 export default function TabLayout() {
   const colorScheme = useColorScheme() || "light";
+  const theme = getTheme(colorScheme);
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].brand,
+        tabBarActiveTintColor: theme.brand,
+        tabBarInactiveTintColor: theme.tabIconDefault,
         headerShown: false,
+        tabBarShowLabel: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
           ...styles.tabBarStyle,
-          borderColor: Colors[colorScheme].border,
-          backgroundColor: Colors[colorScheme].background,
+          backgroundColor: theme.card,
+          borderColor: theme.borderLight,
+          shadowColor: theme.shadow,
+          height: TAB_BAR_BASE + insets.bottom,
+          paddingBottom: insets.bottom,
         },
+        tabBarItemStyle: { paddingTop: 6 },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <House size={24} color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon Icon={House} focused={focused} theme={theme} />
+          ),
         }}
       />
       <Tabs.Screen
         name="recipes"
         options={{
           title: "Recipes",
-          tabBarIcon: ({ color }) => <Search size={24} color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon Icon={Search} focused={focused} theme={theme} />
+          ),
         }}
       />
       <Tabs.Screen
         name="add"
         options={{
           title: "Add",
-          tabBarIcon: ({ color }) => <CirclePlus size={24} color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon Icon={CirclePlus} focused={focused} theme={theme} />
+          ),
         }}
       />
       <Tabs.Screen
         name="statistics"
         options={{
           title: "Statistics",
-          tabBarIcon: ({ color }) => <ChartLine size={24} color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon Icon={ChartLine} focused={focused} theme={theme} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => <User size={24} color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon Icon={User} focused={focused} theme={theme} />
+          ),
         }}
       />
     </Tabs>
@@ -70,22 +118,27 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBarStyle: {
     position: "absolute",
-    left: 16,
-    right: 16,
+    left: 0,
+    right: 0,
     bottom: 0,
-
-    paddingTop: 12,
-
-    borderRadius: 20,
-
-    height: 92,
-
-    borderWidth: 1,
-
-    elevation: 0, // Android shadow off
-    shadowColor: "#000", // iOS shadow
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 6,
+    ...Platform.select({
+      ios: {
+        shadowOpacity: 1,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: -4 },
+      },
+      android: { elevation: 12 },
+    }),
+  },
+  iconWrap: {
+    width: 44,
+    height: 36,
+    borderRadius: Radius.md,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

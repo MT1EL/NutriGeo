@@ -1,38 +1,87 @@
-import { Colors } from "@/constants/theme";
+import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  ViewStyle,
+} from "react-native";
+
+type Variant = "primary" | "secondary" | "ghost";
 
 type Props = {
   onPress: () => void;
   children: React.ReactNode;
+  variant?: Variant;
   backgroundColor?: string;
   color?: string;
+  disabled?: boolean;
+  style?: ViewStyle;
 };
 
-const Button = ({ children, onPress, backgroundColor, color }: Props) => {
+const Button = ({
+  children,
+  onPress,
+  variant = "primary",
+  backgroundColor,
+  color,
+  disabled,
+  style,
+}: Props) => {
+  const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
+
+  const variantBg: Record<Variant, string> = {
+    primary: theme.brand,
+    secondary: theme.brandSoft,
+    ghost: "transparent",
+  };
+  const variantText: Record<Variant, string> = {
+    primary: theme.textOnBrand,
+    secondary: theme.brand,
+    ghost: theme.brand,
+  };
+
+  const bg = backgroundColor ?? variantBg[variant];
+  const fg = color ?? variantText[variant];
+
   return (
-    <TouchableOpacity
-      style={[styles.button, backgroundColor && { backgroundColor }]}
+    <Pressable
       onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor: bg },
+        variant === "primary" && {
+          shadowColor: theme.brand,
+          shadowOpacity: 0.25,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 3,
+        },
+        disabled && { opacity: 0.4 },
+        pressed && !disabled && { transform: [{ scale: 0.97 }] },
+        style,
+      ]}
     >
-      <Text style={[styles.buttonLabel, color && { color }]}>{children}</Text>
-    </TouchableOpacity>
+      <Text style={[styles.buttonLabel, { color: fg }]}>{children}</Text>
+    </Pressable>
   );
 };
 
 export default Button;
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: Colors.light.brand,
-    padding: 16,
-    borderRadius: 16,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: Radius.lg,
     justifyContent: "center",
     alignItems: "center",
   },
   buttonLabel: {
-    color: Colors.light.background,
-    fontSize: 18,
-    fontWeight: "semibold",
-    lineHeight: 19,
+    fontSize: Type.lg,
+    fontWeight: "600",
+    letterSpacing: 0.2,
   },
 });
