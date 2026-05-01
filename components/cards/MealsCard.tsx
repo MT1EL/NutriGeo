@@ -1,8 +1,12 @@
-import { LOGGED_BY_MEAL, MEAL_CONFIGS, MEAL_KEYS } from "@/constants/meals";
+import type { DayMeals } from "@/api/meals";
+import {
+  MEAL_CONFIGS,
+  MEAL_KEYS,
+  MEAL_KEY_TO_API,
+} from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { router } from "expo-router";
 import { ChevronRight, CirclePlus } from "lucide-react-native";
-import React from "react";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -12,7 +16,7 @@ import {
 import ThemedText from "../ui/ThemedText";
 import BaseCard from "./BaseCard";
 
-const MealsCard = () => {
+const MealsCard = ({ data }: { data?: DayMeals }) => {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -31,12 +35,18 @@ const MealsCard = () => {
 
       {MEAL_KEYS.map((key) => {
         const cfg = MEAL_CONFIGS[key];
-        const foods = LOGGED_BY_MEAL[key];
-        const calories = foods.reduce((a, f) => a + f.calories, 0);
+        const meal = data?.meals?.find(
+          (m) => m.meal_key === MEAL_KEY_TO_API[key],
+        );
+        const entries = meal?.entries ?? [];
+        const calories = Math.round(meal?.kcal ?? 0);
         const summary =
-          foods.length === 0
+          entries.length === 0
             ? "ჯერ არ ჩაგიწერია"
-            : foods.map((f) => f.title).join(", ");
+            : entries
+                .map((e) => e.food?.name)
+                .filter(Boolean)
+                .join(", ");
 
         return (
           <TouchableOpacity
@@ -70,7 +80,7 @@ const MealsCard = () => {
                   <ThemedText
                     style={styles.caloriesLabel}
                     color={
-                      foods.length === 0 ? theme.textSecondary : theme.text
+                      entries.length === 0 ? theme.textSecondary : theme.text
                     }
                   >
                     {calories} კალ

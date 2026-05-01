@@ -21,16 +21,31 @@ export type Paginated<T> = {
   };
 };
 
-export type Range = 'day' | 'week' | 'month' | 'year';
-export type MealKey = 'breakfast' | 'lunch' | 'dinner' | 'snack';
-export type Sex = 'male' | 'female' | 'other';
-export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
-export type GoalType = 'lose' | 'maintain' | 'gain';
-export type Diet = 'none' | 'vegetarian' | 'vegan' | 'pescatarian' | 'keto' | 'paleo';
-export type Units = 'metric' | 'imperial';
-export type Theme = 'light' | 'dark' | 'system';
-export type Language = 'ka' | 'en' | 'ru';
-export type IntegrationProvider = 'apple_health' | 'google_fit' | 'strava' | 'garmin';
+export type Range = "day" | "week" | "month" | "year";
+export type MealKey = "breakfast" | "lunch" | "dinner" | "snack";
+export type Sex = "male" | "female" | "other";
+export type ActivityLevel =
+  | "sedentary"
+  | "light"
+  | "moderate"
+  | "active"
+  | "very_active";
+export type GoalType = "lose" | "maintain" | "gain";
+export type Diet =
+  | "none"
+  | "vegetarian"
+  | "vegan"
+  | "pescatarian"
+  | "keto"
+  | "paleo";
+export type Units = "metric" | "imperial";
+export type Theme = "light" | "dark" | "system";
+export type Language = "ka" | "en" | "ru";
+export type IntegrationProvider =
+  | "apple_health"
+  | "google_fit"
+  | "strava"
+  | "garmin";
 
 export type Session = {
   access_token: string;
@@ -39,12 +54,49 @@ export type Session = {
   user?: User;
 };
 
+export type UserGoals = {
+  activity_level: ActivityLevel;
+  carbs_g_goal: number;
+  carbs_pct: number;
+  daily_calorie_goal: number;
+  fat_g_goal: number;
+  fat_pct: number;
+  goal_type: GoalType;
+  protein_g_goal: number;
+  protein_pct: number;
+  target_weight_kg: number | null;
+  weekly_pace_kg: number;
+};
+
+export type UserHealth = {
+  allergies: string[];
+  diet: Diet;
+  restrictions: string[];
+};
+
+export type UserProfile = {
+  age: number;
+  avatar_url: string | null;
+  birth_date: string;
+  height_cm: number;
+  language: Language;
+  name: string | null;
+  onboarded_at: string | null;
+  sex: Sex;
+  theme: Theme;
+  timezone: string;
+  units: Units;
+  weight_kg: number;
+};
+
 export type User = {
   id: string;
   email: string;
-  name?: string;
-  email_verified?: boolean;
-  created_at?: string;
+  email_verified: boolean;
+  is_premium: boolean;
+  goals: UserGoals;
+  health: UserHealth;
+  profile: UserProfile;
 };
 
 export type Food = {
@@ -82,7 +134,7 @@ export type Recipe = {
   fiber_g?: number;
   duration_min: number;
   servings: number;
-  difficulty?: 'easy' | 'medium' | 'hard';
+  difficulty?: "easy" | "medium" | "hard";
   category?: string;
   dietary_tags?: string[];
   ingredients?: { qty: string; name: string }[];
@@ -107,7 +159,7 @@ export type WeightEntry = {
   id: string;
   weight_kg: number;
   recorded_at: string;
-  source?: 'manual' | 'apple_health' | 'google_fit';
+  source?: "manual" | "apple_health" | "google_fit";
 };
 
 export type WaterEntry = {
@@ -157,8 +209,8 @@ export type PremiumStatus = {
 
 export type ExportJob = {
   id: string;
-  status: 'pending' | 'processing' | 'ready' | 'failed';
-  format: 'json' | 'csv';
+  status: "pending" | "processing" | "ready" | "failed";
+  format: "json" | "csv";
   download_url?: string;
   created_at: string;
 };

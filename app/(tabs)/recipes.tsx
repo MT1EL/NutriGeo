@@ -3,12 +3,7 @@ import Header from "@/components/headers";
 import ThemedText from "@/components/ui/ThemedText";
 import { Recipe, RECIPE_CATEGORIES, RECIPES } from "@/constants/recipes";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import {
-  Canvas,
-  LinearGradient,
-  Rect,
-  vec,
-} from "@shopify/react-native-skia";
+import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
@@ -19,7 +14,7 @@ import {
   Star,
   Users,
 } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   FlatList,
   LayoutChangeEvent,
@@ -69,12 +64,7 @@ const HeroRecipe = ({ recipe }: { recipe: Recipe }) => {
           </View>
         )}
         <View style={styles.heroTopRow}>
-          <View
-            style={[
-              styles.heroFeatured,
-              { backgroundColor: theme.brand },
-            ]}
-          >
+          <View style={[styles.heroFeatured, { backgroundColor: theme.brand }]}>
             <Star color="#FFFFFF" size={11} fill="#FFFFFF" />
             <ThemedText style={styles.heroFeaturedText} color="#FFFFFF">
               კვირის რჩეული
@@ -96,7 +86,11 @@ const HeroRecipe = ({ recipe }: { recipe: Recipe }) => {
         </View>
 
         <View style={styles.heroBottom}>
-          <ThemedText style={styles.heroTitle} color="#FFFFFF" numberOfLines={2}>
+          <ThemedText
+            style={styles.heroTitle}
+            color="#FFFFFF"
+            numberOfLines={2}
+          >
             {recipe.title}
           </ThemedText>
           <ThemedText
@@ -154,18 +148,18 @@ export default function RecipesScreen() {
       filtered.length === 0
         ? 0
         : Math.round(
-            filtered.reduce((a, r) => a + r.calories, 0) / filtered.length
+            filtered.reduce((a, r) => a + r.calories, 0) / filtered.length,
           ),
-    [filtered]
+    [filtered],
   );
   const avgTime = useMemo(
     () =>
       filtered.length === 0
         ? 0
         : Math.round(
-            filtered.reduce((a, r) => a + r.durationMin, 0) / filtered.length
+            filtered.reduce((a, r) => a + r.durationMin, 0) / filtered.length,
           ),
-    [filtered]
+    [filtered],
   );
 
   const ListHeader = (
@@ -254,12 +248,7 @@ export default function RecipesScreen() {
 
   const ListEmpty = (
     <View style={styles.empty}>
-      <View
-        style={[
-          styles.emptyIcon,
-          { backgroundColor: theme.brandSoft },
-        ]}
-      >
+      <View style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}>
         <Search color={theme.brand} size={28} />
       </View>
       <ThemedText style={styles.emptyTitle}>ვერ ვიპოვე რეცეპტი</ThemedText>

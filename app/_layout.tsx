@@ -7,13 +7,14 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { Colors } from "@/constants/theme";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Routes that an unauthenticated user is allowed to land on.
 const PUBLIC_AUTH_SCREENS = new Set([
@@ -70,6 +71,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme() || "light";
@@ -77,29 +79,46 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <ToastProvider>
-          <AuthProvider>
-            <AuthGate>
-              <Stack>
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="articles" options={{ headerShown: false }} />
-                <Stack.Screen name="recipes" options={{ headerShown: false }} />
-                <Stack.Screen name="profile" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="meal/[meal]"
-                  options={{
-                    headerShown: false,
-                    presentation: "modal",
-                    sheetAllowedDetents: "fitToContents",
-                    contentStyle: { backgroundColor: "transparent" },
-                  }}
-                />
-              </Stack>
-              <StatusBar style="auto" />
-            </AuthGate>
-          </AuthProvider>
-        </ToastProvider>
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+            <AuthProvider>
+              <AuthGate>
+                <Stack>
+                  <Stack.Screen
+                    name="(auth)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="articles"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="recipes"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="profile"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="meal/[meal]"
+                    options={{
+                      headerShown: false,
+                      presentation: "modal",
+                      sheetAllowedDetents: "fitToContents",
+                      contentStyle: { backgroundColor: "transparent" },
+                    }}
+                  />
+                </Stack>
+                <StatusBar style="auto" />
+              </AuthGate>
+            </AuthProvider>
+          </ToastProvider>
+        </QueryClientProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

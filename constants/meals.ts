@@ -1,3 +1,4 @@
+import type { MealKey as ApiMealKey } from "@/api/types";
 import {
   Coffee,
   HandPlatter,
@@ -123,6 +124,13 @@ export const LOGGED_BY_MEAL: Record<MealKey, Food[]> = {
   ],
   სნექი: [],
   ვახშამი: [],
+};
+
+export const MEAL_KEY_TO_API: Record<MealKey, ApiMealKey> = {
+  საუზმე: "breakfast",
+  სადილი: "lunch",
+  სნექი: "snack",
+  ვახშამი: "dinner",
 };
 
 export const isMealKey = (s: string | undefined): s is MealKey =>

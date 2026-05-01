@@ -11,7 +11,6 @@ type Props = {
   size?: number;
   strokeWidth?: number;
   progress: number; // 0 to 1
-  caloriesLeft: number;
   goal?: number;
   color?: string;
   textColor?: string;
@@ -23,7 +22,6 @@ export const CalorieRing = ({
   size = 200,
   strokeWidth = 14,
   progress,
-  caloriesLeft,
   goal,
   color = "#50E3C2",
   textColor = "#FFFFFF",
@@ -32,6 +30,8 @@ export const CalorieRing = ({
 }: Props) => {
   const center = size / 2;
   const radius = (size - strokeWidth) / 2;
+
+  const caloriesLeft = goal ? goal - progress : 0;
 
   const animated = useSharedValue(0);
 

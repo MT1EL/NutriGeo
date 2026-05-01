@@ -1,33 +1,38 @@
+import { DayMeals } from "@/api/meals";
 import { Colors, Spacing, Type } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
 import { Beef, Droplet, PieChart, Wheat } from "lucide-react-native";
-import React from "react";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import { MacroBar } from "../charts/MacroBar";
 import ThemedText from "../ui/ThemedText";
 import BaseCard from "./BaseCard";
 
-const MacrosCard = () => {
+type Props = {
+  data: DayMeals;
+};
+const MacrosCard = ({ data }: Props) => {
+  const { user } = useAuth();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const macros = [
     {
       label: "ცილა",
-      consumed: 120,
-      goal: 150,
+      consumed: data.totals.protein_g,
+      goal: user?.goals.protein_g_goal || 0,
       color: theme.macroProtein,
       Icon: Beef,
     },
     {
       label: "ნახშირწყალი",
-      consumed: 180,
-      goal: 250,
+      consumed: data.totals.carbs_g,
+      goal: user?.goals.carbs_g_goal || 0,
       color: theme.macroCarbs,
       Icon: Wheat,
     },
     {
       label: "ცხიმი",
-      consumed: 45,
-      goal: 70,
+      consumed: data.totals.fat_g,
+      goal: user?.goals.fat_g_goal || 0,
       color: theme.macroFat,
       Icon: Droplet,
     },

@@ -142,7 +142,7 @@ function WizardScreen() {
     if (submitting) return;
     setSubmitting(true);
     try {
-      await submitOnboarding(buildOnboardingPayload(data, user?.name ?? ""));
+      await submitOnboarding(buildOnboardingPayload(data, user?.profile?.name ?? ""));
       let goalsSaved = true;
       try {
         await updateGoals(buildGoalsPayload(data));

@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -6,6 +7,10 @@ import {
   View,
 } from "react-native";
 
+import { getTodayMeals } from "@/api/meals";
+import { getStreak } from "@/api/stats";
+import { getSteps } from "@/api/steps";
+import { getWaterToday } from "@/api/water";
 import ArticleCover from "@/components/cards/ArticleCover";
 import MacrosCard from "@/components/cards/MacrosCard";
 import MealsCard from "@/components/cards/MealsCard";
@@ -18,6 +23,8 @@ import {
   LAST_SYNC_LABEL,
 } from "@/constants/integrations";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQueries } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Bell, Droplet, Flame, Footprints, Heart } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,20 +33,82 @@ import { TAB_BAR_HEIGHT } from "./_layout";
 const HEADER_OVERLAP = 56;
 const USER_NAME = "თორნიკე";
 const TODAY_DATE = "1 მაისი, 2026";
-const CAL_GOAL = 2000;
-const CAL_CONSUMED = 500;
+
+function useHomeData() {
+  return useQueries({
+    queries: [
+      {
+        queryKey: ["meals", "today"],
+        queryFn: () => getTodayMeals().then((r) => r.data),
+      },
+      { queryKey: ["streak"], queryFn: () => getStreak().then((r) => r.data) },
+      {
+        queryKey: ["water", "today"],
+        queryFn: () => getWaterToday().then((r) => r.data),
+      },
+      {
+        queryKey: ["steps", "today"],
+        queryFn: () => getSteps("day").then((r) => r.data),
+      },
+    ],
+    combine: ([meals, streak, water, steps]) => ({
+      meals: meals.data,
+      streak: streak.data,
+      water: water.data,
+      steps: steps.data,
+      isLoading:
+        meals.isLoading ||
+        streak.isLoading ||
+        water.isLoading ||
+        steps.isLoading,
+      isError:
+        meals.isError || streak.isError || water.isError || steps.isError,
+    }),
+  });
+}
 
 export default function HomeScreen() {
+  const { user } = useAuth();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const caloriesLeft = CAL_GOAL - CAL_CONSUMED;
-  const progress = CAL_CONSUMED / CAL_GOAL;
   const initial = USER_NAME.charAt(0);
 
+  const { meals, streak, water, steps, isLoading, isError } = useHomeData();
+
+  if (isLoading) {
+    return (
+      <View style={[styles.center, { backgroundColor: theme.surface }]}>
+        <ActivityIndicator color={theme.brand} />
+      </View>
+    );
+  }
+  if (isError || !meals) return null;
+
+  const kcalEaten = Math.round(meals.totals.kcal);
+  const kcalGoal = user?.goals?.daily_calorie_goal ?? 0;
+  const waterLiters = ((water?.total_ml ?? 0) / 1000).toFixed(1);
+  const stepsToday = steps?.[0]?.count ?? 0;
+  const streakDays = streak?.current ?? 0;
+
   const stats = [
-    { Icon: Flame, label: "სტრიკი", value: "7 დღე", color: "#FF7A45" },
-    { Icon: Droplet, label: "წყალი", value: "1.2 ლ", color: "#3FA9F5" },
-    { Icon: Footprints, label: "ნაბიჯი", value: "4,820", color: "#7C5CFF" },
+    {
+      Icon: Flame,
+      label: "სტრიკი",
+      value: `${streakDays} დღე`,
+      color: "#FF7A45",
+    },
+    {
+      Icon: Droplet,
+      label: "წყალი",
+      value: `${waterLiters} ლ`,
+      color: "#3FA9F5",
+    },
+    {
+      Icon: Footprints,
+      label: "ნაბიჯი",
+      value: stepsToday.toLocaleString(),
+      color: "#7C5CFF",
+    },
   ];
 
   return (
@@ -87,9 +156,8 @@ export default function HomeScreen() {
             <CalorieRing
               size={210}
               strokeWidth={14}
-              progress={progress}
-              caloriesLeft={caloriesLeft}
-              goal={CAL_GOAL}
+              progress={kcalEaten}
+              goal={kcalGoal}
               color={theme.accent}
             />
           </View>
@@ -137,8 +205,8 @@ export default function HomeScreen() {
       </GradientView>
 
       <View style={styles.container}>
-        <MacrosCard />
-        <MealsCard />
+        <MacrosCard data={meals} />
+        <MealsCard data={meals} />
 
         <View style={{ gap: Spacing.md }}>
           <View style={styles.sectionHeader}>
@@ -173,6 +241,11 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   container: {
     paddingHorizontal: Spacing.xl,
     marginTop: -HEADER_OVERLAP,

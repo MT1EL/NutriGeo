@@ -35,17 +35,13 @@ export const MacroBar = ({
         <ThemedText style={styles.macroValue} type="secondary">
           {consumed}
           <ThemedText style={styles.macroValueGoal} type="secondary">
-            {" "}/ {goal}
+            {" "}
+            / {goal}
             {unit}
           </ThemedText>
         </ThemedText>
       </View>
-      <View
-        style={[
-          styles.track,
-          { backgroundColor: theme.borderLight },
-        ]}
-      >
+      <View style={[styles.track, { backgroundColor: theme.borderLight }]}>
         <View
           style={[
             styles.fill,
