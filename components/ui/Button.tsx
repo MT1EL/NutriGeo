@@ -33,5 +33,6 @@ const styles = StyleSheet.create({
     color: Colors.light.background,
     fontSize: 18,
     fontWeight: "semibold",
+    lineHeight: 19,
   },
 });
