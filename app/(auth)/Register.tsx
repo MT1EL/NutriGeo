@@ -58,10 +58,11 @@ function RegisterScreen() {
           name: values.fullName.trim(),
         });
         toast.success("ანგარიში წარმატებით შეიქმნა", "მოგესალმებით!");
-        if (user) {
-          router.replace("/Wizard");
-        } else {
+        if (!user) {
           // No session returned (e.g. email verification required) — send to login.
+          // When a session IS returned, AuthGate routes the now-authenticated
+          // user from Register → Wizard; navigating here races the gate
+          // unmounting the (auth) stack.
           router.replace("/Login");
         }
       } catch (err) {

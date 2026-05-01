@@ -1,11 +1,17 @@
-import { ScrollView, StyleSheet, useColorScheme, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 
 import ArticleCover from "@/components/cards/ArticleCover";
 import MacrosCard from "@/components/cards/MacrosCard";
 import MealsCard from "@/components/cards/MealsCard";
 import { CalorieRing } from "@/components/charts/CalorieRing";
-import ThemedText from "@/components/ui/ThemedText";
 import { GradientView } from "@/components/ui/GradientView";
+import ThemedText from "@/components/ui/ThemedText";
 import { ARTICLES } from "@/constants/articles";
 import {
   APPLE_HEALTH_CONNECTED,
@@ -14,7 +20,6 @@ import {
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { router } from "expo-router";
 import { Bell, Droplet, Flame, Footprints, Heart } from "lucide-react-native";
-import { TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
@@ -151,7 +156,10 @@ export default function HomeScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: Spacing.md, paddingRight: Spacing.xl }}
+            contentContainerStyle={{
+              gap: Spacing.md,
+              paddingRight: Spacing.xl,
+            }}
             style={{ marginLeft: -Spacing.xl, paddingLeft: Spacing.xl }}
           >
             {ARTICLES.slice(0, 4).map((a) => (

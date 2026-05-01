@@ -44,9 +44,14 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === "loading" || allowedHere) return;
-    if (status === "unauthenticated") router.replace("/Login");
-    else router.replace("/(tabs)");
-  }, [status, allowedHere, router]);
+    if (status === "unauthenticated") {
+      router.replace("/Login");
+    } else if (inAuthGroup && currentLeaf === "Register") {
+      router.replace("/Wizard");
+    } else {
+      router.replace("/(tabs)");
+    }
+  }, [status, allowedHere, inAuthGroup, currentLeaf, router]);
 
   if (status === "loading" || !allowedHere) {
     return (

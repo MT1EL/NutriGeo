@@ -1,7 +1,8 @@
 import BaseCard from "@/components/cards/BaseCard";
-import ThemedText from "@/components/ui/ThemedText";
 import { GradientView } from "@/components/ui/GradientView";
+import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
 import { Href, router } from "expo-router";
 import {
   Bell,
@@ -15,7 +16,6 @@ import {
   Target,
   User,
 } from "lucide-react-native";
-import React from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -64,6 +64,8 @@ const Row = ({ Icon, label, hint, tint, iconColor, href }: RowProps) => {
 };
 
 const ProfilePage = () => {
+  const { signOut } = useAuth();
+
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const initial = USER_NAME.charAt(0);
@@ -179,7 +181,11 @@ const ProfilePage = () => {
           />
         </BaseCard>
 
-        <TouchableOpacity activeOpacity={0.6} style={styles.logout}>
+        <TouchableOpacity
+          activeOpacity={0.6}
+          style={styles.logout}
+          onPress={() => signOut()}
+        >
           <LogOut color={theme.error} size={18} />
           <ThemedText style={styles.logoutText} color={theme.error}>
             გასვლა

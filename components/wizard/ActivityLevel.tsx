@@ -1,7 +1,6 @@
 import type { ActivityLevel as ActivityLevelType } from "@/api/types";
 import { useWizard } from "@/contexts/WizardContext";
 import { Bike, Dumbbell, Footprints, Sofa } from "lucide-react-native";
-import React from "react";
 import { StyleSheet, View } from "react-native";
 import GoalCard from "./cards/GoalCard";
 import WizzardContentLayout from "./layout";
