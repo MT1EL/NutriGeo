@@ -8,6 +8,9 @@ import { Platform } from "react-native";
 const tintColorLight = "#4A90E2";
 const tintColorDark = "#6AAFF5";
 
+const brandSurfaceLight = "#EFF6FF"; // light background tint
+const brandSurfaceDark = "#1E3A5F"; // darker version for dark mode
+
 export const Colors = {
   light: {
     // Text
@@ -20,7 +23,7 @@ export const Colors = {
     card: "#FFFFFF",
 
     // Brand
-    tint: tintColorLight,
+    tint: brandSurfaceLight,
     brand: tintColorLight,
 
     // Semantic
@@ -48,7 +51,7 @@ export const Colors = {
     card: "#2C2C2C",
 
     // Brand
-    tint: tintColorDark,
+    tint: brandSurfaceDark,
     brand: tintColorDark,
 
     // Semantic
