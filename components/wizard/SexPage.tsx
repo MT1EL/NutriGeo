@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/theme";
+import { useWizard } from "@/contexts/WizardContext";
 import { Image } from "expo-image";
-import React, { useState } from "react";
+import React from "react";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -11,7 +12,7 @@ import ThemedText from "../ui/ThemedText";
 import WizzardContentLayout from "./layout";
 
 const SexPage = () => {
-  const [active, setActive] = useState<null | "male" | "female">(null);
+  const { data, setField } = useWizard();
   const colorScheme = useColorScheme() || "light";
   const options: ("female" | "male")[] = ["female", "male"];
   return (
@@ -20,18 +21,18 @@ const SexPage = () => {
       subtitle="ეს ინფორმაცია დაგვეხმარება შენთვის სწორი კალორიული მიზნის გამოთვლაში"
     >
       <View style={styles.cardContainer}>
-        {options.map((item: "female" | "male") => (
+        {options.map((item) => (
           <TouchableOpacity
             style={[
               styles.card,
               { backgroundColor: Colors[colorScheme].background },
-              active === item && {
+              data.sex === item && {
                 borderWidth: 1,
                 borderColor: Colors[colorScheme].brand,
                 backgroundColor: Colors[colorScheme].tint,
               },
             ]}
-            onPress={() => setActive(item)}
+            onPress={() => setField("sex", item)}
             key={item}
           >
             <Image
@@ -54,17 +55,6 @@ const SexPage = () => {
 
 export default SexPage;
 const styles = StyleSheet.create({
-  container: {
-    gap: 32,
-  },
-  titleContainer: {
-    gap: 14,
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-  },
   cardContainer: {
     flexDirection: "row",
     gap: 20,

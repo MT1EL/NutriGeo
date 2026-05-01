@@ -2,7 +2,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme.web";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Image } from "expo-image";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -15,12 +15,7 @@ type Props = {
   subtitle: string;
   onPress: () => void;
   label: string;
-  inputs: {
-    Icon: React.ComponentType<{ color: string }>;
-    placeholder: string;
-    onActionTextPress?: () => void;
-    actionText?: string;
-  }[];
+  inputs: React.ComponentProps<typeof Input>[];
   footerLinkText?: string;
   footerLinkLabel?: string;
   footerLinkAction?: () => void;

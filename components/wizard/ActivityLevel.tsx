@@ -1,55 +1,68 @@
+import type { ActivityLevel as ActivityLevelType } from "@/api/types";
+import { useWizard } from "@/contexts/WizardContext";
 import { Bike, Dumbbell, Footprints, Sofa } from "lucide-react-native";
-import React, { useState } from "react";
+import React from "react";
 import { StyleSheet, View } from "react-native";
 import GoalCard from "./cards/GoalCard";
 import WizzardContentLayout from "./layout";
 
-type Props = {};
+const OPTIONS = [
+  {
+    key: "sedentary" as ActivityLevelType,
+    title: "ნაკლებად აქტიური",
+    subtitle: "ძირითადად მჯდომარე ცხოვრების წესი",
+    Icon: Sofa,
+    tintColor: "#F1F5F9",
+    iconColor: "#64748B",
+  },
+  {
+    key: "light" as ActivityLevelType,
+    title: "საშუალოდ აქტიური",
+    subtitle: "მსუბუქი აქტივობა (სეირნობა, საოჯახო საქმეები)",
+    Icon: Footprints,
+    tintColor: "#EFF6FF",
+    iconColor: "#3B82F6",
+  },
+  {
+    key: "moderate" as ActivityLevelType,
+    title: "ზომიერად აქტიური",
+    subtitle: "რეგულარული საშუალო ინტენსივობის აქტივობა",
+    Icon: Bike,
+    tintColor: "#DBEAFE",
+    iconColor: "#2563EB",
+  },
+  {
+    key: "active" as ActivityLevelType,
+    title: "აქტიური",
+    subtitle: "ვარჯიში კვირაში 5–6 დღე",
+    Icon: Bike,
+    tintColor: "#DCFCE7",
+    iconColor: "#16A34A",
+  },
+  {
+    key: "very_active" as ActivityLevelType,
+    title: "ძალიან აქტიური",
+    subtitle: "ინტენსიური ვარჯიში ან ფიზიკური შრომა",
+    Icon: Dumbbell,
+    tintColor: "#F0FDF4",
+    iconColor: "#10B981",
+  },
+];
 
-const ActivityLevel = (props: Props) => {
-  const [activeIndex, setActiveIndex] = useState<null | number>(null);
-  const data = [
-    {
-      title: " ნაკლებად აქტიური",
-      subtitle: "ძირითადად მჯდომარე ცხოვრების წესი",
-      Icon: Sofa,
-      tintColor: "#F1F5F9",
-      iconColor: "#64748B",
-    },
-    {
-      title: "საშუალოდ აქტიური",
-      subtitle: "მსუბუქი არივობა (სეირნობა, საოჯახო საქმეები",
-      Icon: Footprints,
-      tintColor: "#EFF6FF",
-      iconColor: "#3B82F6",
-    },
-    {
-      title: "აქტიური",
-      subtitle: "რეგულარული საშუალო ინტენსივობის აქტივობა",
-      Icon: Bike,
-      tintColor: "#DBEAFE",
-      iconColor: "#2563EB",
-    },
-    {
-      title: "ძალიან აქტიური",
-      subtitle: "ინტენსიური ვარჯიში ან ფიზიკური შრომა",
-      Icon: Dumbbell,
-      tintColor: "#F0FDF4",
-      iconColor: "#10B981",
-    },
-  ];
+const ActivityLevel = () => {
+  const { data, setField } = useWizard();
   return (
     <WizzardContentLayout
-      title="რა არის შენი მიზანი?"
-      subtitle="აირჩიე შენი ძირითადი მიზანი"
+      title="რა არის შენი აქტიურობა?"
+      subtitle="აირჩიე შენი ჩვეულებრივი დღიური აქტიურობა"
     >
       <View style={styles.container}>
-        {data.map((item, index) => (
+        {OPTIONS.map((item) => (
           <GoalCard
-            key={item.title}
+            key={item.key}
             goal={item}
-            isActive={activeIndex === index}
-            onPress={() => setActiveIndex(index)}
+            isActive={data.activity_level === item.key}
+            onPress={() => setField("activity_level", item.key)}
           />
         ))}
       </View>

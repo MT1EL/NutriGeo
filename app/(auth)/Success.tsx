@@ -27,7 +27,7 @@ function SuccessScreen() {
         <Button
           backgroundColor={Colors.light.background}
           color={Colors.light.text}
-          onPress={() => router.replace("/Login")}
+          onPress={() => router.replace("/(tabs)")}
         >
           დაწყება
         </Button>
