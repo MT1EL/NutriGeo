@@ -1,107 +1,93 @@
-import { Image } from "expo-image";
-import { Platform, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 
-import { HelloWave } from "@/components/hello-wave";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Link } from "expo-router";
+import ArticleCover from "@/components/cards/ArticleCover";
+import MacrosCard from "@/components/cards/MacrosCard";
+import MealsCard from "@/components/cards/MealsCard";
+import { CalorieRing } from "@/components/charts/CalorieRing";
+import ThemedText from "@/components/ui/ThemedText";
+import { Colors } from "@/constants/theme";
+import { Calendar } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { TAB_BAR_HEIGHT } from "./_layout";
 
 export default function HomeScreen() {
+  const colorScheme = useColorScheme() || "light";
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
-        />
-      }
+    <ScrollView
+      contentContainerStyle={{
+        backgroundColor: Colors[colorScheme].surface,
+        paddingBottom: TAB_BAR_HEIGHT + 20,
+      }}
     >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
-          to see changes. Press{" "}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: "cmd + d",
-              android: "cmd + m",
-              web: "F12",
-            })}
-          </ThemedText>{" "}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction
-              title="Action"
-              icon="cube"
-              onPress={() => alert("Action pressed")}
-            />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert("Share pressed")}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert("Delete pressed")}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
-
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">
-            npm run reset-project
-          </ThemedText>{" "}
-          to get a fresh <ThemedText type="defaultSemiBold">app</ThemedText>{" "}
-          directory. This will move the current{" "}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{" "}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <SafeAreaView edges={["top"]} style={styles.headerContainer}>
+        <View>
+          <View style={styles.header}>
+            <ThemedText style={styles.title} color={Colors.light.background}>
+              გამარჯობა, თორნიკე
+            </ThemedText>
+            <View style={styles.iconWrapper}>
+              <Calendar color={"#FFF"} />
+            </View>
+          </View>
+          <ThemedText color="#F9F9F9">1 მაისი, 2026</ThemedText>
+        </View>
+        <View style={styles.ringContainer}>
+          <CalorieRing
+            size={210}
+            strokeWidth={14}
+            progress={500 / 2000}
+            caloriesLeft={1500}
+            color="#50E3C2"
+          />
+        </View>
+      </SafeAreaView>
+      <View style={styles.container}>
+        <MacrosCard />
+        <MealsCard />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 12, paddingRight: 20 }}
+          style={{ marginLeft: -20, paddingLeft: 20 }}
+        >
+          <ArticleCover />
+          <ArticleCover />
+          <ArticleCover />
+        </ScrollView>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    paddingHorizontal: 20,
+    marginTop: -50,
+    gap: 40,
+  },
+  headerContainer: {
+    padding: 20,
+    paddingBottom: 70,
+    borderRadius: 20,
+    gap: 60,
+    backgroundColor: Colors.light.brand,
+  },
+  header: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
+  iconWrapper: {
+    padding: 8,
+    borderRadius: 50,
+    backgroundColor: "#F9F9F910",
+  },
+  ringContainer: {
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

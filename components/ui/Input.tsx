@@ -42,6 +42,10 @@ const Input = ({
       <View
         style={[
           styles.inputContainer,
+          {
+            backgroundColor: Colors[colorScheme].background,
+            borderColor: Colors[colorScheme].border,
+          },
           errorText && { borderColor: Colors[colorScheme].error },
           isFocused && { borderColor: Colors[colorScheme].brand },
         ]}

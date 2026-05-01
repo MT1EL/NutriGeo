@@ -29,7 +29,7 @@ function LoginScreen() {
         router.replace("/Register");
       }}
       onPress={() => {
-        console.log("add login logic");
+        router.replace("/(tabs)");
       }}
     />
   );
