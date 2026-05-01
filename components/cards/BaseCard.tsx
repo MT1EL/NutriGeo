@@ -1,17 +1,28 @@
 import { Colors } from "@/constants/theme";
 import React from "react";
-import { StyleSheet, useColorScheme, View } from "react-native";
+import {
+  StyleProp,
+  StyleSheet,
+  useColorScheme,
+  View,
+  ViewStyle,
+} from "react-native";
 
 type Props = {
   children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
 };
 
-const BaseCard = ({ children }: Props) => {
+const BaseCard = ({ children, style }: Props) => {
   const colorScheme = useColorScheme() || "light";
 
   return (
     <View
-      style={[styles.card, { backgroundColor: Colors[colorScheme].background }]}
+      style={[
+        styles.card,
+        { backgroundColor: Colors[colorScheme].background },
+        style,
+      ]}
     >
       {children}
     </View>
