@@ -26,7 +26,7 @@ const ThemedText = ({
   }
 
   return (
-    <Text {...rest} style={[style, { color: color || textColor }]}>
+    <Text {...rest} style={[{ color: color || textColor }, style]}>
       {children}
     </Text>
   );

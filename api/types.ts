@@ -147,6 +147,9 @@ export type Recipe = {
   rating: RecipeRating;
   saved?: boolean;
   cover_url?: string;
+  // Populated only on GET /v1/recipes/:id — backend returns up to 3 actually
+  // related recipes (shared category/tags/cuisine), not a generic catalog page.
+  related?: Recipe[];
 };
 
 export type ArticleAuthor = {

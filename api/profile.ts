@@ -37,6 +37,7 @@ export type Profile = {
   goal_body_fat: number | null;
   target_weight_kg: number | null;
   weekly_pace_kg: number;
+  goal_baseline_weight_kg: number | null;
 
   daily_calorie_target: number;
   protein_pct: number;

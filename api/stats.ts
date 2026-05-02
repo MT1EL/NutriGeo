@@ -78,3 +78,41 @@ export function getRecords() {
 export function getInsights(range: Range = 'week') {
   return api.get<ApiResponse<Insight[]>>('/v1/stats/insights', rangeQuery(range));
 }
+
+// New combined endpoint — replaces summary + calories + weight + macros +
+// top-foods + streak (heatmap) + insights with one round-trip.
+export type OverviewSummary = {
+  kcal_avg: number;
+  weight_change_kg: number;
+  streak: { current: number; longest: number };
+  days_in_target: number;
+  logged_days: number;
+  goal_pct: number | null; // signed, unclamped; null when goal=maintain or baseline missing
+  protein_avg: number;
+  carbs_avg: number;
+  fat_avg: number;
+};
+
+export type WeightPoint = { date: string; weight_kg: number };
+
+export type StreakHeatmapPoint = {
+  date: string;
+  state: 'logged' | 'partial' | 'missed';
+};
+
+export type StatsOverview = {
+  summary: OverviewSummary;
+  calories: CaloriesPoint[];
+  weight: WeightPoint[];
+  macros: MacrosPoint[];
+  top_foods: TopFood[];
+  streak_heatmap: StreakHeatmapPoint[];
+  insights: Insight[] | null; // null = no premium access; [] = access but no cards
+};
+
+export function getStatsOverview(range: Range = 'week') {
+  return api.get<ApiResponse<StatsOverview>>(
+    '/v1/stats/overview',
+    rangeQuery(range),
+  );
+}

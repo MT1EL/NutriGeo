@@ -95,9 +95,9 @@ export const Spacing = {
 };
 
 export const Type = {
-  xs: 12,
-  sm: 13,
-  base: 15,
+  xs: 13,
+  sm: 14,
+  base: 16,
   lg: 17,
   xl: 20,
   xxl: 24,
@@ -106,9 +106,9 @@ export const Type = {
 };
 
 export const LineHeight = {
-  xs: 16,
-  sm: 18,
-  base: 22,
+  xs: 18,
+  sm: 20,
+  base: 24,
   lg: 24,
   xl: 28,
   xxl: 32,

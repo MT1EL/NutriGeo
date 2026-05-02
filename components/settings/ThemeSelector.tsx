@@ -1,0 +1,110 @@
+import ThemedText from "@/components/ui/ThemedText";
+import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import type { ThemeMode } from "@/hooks/use-settings";
+import { Globe, LucideIcon, Moon, Sun } from "lucide-react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
+
+const OPTIONS: { key: ThemeMode; label: string; Icon: LucideIcon }[] = [
+  { key: "system", label: "სისტემა", Icon: Globe },
+  { key: "light", label: "ღია", Icon: Sun },
+  { key: "dark", label: "მუქი", Icon: Moon },
+];
+
+type Props = {
+  value: ThemeMode;
+  onChange: (next: ThemeMode) => void;
+  disabled?: boolean;
+};
+
+export default function ThemeSelector({ value, onChange, disabled }: Props) {
+  const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
+
+  return (
+    <View style={{ gap: Spacing.sm }}>
+      <ThemedText style={styles.groupLabel} type="secondary">
+        თემა
+      </ThemedText>
+      <View style={styles.row}>
+        {OPTIONS.map(({ key, label, Icon }) => {
+          const isActive = value === key;
+          return (
+            <TouchableOpacity
+              key={key}
+              onPress={() => onChange(key)}
+              disabled={disabled}
+              activeOpacity={0.85}
+              style={[
+                styles.card,
+                {
+                  backgroundColor: isActive ? theme.brandSoft : theme.card,
+                  borderColor: isActive ? theme.brand : theme.border,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.icon,
+                  {
+                    backgroundColor: isActive ? theme.brand : theme.borderLight,
+                  },
+                ]}
+              >
+                <Icon
+                  color={isActive ? "#FFFFFF" : theme.textSecondary}
+                  size={18}
+                />
+              </View>
+              <ThemedText
+                style={styles.label}
+                color={isActive ? theme.brand : theme.text}
+              >
+                {label}
+              </ThemedText>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  groupLabel: {
+    fontSize: Type.xs,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+    marginLeft: Spacing.xs,
+    opacity: 0.7,
+  },
+  row: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  card: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  icon: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  label: {
+    fontSize: Type.sm,
+    fontWeight: "700",
+  },
+});
