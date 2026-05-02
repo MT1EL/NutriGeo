@@ -45,6 +45,19 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9b6096fc-37a4-43ea-a4bd-2fce2113fbb8"
+      }
+    },
+    "owner": "tornike13",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9b6096fc-37a4-43ea-a4bd-2fce2113fbb8"
     }
   }
 }

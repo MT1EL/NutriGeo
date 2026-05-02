@@ -101,16 +101,18 @@ const Input = ({
           autoCorrect={!secure}
         />
       </View>
-      <ThemedText style={styles.errorText} color={theme.error}>
-        {errorText}
-      </ThemedText>
-      {actionText && !errorText && (
-        <TouchableOpacity onPress={onActionTextPress}>
-          <ThemedText style={styles.forgotPasswordText} type="secondary">
-            {actionText}
-          </ThemedText>
-        </TouchableOpacity>
-      )}
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <ThemedText style={styles.errorText} color={theme.error}>
+          {errorText}
+        </ThemedText>
+        {actionText && !errorText && (
+          <TouchableOpacity onPress={onActionTextPress}>
+            <ThemedText style={styles.forgotPasswordText} type="secondary">
+              {actionText}
+            </ThemedText>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
