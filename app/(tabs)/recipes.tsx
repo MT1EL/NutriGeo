@@ -1,9 +1,11 @@
+import { getFeaturedRecipes, listRecipes } from "@/api/recipes";
+import type { Recipe } from "@/api/types";
 import RecipeCard from "@/components/cards/RecipeCard";
 import Header from "@/components/headers";
 import ThemedText from "@/components/ui/ThemedText";
-import { Recipe, RECIPE_CATEGORIES, RECIPES } from "@/constants/recipes";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
+import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
@@ -14,8 +16,9 @@ import {
   Star,
   Users,
 } from "lucide-react-native";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   LayoutChangeEvent,
   ScrollView,
@@ -26,6 +29,31 @@ import {
 } from "react-native";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
+const RECIPE_CATEGORIES = [
+  { key: "all", label: "ყველა" },
+  { key: "breakfast", label: "საუზმე" },
+  { key: "lunch", label: "სადილი" },
+  { key: "dinner", label: "ვახშამი" },
+  { key: "dessert", label: "დესერტი" },
+  { key: "vegan", label: "ვეგეტარიანული" },
+  { key: "quick", label: "სწრაფი" },
+];
+
+const DIFFICULTY_LABELS: Record<NonNullable<Recipe["difficulty"]>, string> = {
+  easy: "მარტივი",
+  medium: "საშუალო",
+  hard: "რთული",
+};
+
+function difficultyLabel(d: Recipe["difficulty"]) {
+  if (!d) return "—";
+  return DIFFICULTY_LABELS[d];
+}
+
+function imageSource(url: string | undefined) {
+  return url ? { uri: url } : require("@/assets/images/cheesecake.png");
+}
+
 const HeroRecipe = ({ recipe }: { recipe: Recipe }) => {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -35,6 +63,8 @@ const HeroRecipe = ({ recipe }: { recipe: Recipe }) => {
     if (width !== size.w || height !== size.h) setSize({ w: width, h: height });
   };
 
+  const tagLabel = recipe.dietary_tags?.[0];
+
   return (
     <TouchableOpacity
       activeOpacity={0.9}
@@ -42,7 +72,7 @@ const HeroRecipe = ({ recipe }: { recipe: Recipe }) => {
     >
       <View style={styles.hero} onLayout={onLayout}>
         <Image
-          source={recipe.cover}
+          source={imageSource(recipe.cover_url)}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
         />
@@ -70,16 +100,12 @@ const HeroRecipe = ({ recipe }: { recipe: Recipe }) => {
               კვირის რჩეული
             </ThemedText>
           </View>
-          {recipe.tag && (
+          {tagLabel && (
             <View
-              style={[
-                styles.heroTag,
-                { backgroundColor: recipe.tag.color + "EE" },
-              ]}
+              style={[styles.heroTag, { backgroundColor: theme.brand + "EE" }]}
             >
-              <recipe.tag.Icon color="#FFFFFF" size={11} />
               <ThemedText style={styles.heroTagText} color="#FFFFFF">
-                {recipe.tag.label}
+                {tagLabel}
               </ThemedText>
             </View>
           )}
@@ -93,24 +119,26 @@ const HeroRecipe = ({ recipe }: { recipe: Recipe }) => {
           >
             {recipe.title}
           </ThemedText>
-          <ThemedText
-            style={styles.heroDesc}
-            color="rgba(255,255,255,0.85)"
-            numberOfLines={2}
-          >
-            {recipe.description}
-          </ThemedText>
+          {recipe.description && (
+            <ThemedText
+              style={styles.heroDesc}
+              color="rgba(255,255,255,0.85)"
+              numberOfLines={2}
+            >
+              {recipe.description}
+            </ThemedText>
+          )}
           <View style={styles.heroMetaRow}>
             <View style={styles.heroMeta}>
               <Flame color="#FFFFFF" size={12} />
               <ThemedText style={styles.heroMetaText} color="#FFFFFF">
-                {recipe.calories} კალ
+                {recipe.kcal} კალ
               </ThemedText>
             </View>
             <View style={styles.heroMeta}>
               <Clock color="#FFFFFF" size={12} />
               <ThemedText style={styles.heroMetaText} color="#FFFFFF">
-                {recipe.durationMin} წთ
+                {recipe.duration_min} წთ
               </ThemedText>
             </View>
             <View style={styles.heroMeta}>
@@ -119,12 +147,14 @@ const HeroRecipe = ({ recipe }: { recipe: Recipe }) => {
                 {recipe.servings} პორცია
               </ThemedText>
             </View>
-            <View style={styles.heroMeta}>
-              <Star color="#FFB020" size={12} fill="#FFB020" />
-              <ThemedText style={styles.heroMetaText} color="#FFFFFF">
-                {recipe.rating}
-              </ThemedText>
-            </View>
+            {recipe.rating.rating_count > 0 && (
+              <View style={styles.heroMeta}>
+                <Star color="#FFB020" size={12} fill="#FFB020" />
+                <ThemedText style={styles.heroMetaText} color="#FFFFFF">
+                  {recipe.rating.avg_rating.toFixed(1)}
+                </ThemedText>
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -136,31 +166,78 @@ export default function RecipesScreen() {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const [active, setActive] = useState<string>("all");
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
-  const filtered = useMemo(() => {
-    if (active === "all") return RECIPES;
-    return RECIPES.filter((r) => r.categories.includes(active));
-  }, [active]);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQuery(searchInput.trim()), 300);
+    return () => clearTimeout(id);
+  }, [searchInput]);
 
-  const [hero, ...rest] = filtered;
+  const listQuery = useQuery({
+    queryKey: ["recipes", "list", active, debouncedQuery],
+    queryFn: () =>
+      listRecipes({
+        limit: 30,
+        ...(active !== "all" ? { category: active } : {}),
+        ...(debouncedQuery ? { q: debouncedQuery } : {}),
+      }),
+  });
+  const featuredQuery = useQuery({
+    queryKey: ["recipes", "featured"],
+    queryFn: getFeaturedRecipes,
+    enabled: !debouncedQuery,
+  });
+
+  const rawRecipes: Recipe[] = useMemo(() => {
+    const raw = listQuery.data?.data;
+    return Array.isArray(raw) ? raw : [];
+  }, [listQuery.data]);
+
+  // Client-side fallback filter so search works even if backend ignores ?q=.
+  const recipes: Recipe[] = useMemo(() => {
+    if (!debouncedQuery) return rawRecipes;
+    const needle = debouncedQuery.toLowerCase();
+    return rawRecipes.filter(
+      (r) =>
+        r.title.toLowerCase().includes(needle) ||
+        (r.description?.toLowerCase().includes(needle) ?? false),
+    );
+  }, [rawRecipes, debouncedQuery]);
+
+  const featuredList: Recipe[] = useMemo(() => {
+    const raw = featuredQuery.data?.data;
+    return Array.isArray(raw) ? raw : [];
+  }, [featuredQuery.data]);
+
+  const hero: Recipe | undefined = debouncedQuery
+    ? undefined
+    : active === "all"
+      ? (featuredList[0] ?? recipes[0])
+      : recipes[0];
+  const rest = useMemo(() => {
+    if (!hero) return recipes;
+    return recipes.filter((r) => r.id !== hero.id);
+  }, [recipes, hero]);
+
   const avgCal = useMemo(
     () =>
-      filtered.length === 0
+      recipes.length === 0
         ? 0
-        : Math.round(
-            filtered.reduce((a, r) => a + r.calories, 0) / filtered.length,
-          ),
-    [filtered],
+        : Math.round(recipes.reduce((a, r) => a + r.kcal, 0) / recipes.length),
+    [recipes],
   );
   const avgTime = useMemo(
     () =>
-      filtered.length === 0
+      recipes.length === 0
         ? 0
         : Math.round(
-            filtered.reduce((a, r) => a + r.durationMin, 0) / filtered.length,
+            recipes.reduce((a, r) => a + r.duration_min, 0) / recipes.length,
           ),
-    [filtered],
+    [recipes],
   );
+
+  const isLoading = listQuery.isLoading;
 
   const ListHeader = (
     <View style={{ gap: Spacing.lg }}>
@@ -196,7 +273,7 @@ export default function RecipesScreen() {
         })}
       </ScrollView>
 
-      {filtered.length > 0 && (
+      {recipes.length > 0 && (
         <View
           style={[
             styles.statsBar,
@@ -205,7 +282,7 @@ export default function RecipesScreen() {
         >
           <View style={styles.statsItem}>
             <ChefHat color={theme.brand} size={14} />
-            <ThemedText style={styles.statsValue}>{filtered.length}</ThemedText>
+            <ThemedText style={styles.statsValue}>{recipes.length}</ThemedText>
             <ThemedText type="secondary" style={styles.statsLabel}>
               რეცეპტი
             </ThemedText>
@@ -246,7 +323,11 @@ export default function RecipesScreen() {
     </View>
   );
 
-  const ListEmpty = (
+  const ListEmpty = isLoading ? (
+    <View style={styles.loaderRow}>
+      <ActivityIndicator color={theme.brand} />
+    </View>
+  ) : (
     <View style={styles.empty}>
       <View style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}>
         <Search color={theme.brand} size={28} />
@@ -260,7 +341,12 @@ export default function RecipesScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.surface }]}>
-      <Header title="რეცეპტები" />
+      <Header
+        title="რეცეპტები"
+        inputPlaceholder="მოძებნე რეცეპტი..."
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+      />
       <FlatList
         data={rest}
         keyExtractor={(item) => item.id}
@@ -268,12 +354,17 @@ export default function RecipesScreen() {
           <RecipeCard
             id={item.id}
             title={item.title}
-            description={item.description}
-            calories={item.calories}
-            durationMin={item.durationMin}
+            description={item.description ?? ""}
+            calories={item.kcal}
+            durationMin={item.duration_min}
             servings={item.servings}
-            difficulty={item.difficulty}
-            tag={item.tag}
+            difficulty={difficultyLabel(item.difficulty)}
+            image={imageSource(item.cover_url)}
+            tag={
+              item.dietary_tags?.[0]
+                ? { label: item.dietary_tags[0], color: theme.brand }
+                : undefined
+            }
             initiallySaved={item.saved}
           />
         )}
@@ -283,6 +374,9 @@ export default function RecipesScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={{ height: Spacing.md }} />}
+        refreshing={listQuery.isFetching}
+        onRefresh={() => listQuery.refetch()}
+        keyboardShouldPersistTaps="handled"
       />
     </View>
   );
@@ -440,5 +534,9 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: Type.sm,
+  },
+  loaderRow: {
+    paddingVertical: Spacing.huge,
+    alignItems: "center",
   },
 });

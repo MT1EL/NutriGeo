@@ -1,13 +1,17 @@
+import {
+  getRecipeById,
+  getSavedRecipes,
+  listRecipes,
+  saveRecipe,
+  unsaveRecipe,
+} from "@/api/recipes";
+import type { Recipe } from "@/api/types";
 import BaseCard from "@/components/cards/BaseCard";
 import ThemedText from "@/components/ui/ThemedText";
-import { getRecipe, RECIPES } from "@/constants/recipes";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import {
-  Canvas,
-  LinearGradient,
-  Rect,
-  vec,
-} from "@shopify/react-native-skia";
+import { useToast } from "@/contexts/ToastContext";
+import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import {
@@ -24,9 +28,11 @@ import {
   Users,
   Wheat,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
+  Share,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
@@ -36,20 +42,116 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const HERO_HEIGHT = 360;
 
+const DIFFICULTY_LABELS: Record<NonNullable<Recipe["difficulty"]>, string> = {
+  easy: "მარტივი",
+  medium: "საშუალო",
+  hard: "რთული",
+};
+
+function difficultyLabel(d: Recipe["difficulty"]) {
+  if (!d) return "—";
+  return DIFFICULTY_LABELS[d];
+}
+
+function imageSource(url: string | undefined) {
+  return url ? { uri: url } : require("@/assets/images/cheesecake.png");
+}
+
 export default function RecipeDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const recipe = getRecipe(id);
+  const toast = useToast();
+  const queryClient = useQueryClient();
 
-  const [saved, setSaved] = useState(!!recipe?.saved);
+  const recipeQuery = useQuery({
+    queryKey: ["recipes", "detail", id],
+    queryFn: () => getRecipeById(id!),
+    enabled: !!id,
+  });
+  const relatedQuery = useQuery({
+    queryKey: ["recipes", "list"],
+    queryFn: () => listRecipes({ limit: 10 }),
+  });
+  const savedListQuery = useQuery({
+    queryKey: ["recipes", "saved"],
+    queryFn: getSavedRecipes,
+  });
+
+  const recipe = recipeQuery.data?.data;
+  const relatedAll: Recipe[] = useMemo(() => {
+    const raw = relatedQuery.data?.data;
+    return Array.isArray(raw) ? raw : [];
+  }, [relatedQuery.data]);
+  const related = useMemo(
+    () => relatedAll.filter((r) => r.id !== id).slice(0, 3),
+    [relatedAll, id],
+  );
+
+  const isSavedFromList = useMemo(() => {
+    if (!id) return false;
+    const raw = savedListQuery.data?.data;
+    if (!Array.isArray(raw)) return false;
+    return raw.some((r) => r.id === id);
+  }, [savedListQuery.data, id]);
+
+  const [savedOverride, setSavedOverride] = useState<boolean | null>(null);
+  const saved =
+    savedOverride !== null
+      ? savedOverride
+      : !!recipe?.saved || isSavedFromList;
+
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [doneSteps, setDoneSteps] = useState<Set<number>>(new Set());
 
+  const saveMutation = useMutation({
+    mutationFn: ({ next }: { next: boolean }) =>
+      next ? saveRecipe(id!) : unsaveRecipe(id!),
+    onMutate: ({ next }) => {
+      setSavedOverride(next);
+    },
+    onError: (err, { next }) => {
+      setSavedOverride(!next);
+      const message =
+        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
+      toast.error(message, "შეცდომა");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recipes", "detail", id] });
+      queryClient.invalidateQueries({ queryKey: ["recipes", "saved"] });
+    },
+  });
+
+  const handleShare = async () => {
+    if (!recipe) return;
+    try {
+      await Share.share({
+        title: recipe.title,
+        message: `${recipe.title}\n\n${recipe.description ?? ""}`.trim(),
+      });
+    } catch {
+      // user cancelled
+    }
+  };
+
+  if (recipeQuery.isLoading) {
+    return (
+      <SafeAreaView
+        style={[styles.notFound, { backgroundColor: theme.surface }]}
+      >
+        <ActivityIndicator color={theme.brand} />
+      </SafeAreaView>
+    );
+  }
+
   if (!recipe) {
     return (
-      <SafeAreaView style={[styles.notFound, { backgroundColor: theme.surface }]}>
-        <ThemedText style={styles.notFoundText}>რეცეპტი ვერ მოიძებნა</ThemedText>
+      <SafeAreaView
+        style={[styles.notFound, { backgroundColor: theme.surface }]}
+      >
+        <ThemedText style={styles.notFoundText}>
+          რეცეპტი ვერ მოიძებნა
+        </ThemedText>
         <TouchableOpacity onPress={() => router.back()}>
           <ThemedText color={theme.brand} style={styles.notFoundLink}>
             უკან დაბრუნება
@@ -77,32 +179,34 @@ export default function RecipeDetail() {
     });
   };
 
-  const macroTotal = recipe.protein + recipe.carbs + recipe.fat;
+  const ingredients = recipe.ingredients ?? [];
+  const steps = recipe.steps ?? [];
+  const dietaryTags = recipe.dietary_tags ?? [];
+
+  const macroTotal = recipe.protein_g + recipe.carbs_g + recipe.fat_g || 1;
   const macros = [
     {
       label: "ცილა",
-      g: recipe.protein,
-      pct: Math.round((recipe.protein / macroTotal) * 100),
+      g: recipe.protein_g,
+      pct: Math.round((recipe.protein_g / macroTotal) * 100),
       color: theme.macroProtein,
       Icon: Beef,
     },
     {
       label: "ნახშირწყ.",
-      g: recipe.carbs,
-      pct: Math.round((recipe.carbs / macroTotal) * 100),
+      g: recipe.carbs_g,
+      pct: Math.round((recipe.carbs_g / macroTotal) * 100),
       color: theme.macroCarbs,
       Icon: Wheat,
     },
     {
       label: "ცხიმი",
-      g: recipe.fat,
-      pct: Math.round((recipe.fat / macroTotal) * 100),
+      g: recipe.fat_g,
+      pct: Math.round((recipe.fat_g / macroTotal) * 100),
       color: theme.macroFat,
       Icon: Droplet,
     },
   ];
-
-  const related = RECIPES.filter((r) => r.id !== recipe.id).slice(0, 3);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.surface }}>
@@ -112,7 +216,7 @@ export default function RecipeDetail() {
       >
         <View style={styles.heroWrap}>
           <Image
-            source={recipe.cover}
+            source={imageSource(recipe.cover_url)}
             style={styles.hero}
             contentFit="cover"
           />
@@ -124,7 +228,11 @@ export default function RecipeDetail() {
               <LinearGradient
                 start={vec(0, 0)}
                 end={vec(0, HERO_HEIGHT)}
-                colors={["rgba(0,0,0,0.55)", "rgba(0,0,0,0)", "rgba(0,0,0,0.85)"]}
+                colors={[
+                  "rgba(0,0,0,0.55)",
+                  "rgba(0,0,0,0)",
+                  "rgba(0,0,0,0.85)",
+                ]}
               />
             </Rect>
           </Canvas>
@@ -141,10 +249,11 @@ export default function RecipeDetail() {
               </TouchableOpacity>
               <View style={styles.topRowRight}>
                 <TouchableOpacity
-                  onPress={() => setSaved((s) => !s)}
+                  onPress={() => saveMutation.mutate({ next: !saved })}
                   style={styles.iconBtn}
                   activeOpacity={0.8}
                   hitSlop={6}
+                  disabled={saveMutation.isPending}
                 >
                   <Heart
                     color={saved ? "#FF4D6D" : "#FFFFFF"}
@@ -156,6 +265,7 @@ export default function RecipeDetail() {
                   style={styles.iconBtn}
                   activeOpacity={0.8}
                   hitSlop={6}
+                  onPress={handleShare}
                 >
                   <Share2 color="#FFFFFF" size={18} />
                 </TouchableOpacity>
@@ -163,37 +273,39 @@ export default function RecipeDetail() {
             </View>
 
             <View style={styles.heroBottom}>
-              {recipe.tag && (
+              {dietaryTags[0] && (
                 <View
-                  style={[
-                    styles.tag,
-                    { backgroundColor: recipe.tag.color + "EE" },
-                  ]}
+                  style={[styles.tag, { backgroundColor: theme.brand + "EE" }]}
                 >
-                  <recipe.tag.Icon color="#FFFFFF" size={11} />
                   <ThemedText style={styles.tagText} color="#FFFFFF">
-                    {recipe.tag.label}
+                    {dietaryTags[0]}
                   </ThemedText>
                 </View>
               )}
-              <ThemedText style={styles.title} color="#FFFFFF" numberOfLines={2}>
+              <ThemedText
+                style={styles.title}
+                color="#FFFFFF"
+                numberOfLines={2}
+              >
                 {recipe.title}
               </ThemedText>
-              <View style={styles.ratingRow}>
-                <Star color="#FFB020" size={13} fill="#FFB020" />
-                <ThemedText
-                  style={styles.ratingText}
-                  color="rgba(255,255,255,0.95)"
-                >
-                  {recipe.rating}
-                </ThemedText>
-                <ThemedText
-                  style={styles.ratingCount}
-                  color="rgba(255,255,255,0.7)"
-                >
-                  ({recipe.ratingCount} შეფასება)
-                </ThemedText>
-              </View>
+              {recipe.rating.rating_count > 0 && (
+                <View style={styles.ratingRow}>
+                  <Star color="#FFB020" size={13} fill="#FFB020" />
+                  <ThemedText
+                    style={styles.ratingText}
+                    color="rgba(255,255,255,0.95)"
+                  >
+                    {recipe.rating.avg_rating.toFixed(1)}
+                  </ThemedText>
+                  <ThemedText
+                    style={styles.ratingCount}
+                    color="rgba(255,255,255,0.7)"
+                  >
+                    ({recipe.rating.rating_count} შეფასება)
+                  </ThemedText>
+                </View>
+              )}
             </View>
           </SafeAreaView>
         </View>
@@ -202,7 +314,9 @@ export default function RecipeDetail() {
           <BaseCard style={styles.statsCardInner}>
             <View style={styles.statCol}>
               <Clock color={theme.brand} size={18} />
-              <ThemedText style={styles.statValue}>{recipe.durationMin} წთ</ThemedText>
+              <ThemedText style={styles.statValue}>
+                {recipe.duration_min} წთ
+              </ThemedText>
               <ThemedText style={styles.statLabel} type="secondary">
                 დრო
               </ThemedText>
@@ -212,7 +326,9 @@ export default function RecipeDetail() {
             />
             <View style={styles.statCol}>
               <Users color={theme.brand} size={18} />
-              <ThemedText style={styles.statValue}>{recipe.servings}</ThemedText>
+              <ThemedText style={styles.statValue}>
+                {recipe.servings}
+              </ThemedText>
               <ThemedText style={styles.statLabel} type="secondary">
                 პორცია
               </ThemedText>
@@ -223,7 +339,7 @@ export default function RecipeDetail() {
             <View style={styles.statCol}>
               <ChefHat color={theme.brand} size={18} />
               <ThemedText style={styles.statValue} numberOfLines={1}>
-                {recipe.difficulty}
+                {difficultyLabel(recipe.difficulty)}
               </ThemedText>
               <ThemedText style={styles.statLabel} type="secondary">
                 სირთულე
@@ -233,13 +349,15 @@ export default function RecipeDetail() {
         </View>
 
         <View style={styles.body}>
-          <ThemedText style={styles.lead} type="secondary">
-            {recipe.fullDescription}
-          </ThemedText>
+          {recipe.description && (
+            <ThemedText style={styles.lead} type="secondary">
+              {recipe.description}
+            </ThemedText>
+          )}
 
-          {recipe.dietaryTags.length > 0 && (
+          {dietaryTags.length > 0 && (
             <View style={styles.dietaryRow}>
-              {recipe.dietaryTags.map((t) => (
+              {dietaryTags.map((t) => (
                 <View
                   key={t}
                   style={[
@@ -260,7 +378,10 @@ export default function RecipeDetail() {
             <View style={styles.cardHeader}>
               <View style={styles.cardHeaderLeft}>
                 <View
-                  style={[styles.cardIcon, { backgroundColor: theme.brandSoft }]}
+                  style={[
+                    styles.cardIcon,
+                    { backgroundColor: theme.brandSoft },
+                  ]}
                 >
                   <Flame color={theme.brand} size={18} />
                 </View>
@@ -274,13 +395,10 @@ export default function RecipeDetail() {
                 </View>
               </View>
               <View
-                style={[
-                  styles.calBadge,
-                  { backgroundColor: theme.brandSoft },
-                ]}
+                style={[styles.calBadge, { backgroundColor: theme.brandSoft }]}
               >
                 <ThemedText style={styles.calBadgeText} color={theme.brand}>
-                  {recipe.calories} კალ
+                  {recipe.kcal} კალ
                 </ThemedText>
               </View>
             </View>
@@ -301,7 +419,10 @@ export default function RecipeDetail() {
               {macros.map(({ label, g, pct, color, Icon }) => (
                 <View key={label} style={styles.macroRow}>
                   <View
-                    style={[styles.macroIcon, { backgroundColor: color + "22" }]}
+                    style={[
+                      styles.macroIcon,
+                      { backgroundColor: color + "22" },
+                    ]}
                   >
                     <Icon color={color} size={14} />
                   </View>
@@ -319,160 +440,173 @@ export default function RecipeDetail() {
             </View>
           </BaseCard>
 
-          <BaseCard>
-            <View style={styles.cardHeader}>
-              <View style={{ gap: 2 }}>
-                <ThemedText style={styles.cardTitle}>ინგრედიენტები</ThemedText>
-                <ThemedText type="secondary" style={styles.cardCaption}>
-                  {recipe.ingredients.length} კომპონენტი · {checked.size} მონიშნულია
-                </ThemedText>
+          {ingredients.length > 0 && (
+            <BaseCard>
+              <View style={styles.cardHeader}>
+                <View style={{ gap: 2 }}>
+                  <ThemedText style={styles.cardTitle}>
+                    ინგრედიენტები
+                  </ThemedText>
+                  <ThemedText type="secondary" style={styles.cardCaption}>
+                    {ingredients.length} კომპონენტი · {checked.size} მონიშნულია
+                  </ThemedText>
+                </View>
               </View>
-            </View>
-            <View style={{ gap: Spacing.sm }}>
-              {recipe.ingredients.map((ing, i) => {
-                const isChecked = checked.has(i);
-                return (
-                  <TouchableOpacity
-                    key={i}
-                    activeOpacity={0.6}
-                    onPress={() => toggleIngredient(i)}
-                    style={styles.ingredientRow}
-                  >
-                    <View
-                      style={[
-                        styles.checkBox,
-                        {
-                          backgroundColor: isChecked
-                            ? theme.brand
-                            : "transparent",
-                          borderColor: isChecked ? theme.brand : theme.border,
-                        },
-                      ]}
+              <View style={{ gap: Spacing.sm }}>
+                {ingredients.map((ing, i) => {
+                  const isChecked = checked.has(i);
+                  return (
+                    <TouchableOpacity
+                      key={i}
+                      activeOpacity={0.6}
+                      onPress={() => toggleIngredient(i)}
+                      style={styles.ingredientRow}
                     >
-                      {isChecked && (
-                        <ThemedText style={styles.checkText} color="#FFFFFF">
-                          ✓
-                        </ThemedText>
-                      )}
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <ThemedText
+                      <View
                         style={[
-                          styles.ingredientName,
-                          isChecked && {
-                            textDecorationLine: "line-through",
-                            opacity: 0.5,
+                          styles.checkBox,
+                          {
+                            backgroundColor: isChecked
+                              ? theme.brand
+                              : "transparent",
+                            borderColor: isChecked ? theme.brand : theme.border,
                           },
                         ]}
                       >
-                        {ing.name}
-                      </ThemedText>
-                    </View>
-                    <ThemedText style={styles.ingredientQty} type="secondary">
-                      {ing.qty}
-                    </ThemedText>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </BaseCard>
-
-          <BaseCard>
-            <View style={styles.cardHeader}>
-              <View style={{ gap: 2 }}>
-                <ThemedText style={styles.cardTitle}>მომზადება</ThemedText>
-                <ThemedText type="secondary" style={styles.cardCaption}>
-                  {recipe.steps.length} ნაბიჯი · {doneSteps.size}/{recipe.steps.length} შესრულებულია
-                </ThemedText>
-              </View>
-            </View>
-            <View style={{ gap: Spacing.md }}>
-              {recipe.steps.map((step, i) => {
-                const isDone = doneSteps.has(i);
-                return (
-                  <TouchableOpacity
-                    key={i}
-                    activeOpacity={0.7}
-                    onPress={() => toggleStep(i)}
-                    style={styles.stepRow}
-                  >
-                    <View
-                      style={[
-                        styles.stepNum,
-                        {
-                          backgroundColor: isDone ? theme.brand : theme.brandSoft,
-                          borderColor: theme.brand,
-                        },
-                      ]}
-                    >
-                      <ThemedText
-                        style={styles.stepNumText}
-                        color={isDone ? "#FFFFFF" : theme.brand}
-                      >
-                        {i + 1}
-                      </ThemedText>
-                    </View>
-                    <View style={{ flex: 1, gap: 4 }}>
-                      <ThemedText
-                        style={[
-                          styles.stepText,
-                          isDone && { opacity: 0.5 },
-                        ]}
-                      >
-                        {step.text}
-                      </ThemedText>
-                      {step.durationMin !== undefined && (
-                        <View style={styles.stepMeta}>
-                          <Clock color={theme.textSecondary} size={11} />
-                          <ThemedText
-                            style={styles.stepMetaText}
-                            type="secondary"
-                          >
-                            ~{step.durationMin} წთ
+                        {isChecked && (
+                          <ThemedText style={styles.checkText} color="#FFFFFF">
+                            ✓
                           </ThemedText>
-                        </View>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </BaseCard>
-
-          <View style={{ gap: Spacing.md }}>
-            <ThemedText style={styles.sectionTitle}>მსგავსი რეცეპტი</ThemedText>
-            <View style={{ gap: Spacing.md }}>
-              {related.map((r) => (
-                <TouchableOpacity
-                  key={r.id}
-                  activeOpacity={0.85}
-                  onPress={() => router.push(`/recipes/${r.id}`)}
-                >
-                  <BaseCard style={styles.relatedCard}>
-                    <Image
-                      source={r.cover}
-                      style={styles.relatedImage}
-                      contentFit="cover"
-                    />
-                    <View style={{ flex: 1, gap: 4 }}>
-                      <ThemedText style={styles.relatedTitle} numberOfLines={1}>
-                        {r.title}
-                      </ThemedText>
-                      <View style={styles.relatedMeta}>
-                        <Flame color={theme.textSecondary} size={11} />
+                        )}
+                      </View>
+                      <View style={{ flex: 1 }}>
                         <ThemedText
-                          style={styles.relatedMetaText}
-                          type="secondary"
+                          style={[
+                            styles.ingredientName,
+                            isChecked && {
+                              textDecorationLine: "line-through",
+                              opacity: 0.5,
+                            },
+                          ]}
                         >
-                          {r.calories} კალ · {r.durationMin} წთ
+                          {ing.name}
                         </ThemedText>
                       </View>
-                    </View>
-                  </BaseCard>
-                </TouchableOpacity>
-              ))}
+                      <ThemedText style={styles.ingredientQty} type="secondary">
+                        {ing.qty}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </BaseCard>
+          )}
+
+          {steps.length > 0 && (
+            <BaseCard>
+              <View style={styles.cardHeader}>
+                <View style={{ gap: 2 }}>
+                  <ThemedText style={styles.cardTitle}>მომზადება</ThemedText>
+                  <ThemedText type="secondary" style={styles.cardCaption}>
+                    {steps.length} ნაბიჯი · {doneSteps.size}/{steps.length}{" "}
+                    შესრულებულია
+                  </ThemedText>
+                </View>
+              </View>
+              <View style={{ gap: Spacing.md }}>
+                {steps.map((step, i) => {
+                  const isDone = doneSteps.has(i);
+                  return (
+                    <TouchableOpacity
+                      key={i}
+                      activeOpacity={0.7}
+                      onPress={() => toggleStep(i)}
+                      style={styles.stepRow}
+                    >
+                      <View
+                        style={[
+                          styles.stepNum,
+                          {
+                            backgroundColor: isDone
+                              ? theme.brand
+                              : theme.brandSoft,
+                            borderColor: theme.brand,
+                          },
+                        ]}
+                      >
+                        <ThemedText
+                          style={styles.stepNumText}
+                          color={isDone ? "#FFFFFF" : theme.brand}
+                        >
+                          {i + 1}
+                        </ThemedText>
+                      </View>
+                      <View style={{ flex: 1, gap: 4 }}>
+                        <ThemedText
+                          style={[styles.stepText, isDone && { opacity: 0.5 }]}
+                        >
+                          {step.text}
+                        </ThemedText>
+                        {step.duration_min !== undefined && (
+                          <View style={styles.stepMeta}>
+                            <Clock color={theme.textSecondary} size={11} />
+                            <ThemedText
+                              style={styles.stepMetaText}
+                              type="secondary"
+                            >
+                              ~{step.duration_min} წთ
+                            </ThemedText>
+                          </View>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </BaseCard>
+          )}
+
+          {related.length > 0 && (
+            <View style={{ gap: Spacing.md }}>
+              <ThemedText style={styles.sectionTitle}>
+                მსგავსი რეცეპტი
+              </ThemedText>
+              <View style={{ gap: Spacing.md }}>
+                {related.map((r) => (
+                  <TouchableOpacity
+                    key={r.id}
+                    activeOpacity={0.85}
+                    onPress={() => router.push(`/recipes/${r.id}`)}
+                  >
+                    <BaseCard style={styles.relatedCard}>
+                      <Image
+                        source={imageSource(r.cover_url)}
+                        style={styles.relatedImage}
+                        contentFit="cover"
+                      />
+                      <View style={{ flex: 1, gap: 4 }}>
+                        <ThemedText
+                          style={styles.relatedTitle}
+                          numberOfLines={1}
+                        >
+                          {r.title}
+                        </ThemedText>
+                        <View style={styles.relatedMeta}>
+                          <Flame color={theme.textSecondary} size={11} />
+                          <ThemedText
+                            style={styles.relatedMetaText}
+                            type="secondary"
+                          >
+                            {r.kcal} კალ · {r.duration_min} წთ
+                          </ThemedText>
+                        </View>
+                      </View>
+                    </BaseCard>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
+          )}
         </View>
       </ScrollView>
     </View>

@@ -5,7 +5,15 @@ import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Image } from "expo-image";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
@@ -42,47 +50,61 @@ const AuthLayout = ({
         { backgroundColor: Colors[colorScheme].surface },
       ]}
     >
-      <View style={styles.headerContainer}>
-        <Text style={[styles.logo, { color: Colors[colorScheme].brand }]}>
-          NUTRIGEO
-        </Text>
-        <Image
-          source={illustrationSource}
-          style={
-            illustrationSize === "small"
-              ? { width: 120, height: 180 }
-              : { width: 270, height: 270 }
-          }
-        />
-      </View>
-      <View style={styles.contentContainer}>
-        <View style={styles.form}>
-          <View>
-            <ThemedText style={styles.formTitle}>{title}</ThemedText>
-            <ThemedText style={styles.formSubtitle} type="secondary">
-              {subtitle}
-            </ThemedText>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerContainer}>
+            <Text style={[styles.logo, { color: Colors[colorScheme].brand }]}>
+              NUTRIGEO
+            </Text>
+            <Image
+              source={illustrationSource}
+              style={
+                illustrationSize === "small"
+                  ? { width: 120, height: 180 }
+                  : { width: 270, height: 270 }
+              }
+            />
           </View>
-          <View style={styles.inputsContainer}>
-            {inputs.map((input, index) => (
-              <Input key={index} {...input} />
-            ))}
-          </View>
-        </View>
-        <View style={styles.footerContainer}>
-          <Button onPress={onPress}>{label}</Button>
-          {footerLinkText && (
-            <View style={styles.footerLinkContainer}>
-              <ThemedText type="secondary">{footerLinkText}</ThemedText>
-              <TouchableOpacity onPress={footerLinkAction}>
-                <ThemedText color={Colors[colorScheme].brand} type="primary">
-                  {footerLinkLabel}
+          <View style={styles.contentContainer}>
+            <View style={styles.form}>
+              <View>
+                <ThemedText style={styles.formTitle}>{title}</ThemedText>
+                <ThemedText style={styles.formSubtitle} type="secondary">
+                  {subtitle}
                 </ThemedText>
-              </TouchableOpacity>
+              </View>
+              <View style={styles.inputsContainer}>
+                {inputs.map((input, index) => (
+                  <Input key={index} {...input} />
+                ))}
+              </View>
             </View>
-          )}
-        </View>
-      </View>
+            <View style={styles.footerContainer}>
+              <Button onPress={onPress}>{label}</Button>
+              {footerLinkText && (
+                <View style={styles.footerLinkContainer}>
+                  <ThemedText type="secondary">{footerLinkText}</ThemedText>
+                  <TouchableOpacity onPress={footerLinkAction}>
+                    <ThemedText
+                      color={Colors[colorScheme].brand}
+                      type="primary"
+                    >
+                      {footerLinkLabel}
+                    </ThemedText>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -92,6 +114,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 60,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   headerContainer: {
     alignItems: "center",

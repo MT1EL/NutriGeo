@@ -26,13 +26,13 @@ const SexPage = () => {
             style={[
               styles.card,
               { backgroundColor: Colors[colorScheme].background },
-              data.sex === item && {
+              data.biological_sex === item && {
                 borderWidth: 1,
                 borderColor: Colors[colorScheme].brand,
                 backgroundColor: Colors[colorScheme].tint,
               },
             ]}
-            onPress={() => setField("sex", item)}
+            onPress={() => setField("biological_sex", item)}
             key={item}
           >
             <Image

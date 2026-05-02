@@ -1,8 +1,13 @@
+import { Diet } from "@/api";
+import { HealthInput, updateHealth } from "@/api/profile";
 import BaseCard from "@/components/cards/BaseCard";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import Button from "@/components/ui/Button";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Apple,
   Beef,
@@ -17,7 +22,7 @@ import {
   Wheat,
   Wine,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -25,15 +30,19 @@ import {
   View,
 } from "react-native";
 
-type Diet = "none" | "vegan" | "vegetarian" | "keto" | "mediterranean";
-
-const DIETS: { key: Diet; label: string; Icon: typeof Apple; color: string }[] = [
-  { key: "none", label: "ჩვეულებრივი", Icon: Apple, color: "#64748B" },
-  { key: "vegetarian", label: "ვეგეტარიანული", Icon: Sprout, color: "#34A867" },
-  { key: "vegan", label: "ვეგანური", Icon: Leaf, color: "#16A34A" },
-  { key: "keto", label: "კეტო", Icon: Beef, color: "#7C5CFF" },
-  { key: "mediterranean", label: "ხმელთაშუა", Icon: Fish, color: "#3FA9F5" },
-];
+const DIETS: { key: Diet; label: string; Icon: typeof Apple; color: string }[] =
+  [
+    { key: "none", label: "ჩვეულებრივი", Icon: Apple, color: "#64748B" },
+    {
+      key: "vegetarian",
+      label: "ვეგეტარიანული",
+      Icon: Sprout,
+      color: "#34A867",
+    },
+    { key: "vegan", label: "ვეგანური", Icon: Leaf, color: "#16A34A" },
+    { key: "keto", label: "კეტო", Icon: Beef, color: "#7C5CFF" },
+    // { key: "mediterranean", label: "ხმელთაშუა", Icon: Fish, color: "#3FA9F5" },
+  ];
 
 const ALLERGIES = [
   { key: "milk", label: "რძე", Icon: Milk },
@@ -53,9 +62,15 @@ const RESTRICTIONS = [
 export default function HealthScreen() {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const [diet, setDiet] = useState<Diet>("none");
-  const [allergies, setAllergies] = useState<Set<string>>(new Set(["nuts"]));
-  const [restrictions, setRestrictions] = useState<Set<string>>(new Set());
+  const toast = useToast();
+  const { user, refreshUser } = useAuth();
+  const [diet, setDiet] = useState<Diet>(user?.health.diet || "none");
+  const [allergies, setAllergies] = useState<Set<string>>(
+    new Set(user?.health.allergies),
+  );
+  const [restrictions, setRestrictions] = useState<Set<string>>(
+    new Set(user?.health.restrictions),
+  );
 
   const toggle = (set: Set<string>, key: string) => {
     const next = new Set(set);
@@ -63,12 +78,33 @@ export default function HealthScreen() {
     else next.add(key);
     return next;
   };
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (input: HealthInput) => updateHealth(input),
+    onSuccess: async (res) => {
+      queryClient.setQueryData(["Profile"], res);
+      await queryClient.invalidateQueries({ queryKey: ["Profile"] });
+      await refreshUser();
+      toast.success("ჯანმრთელობის მონაცემები შენახულია");
+    },
+    onError: (err) => {
+      const message =
+        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
+      toast.error(message, "შეცდომა");
+    },
+  });
+
+  const handleSave = () => {
+    const payload: HealthInput = {
+      diet,
+      allergies: [...allergies],
+      restrictions: [...restrictions],
+    };
+    mutation.mutate(payload);
+  };
 
   return (
-    <SubScreenLayout
-      title="ჯანმრთელობა"
-      subtitle="ალერგია, შეზღუდვები, დიეტა"
-    >
+    <SubScreenLayout title="ჯანმრთელობა" subtitle="ალერგია, შეზღუდვები, დიეტა">
       <BaseCard>
         <View style={{ gap: Spacing.xs + 2 }}>
           <ThemedText style={styles.cardTitle}>დიეტური სტილი</ThemedText>
@@ -88,9 +124,7 @@ export default function HealthScreen() {
                   styles.dietRow,
                   {
                     borderColor: isActive ? color : theme.border,
-                    backgroundColor: isActive
-                      ? color + "12"
-                      : theme.card,
+                    backgroundColor: isActive ? color + "12" : theme.card,
                   },
                 ]}
               >
@@ -131,9 +165,7 @@ export default function HealthScreen() {
                 style={[
                   styles.chip,
                   {
-                    backgroundColor: isActive
-                      ? theme.error + "12"
-                      : theme.card,
+                    backgroundColor: isActive ? theme.error + "12" : theme.card,
                     borderColor: isActive ? theme.error : theme.border,
                   },
                 ]}
@@ -172,9 +204,7 @@ export default function HealthScreen() {
                 style={[
                   styles.chip,
                   {
-                    backgroundColor: isActive
-                      ? theme.brandSoft
-                      : theme.card,
+                    backgroundColor: isActive ? theme.brandSoft : theme.card,
                     borderColor: isActive ? theme.brand : theme.border,
                   },
                 ]}
@@ -195,7 +225,9 @@ export default function HealthScreen() {
         </View>
       </BaseCard>
 
-      <Button onPress={() => null}>შენახვა</Button>
+      <Button onPress={handleSave} disabled={mutation.isPending}>
+        {mutation.isPending ? "ინახება..." : "შენახვა"}
+      </Button>
     </SubScreenLayout>
   );
 }

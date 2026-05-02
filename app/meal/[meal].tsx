@@ -1,17 +1,33 @@
+import { deleteFoodLog, getFoodLog } from "@/api/foodLog";
+import type { ApiResponse, Food, FoodLogEntry } from "@/api/types";
 import FoodCard from "@/components/cards/FoodCard";
+import FoodDetailSheet from "@/components/sheets/FoodDetailSheet";
 import Button from "@/components/ui/Button";
 import ThemedText from "@/components/ui/ThemedText";
 import {
   isMealKey,
   MEAL_CONFIGS,
+  MEAL_KEY_TO_API,
   MealKey,
-  summarizeMeal,
 } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useToast } from "@/contexts/ToastContext";
+import {
+  caloriesForFood,
+  macroForFood,
+  servingLabel,
+} from "@/utils/foodMath";
+import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { Plus, X } from "lucide-react-native";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -19,14 +35,82 @@ import {
   View,
 } from "react-native";
 
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function MealModal() {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+  const toast = useToast();
+  const queryClient = useQueryClient();
   const { meal: mealParam } = useLocalSearchParams<{ meal?: string }>();
 
   const mealKey: MealKey = isMealKey(mealParam) ? mealParam : "საუზმე";
+  const apiMealKey = MEAL_KEY_TO_API[mealKey];
   const config = MEAL_CONFIGS[mealKey];
-  const summary = useMemo(() => summarizeMeal(mealKey), [mealKey]);
+  const today = useMemo(() => todayISO(), []);
+  const [sheetEntry, setSheetEntry] = useState<FoodLogEntry | null>(null);
+
+  const foodLogQuery = useQuery({
+    queryKey: ["food-log", today],
+    queryFn: () => getFoodLog({ date: today }),
+  });
+
+  const allEntries = foodLogQuery.data?.data ?? [];
+  const loggedForMeal = useMemo(
+    () => allEntries.filter((e) => e.meal_key === apiMealKey),
+    [allEntries, apiMealKey],
+  );
+
+  const summary = useMemo(() => {
+    return loggedForMeal.reduce(
+      (acc, e) => {
+        if (!e.food) return acc;
+        const q = e.quantity || 1;
+        return {
+          consumed: acc.consumed + caloriesForFood(e.food, q),
+          protein:
+            acc.protein + macroForFood(e.food.protein_g_per_100g, e.food, q),
+          carbs: acc.carbs + macroForFood(e.food.carbs_g_per_100g, e.food, q),
+          fat: acc.fat + macroForFood(e.food.fat_g_per_100g, e.food, q),
+        };
+      },
+      { consumed: 0, protein: 0, carbs: 0, fat: 0 },
+    );
+  }, [loggedForMeal]);
+
+  const removeMutation = useMutation({
+    mutationFn: (entryId: string) => deleteFoodLog(entryId),
+    onMutate: async (entryId) => {
+      await queryClient.cancelQueries({ queryKey: ["food-log", today] });
+      const previous = queryClient.getQueryData<ApiResponse<FoodLogEntry[]>>([
+        "food-log",
+        today,
+      ]);
+      queryClient.setQueryData<ApiResponse<FoodLogEntry[]>>(
+        ["food-log", today],
+        (old) => {
+          if (!old) return old;
+          return { ...old, data: old.data.filter((e) => e.id !== entryId) };
+        },
+      );
+      return { previous };
+    },
+    onSuccess: () => {
+      invalidateFoodLogQueries(queryClient, today);
+      toast.success("საკვები წაიშალა");
+    },
+    onError: (err, _id, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(["food-log", today], ctx.previous);
+      }
+      const message =
+        err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
+      toast.error(message, "შეცდომა");
+    },
+  });
+
   const remaining = Math.max(config.goal - summary.consumed, 0);
   const overGoal = summary.consumed > config.goal;
   const pct = Math.min(summary.consumed / config.goal, 1);
@@ -62,10 +146,7 @@ export default function MealModal() {
   return (
     <View style={[styles.root, { backgroundColor: theme.surface }]}>
       <View
-        style={[
-          styles.handleWrap,
-          { backgroundColor: theme.surface },
-        ]}
+        style={[styles.handleWrap, { backgroundColor: theme.surface }]}
       >
         <View style={[styles.handle, { backgroundColor: theme.border }]} />
       </View>
@@ -88,7 +169,7 @@ export default function MealModal() {
           <View style={{ gap: 2 }}>
             <ThemedText style={styles.title}>{mealKey}</ThemedText>
             <ThemedText type="secondary" style={styles.subtitle}>
-              {config.time} · {summary.foods.length} საკვები
+              {config.time} · {loggedForMeal.length} საკვები
             </ThemedText>
           </View>
         </View>
@@ -191,11 +272,18 @@ export default function MealModal() {
 
         <View style={{ gap: Spacing.sm }}>
           <ThemedText style={styles.sectionTitle}>ჩაწერილი საკვები</ThemedText>
-          {summary.foods.length === 0 ? (
+          {foodLogQuery.isLoading ? (
+            <View style={styles.loaderRow}>
+              <ActivityIndicator color={theme.brand} />
+            </View>
+          ) : loggedForMeal.length === 0 ? (
             <View
               style={[
                 styles.empty,
-                { backgroundColor: theme.card, borderColor: theme.borderLight },
+                {
+                  backgroundColor: theme.card,
+                  borderColor: theme.borderLight,
+                },
               ]}
             >
               <View
@@ -215,18 +303,25 @@ export default function MealModal() {
             </View>
           ) : (
             <View style={{ gap: Spacing.md }}>
-              {summary.foods.map((f) => (
-                <FoodCard
-                  key={f.id}
-                  title={f.title}
-                  calories={f.calories}
-                  serving={f.serving}
-                  proteinG={f.protein}
-                  carbsG={f.carbs}
-                  fatG={f.fat}
-                  action="remove"
-                />
-              ))}
+              {loggedForMeal.map((entry) => {
+                const food = entry.food;
+                if (!food) return null;
+                const q = entry.quantity || 1;
+                return (
+                  <FoodCard
+                    key={entry.id}
+                    title={food.name}
+                    calories={caloriesForFood(food, q)}
+                    serving={`${servingLabel(food)}${q !== 1 ? ` × ${q}` : ""}`}
+                    proteinG={macroForFood(food.protein_g_per_100g, food, q)}
+                    carbsG={macroForFood(food.carbs_g_per_100g, food, q)}
+                    fatG={macroForFood(food.fat_g_per_100g, food, q)}
+                    action="remove"
+                    onPress={() => setSheetEntry(entry)}
+                    onActionPress={() => removeMutation.mutate(entry.id)}
+                  />
+                );
+              })}
             </View>
           )}
         </View>
@@ -250,6 +345,14 @@ export default function MealModal() {
           </View>
         </Button>
       </View>
+      <FoodDetailSheet
+        visible={!!sheetEntry}
+        onClose={() => setSheetEntry(null)}
+        food={sheetEntry?.food ?? null}
+        entry={sheetEntry}
+        defaultMealKey={apiMealKey}
+        todayKey={today}
+      />
     </View>
   );
 }
@@ -421,6 +524,10 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: Type.xs,
     textAlign: "center",
+  },
+  loaderRow: {
+    paddingVertical: Spacing.xl,
+    alignItems: "center",
   },
   footer: {
     paddingHorizontal: Spacing.xl,

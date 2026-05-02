@@ -22,24 +22,24 @@ export type MacroTargets = {
 };
 
 export function bmrMifflinStJeor({
-  sex,
+  biological_sex,
   weight_kg,
   height_cm,
   age,
 }: {
-  sex: Sex;
+  biological_sex: Sex;
   weight_kg: number;
   height_cm: number;
   age: number;
 }): number {
   const base = 10 * weight_kg + 6.25 * height_cm - 5 * age;
-  if (sex === "male") return base + 5;
-  if (sex === "female") return base - 161;
+  if (biological_sex === "male") return base + 5;
+  if (biological_sex === "female") return base - 161;
   return base - 78;
 }
 
 export function calculateMacroTargets(input: {
-  sex: Sex;
+  biological_sex: Sex;
   weight_kg: number;
   height_cm: number;
   age: number;

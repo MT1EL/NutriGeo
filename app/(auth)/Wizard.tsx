@@ -12,12 +12,16 @@ import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { WizardProvider, useWizard, type WizardData } from "@/contexts/WizardContext";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
+  Alert,
+  BackHandler,
   Dimensions,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -41,7 +45,7 @@ const STEPS: WizardStep[] = [
 ];
 
 function validateSex(d: WizardData) {
-  return d.sex ? null : "აირჩიე სქესი";
+  return d.biological_sex ? null : "აირჩიე სქესი";
 }
 function validatePhysical(d: WizardData) {
   const h = Number(d.height_cm);
@@ -59,7 +63,7 @@ function validateActivity(d: WizardData) {
   return d.activity_level ? null : "აირჩიე აქტიურობის დონე";
 }
 function validateSuggestion(d: WizardData) {
-  if (!Number(d.daily_calorie_goal)) return "შეიყვანე კალორიული მიზანი";
+  if (!Number(d.daily_calorie_target)) return "შეიყვანე კალორიული მიზანი";
   if (!Number(d.protein_g)) return "შეიყვანე ცილა";
   if (!Number(d.carbs_g)) return "შეიყვანე ნახშირწყალი";
   if (!Number(d.fat_g)) return "შეიყვანე ცხიმი";
@@ -88,7 +92,7 @@ function getDeviceTimezone() {
 function buildOnboardingPayload(data: WizardData, name: string): OnboardingInput {
   return {
     name,
-    sex: data.sex!,
+    biological_sex: data.biological_sex!,
     birth_date: birthDateFromAge(data.age),
     height_cm: Number(data.height_cm),
     weight_kg: Number(data.weight_kg),
@@ -104,7 +108,7 @@ function buildOnboardingPayload(data: WizardData, name: string): OnboardingInput
 }
 
 function buildGoalsPayload(data: WizardData): GoalsInput {
-  const kcal = Number(data.daily_calorie_goal);
+  const kcal = Number(data.daily_calorie_target);
   const protein_g = Number(data.protein_g);
   const carbs_g = Number(data.carbs_g);
   const fat_g = Number(data.fat_g);
@@ -118,7 +122,7 @@ function buildGoalsPayload(data: WizardData): GoalsInput {
   return {
     goal_type: data.goal_type!,
     activity_level: data.activity_level!,
-    daily_calorie_goal: kcal,
+    daily_calorie_target: kcal,
     protein_pct: Math.round((proteinKcal / totalMacroKcal) * 100),
     carbs_pct: Math.round((carbsKcal / totalMacroKcal) * 100),
     fat_pct: Math.round((fatKcal / totalMacroKcal) * 100),
@@ -182,49 +186,83 @@ function WizardScreen() {
     if (activeStep > 0) goTo(activeStep - 1);
   };
 
+  const confirmExit = useCallback(() => {
+    Alert.alert(
+      "გასვლა?",
+      "თუ ახლა გახვალ, შენი პროფილის შევსება დაიკარგება.",
+      [
+        { text: "გაგრძელება", style: "cancel" },
+        {
+          text: "გასვლა",
+          style: "destructive",
+          onPress: () => router.back(),
+        },
+      ],
+    );
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        if (activeStep > 0) {
+          handlePreviousPage();
+        } else {
+          confirmExit();
+        }
+        return true;
+      });
+      return () => sub.remove();
+    }, [activeStep, confirmExit]),
+  );
+
   return (
     <SafeAreaView style={styles.container}>
-      <ThemedText style={styles.title}>პროფილის შექმნა</ThemedText>
+      <KeyboardAvoidingView
+        style={styles.kav}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ThemedText style={styles.title}>პროფილის შექმნა</ThemedText>
 
-      <FlatList
-        data={STEPS}
-        renderItem={({ item }) => (
-          <View style={{ width: SCREEN_WIDTH - 40 }}>{item.component}</View>
-        )}
-        horizontal
-        pagingEnabled
-        scrollEnabled={false}
-        ref={flatListRef}
-        keyExtractor={(_, index) => index.toString()}
-        getItemLayout={(_, index) => ({
-          length: SCREEN_WIDTH - 40,
-          offset: (SCREEN_WIDTH - 40) * index,
-          index,
-        })}
-      />
+          <FlatList
+          data={STEPS}
+          renderItem={({ item }) => (
+            <View style={{ width: SCREEN_WIDTH - 40 }}>{item.component}</View>
+          )}
+          horizontal
+          pagingEnabled
+          scrollEnabled={false}
+          ref={flatListRef}
+          keyExtractor={(_, index) => index.toString()}
+          getItemLayout={(_, index) => ({
+            length: SCREEN_WIDTH - 40,
+            offset: (SCREEN_WIDTH - 40) * index,
+            index,
+          })}
+        />
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.button, activeStep === 0 && styles.disabledButton]}
-          disabled={activeStep === 0 || submitting}
-          onPress={handlePreviousPage}
-        >
-          <ChevronLeft color={Colors.light.background} />
-        </TouchableOpacity>
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.button, activeStep === 0 && styles.disabledButton]}
+            disabled={activeStep === 0 || submitting}
+            onPress={handlePreviousPage}
+          >
+            <ChevronLeft color={Colors.light.background} />
+          </TouchableOpacity>
 
-        <View style={styles.stepsContainer}>
-          {STEPS.map((_, index) => (
-            <StepItem key={index} isActive={activeStep >= index} />
-          ))}
+          <View style={styles.stepsContainer}>
+            {STEPS.map((_, index) => (
+              <StepItem key={index} isActive={activeStep >= index} />
+            ))}
+          </View>
+          <TouchableOpacity
+            style={[styles.button, submitting && styles.disabledButton]}
+            onPress={handleNextPage}
+            disabled={submitting}
+          >
+            <ChevronRight color={Colors.light.background} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={[styles.button, submitting && styles.disabledButton]}
-          onPress={handleNextPage}
-          disabled={submitting}
-        >
-          <ChevronRight color={Colors.light.background} />
-        </TouchableOpacity>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -241,6 +279,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+  },
+  kav: {
+    flex: 1,
     justifyContent: "space-between",
   },
   title: {

@@ -1,19 +1,22 @@
+import { updateGoals } from "@/api/profile";
 import BaseCard from "@/components/cards/BaseCard";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Beef,
   Droplet,
   Flame,
   Target,
   TrendingDown,
-  Weight,
   Wheat,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -34,40 +37,115 @@ const PACE_OPTIONS: {
   { key: "fast", label: "სწრაფი", desc: "0.75 კგ/კვ", weeklyKg: 0.75 },
 ];
 
+function paceFromWeeklyKg(weeklyKg: number | undefined): Pace {
+  if (weeklyKg == null) return "moderate";
+  let best: Pace = "moderate";
+  let bestDelta = Infinity;
+  for (const opt of PACE_OPTIONS) {
+    const delta = Math.abs(opt.weeklyKg - weeklyKg);
+    if (delta < bestDelta) {
+      bestDelta = delta;
+      best = opt.key;
+    }
+  }
+  return best;
+}
+
 export default function GoalsScreen() {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const [pace, setPace] = useState<Pace>("moderate");
+  const toast = useToast();
+  const { user, refreshUser } = useAuth();
+  const queryClient = useQueryClient();
+  const goals = user?.goals;
+
+  const [pace, setPace] = useState<Pace>(paceFromWeeklyKg(goals?.weekly_pace_kg));
+  const [targetWeight, setTargetWeight] = useState<string>(
+    goals?.target_weight_kg != null ? String(goals.target_weight_kg) : "",
+  );
+  const [calorieTarget, setCalorieTarget] = useState<string>(
+    goals?.daily_calorie_target ? String(goals.daily_calorie_target) : "",
+  );
+
+  useEffect(() => {
+    if (!goals) return;
+    setPace(paceFromWeeklyKg(goals.weekly_pace_kg));
+    setTargetWeight(
+      goals.target_weight_kg != null ? String(goals.target_weight_kg) : "",
+    );
+    setCalorieTarget(
+      goals.daily_calorie_target ? String(goals.daily_calorie_target) : "",
+    );
+  }, [goals]);
+
+  const mutation = useMutation({
+    mutationFn: updateGoals,
+    onSuccess: async (res) => {
+      queryClient.setQueryData(["Profile"], res);
+      await queryClient.invalidateQueries({ queryKey: ["Profile"] });
+      await queryClient.invalidateQueries({ queryKey: ["meals"] });
+      await queryClient.invalidateQueries({ queryKey: ["stats"] });
+      await refreshUser();
+      toast.success("მიზნები შენახულია");
+    },
+    onError: (err) => {
+      const message =
+        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
+      toast.error(message, "შეცდომა");
+    },
+  });
+
+  const handleSave = () => {
+    if (!goals) return;
+    const weeklyPaceKg =
+      PACE_OPTIONS.find((o) => o.key === pace)?.weeklyKg ?? goals.weekly_pace_kg;
+    const targetWeightNum = parseFloat(targetWeight.replace(",", "."));
+    const calorieNum = parseInt(calorieTarget, 10);
+    mutation.mutate({
+      goal_type: goals.goal_type,
+      activity_level: goals.activity_level,
+      target_weight_kg: Number.isFinite(targetWeightNum)
+        ? targetWeightNum
+        : undefined,
+      weekly_pace_kg: weeklyPaceKg,
+      daily_calorie_target: Number.isFinite(calorieNum) ? calorieNum : undefined,
+      protein_pct: goals.protein_pct,
+      carbs_pct: goals.carbs_pct,
+      fat_pct: goals.fat_pct,
+    });
+  };
+
+  const calorieForMacroPct = (pct: number | undefined) => {
+    const kcalGoal = parseInt(calorieTarget, 10) || goals?.daily_calorie_target || 0;
+    return Math.round(((pct ?? 0) / 100) * kcalGoal);
+  };
 
   const macros = [
     {
       label: "ცილა",
-      pct: 30,
-      grams: 150,
+      pct: goals?.protein_pct,
+      grams: goals?.protein_g_goal,
       color: theme.macroProtein,
       Icon: Beef,
     },
     {
       label: "ნახშირწყალი",
-      pct: 45,
-      grams: 225,
+      pct: goals?.carbs_pct,
+      grams: goals?.carbs_g_goal,
       color: theme.macroCarbs,
       Icon: Wheat,
     },
     {
       label: "ცხიმი",
-      pct: 25,
-      grams: 56,
+      pct: goals?.fat_pct,
+      grams: goals?.fat_g_goal,
       color: theme.macroFat,
       Icon: Droplet,
     },
   ];
 
   return (
-    <SubScreenLayout
-      title="მიზნები"
-      subtitle="წონა, კალორია, მაკრო"
-    >
+    <SubScreenLayout title="მიზნები" subtitle="წონა, კალორია, მაკრო">
       <BaseCard>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
@@ -82,24 +160,13 @@ export default function GoalsScreen() {
             </View>
           </View>
         </View>
-        <View style={styles.twoCol}>
-          <View style={{ flex: 1 }}>
-            <Input
-              Icon={Weight}
-              label="მიმდინარე"
-              defaultValue="80.4"
-              keyboardType="decimal-pad"
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Input
-              Icon={Target}
-              label="მიზანი"
-              defaultValue="75.0"
-              keyboardType="decimal-pad"
-            />
-          </View>
-        </View>
+        <Input
+          Icon={Target}
+          label="სამიზნე წონა (კგ)"
+          value={targetWeight}
+          onChangeText={setTargetWeight}
+          keyboardType="decimal-pad"
+        />
         <View style={{ gap: Spacing.sm }}>
           <ThemedText style={styles.subLabel} type="secondary">
             კვირეული ტემპი
@@ -116,9 +183,7 @@ export default function GoalsScreen() {
                     styles.paceCard,
                     {
                       borderColor: isActive ? theme.brand : theme.border,
-                      backgroundColor: isActive
-                        ? theme.brandSoft
-                        : theme.card,
+                      backgroundColor: isActive ? theme.brandSoft : theme.card,
                     },
                   ]}
                 >
@@ -155,35 +220,17 @@ export default function GoalsScreen() {
         <Input
           Icon={Flame}
           label="დღიური მიზანი (კალ)"
-          defaultValue="2000"
+          value={calorieTarget}
+          onChangeText={setCalorieTarget}
           keyboardType="number-pad"
         />
-        <View style={styles.calBreakdown}>
-          {[
-            { label: "BMR", value: "1750" },
-            { label: "აქტიურობა", value: "+550" },
-            { label: "დეფიციტი", value: "−300" },
-          ].map((item) => (
-            <View key={item.label} style={styles.calBreakdownItem}>
-              <ThemedText style={styles.breakdownValue}>
-                {item.value}
-              </ThemedText>
-              <ThemedText style={styles.breakdownLabel} type="secondary">
-                {item.label}
-              </ThemedText>
-            </View>
-          ))}
-        </View>
       </BaseCard>
 
       <BaseCard>
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
             <View
-              style={[
-                styles.cardIcon,
-                { backgroundColor: theme.brandSoft },
-              ]}
+              style={[styles.cardIcon, { backgroundColor: theme.brandSoft }]}
             >
               <Beef color={theme.brand} size={18} />
             </View>
@@ -201,7 +248,7 @@ export default function GoalsScreen() {
             <View
               key={m.label}
               style={{
-                width: `${m.pct}%`,
+                width: `${m.pct || 33}%`,
                 backgroundColor: m.color,
               }}
             />
@@ -223,14 +270,16 @@ export default function GoalsScreen() {
                 </ThemedText>
               </View>
               <ThemedText style={styles.macroPct} color={color}>
-                {Math.round((pct / 100) * 2000)} კალ
+                {calorieForMacroPct(pct)} კალ
               </ThemedText>
             </View>
           ))}
         </View>
       </BaseCard>
 
-      <Button onPress={() => null}>შენახვა</Button>
+      <Button onPress={handleSave} disabled={mutation.isPending || !goals}>
+        {mutation.isPending ? "ინახება..." : "შენახვა"}
+      </Button>
     </SubScreenLayout>
   );
 }
@@ -261,10 +310,6 @@ const styles = StyleSheet.create({
   cardCaption: {
     fontSize: Type.xs,
   },
-  twoCol: {
-    flexDirection: "row",
-    gap: Spacing.md,
-  },
   subLabel: {
     fontSize: Type.xs,
     fontWeight: "700",
@@ -292,26 +337,6 @@ const styles = StyleSheet.create({
   },
   paceDesc: {
     fontSize: Type.xs,
-  },
-  calBreakdown: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-  },
-  calBreakdownItem: {
-    flex: 1,
-    alignItems: "center",
-    gap: 2,
-    paddingVertical: Spacing.sm,
-  },
-  breakdownValue: {
-    fontSize: Type.lg,
-    fontWeight: "700",
-  },
-  breakdownLabel: {
-    fontSize: Type.xs,
-    fontWeight: "600",
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
   },
   macroBarStack: {
     flexDirection: "row",

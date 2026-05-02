@@ -8,7 +8,7 @@ import {
   LucideIcon,
   Users,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ImageSourcePropType,
   StyleSheet,
@@ -75,12 +75,7 @@ const RecipeCard = ({
             contentFit="cover"
           />
           {tag && (
-            <View
-              style={[
-                styles.tag,
-                { backgroundColor: tag.color + "EE" },
-              ]}
-            >
+            <View style={[styles.tag, { backgroundColor: tag.color + "EE" }]}>
               {tag.Icon && <tag.Icon color="#FFFFFF" size={11} />}
               <ThemedText style={styles.tagText} color="#FFFFFF">
                 {tag.label}
@@ -111,10 +106,7 @@ const RecipeCard = ({
                 {title}
               </ThemedText>
               <View
-                style={[
-                  styles.calBadge,
-                  { backgroundColor: theme.brandSoft },
-                ]}
+                style={[styles.calBadge, { backgroundColor: theme.brandSoft }]}
               >
                 <ThemedText style={styles.calBadgeText} color={theme.brand}>
                   {calories} კალ

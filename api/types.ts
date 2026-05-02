@@ -58,7 +58,7 @@ export type UserGoals = {
   activity_level: ActivityLevel;
   carbs_g_goal: number;
   carbs_pct: number;
-  daily_calorie_goal: number;
+  daily_calorie_target: number;
   fat_g_goal: number;
   fat_pct: number;
   goal_type: GoalType;
@@ -78,11 +78,11 @@ export type UserProfile = {
   age: number;
   avatar_url: string | null;
   birth_date: string;
+  biological_sex: Sex;
   height_cm: number;
   language: Language;
   name: string | null;
   onboarded_at: string | null;
-  sex: Sex;
   theme: Theme;
   timezone: string;
   units: Units;
@@ -111,6 +111,7 @@ export type Food = {
   fat_g_per_100g: number;
   fiber_g_per_100g?: number;
   is_custom?: boolean;
+  image_url?: string;
 };
 
 export type FoodLogEntry = {
@@ -119,14 +120,18 @@ export type FoodLogEntry = {
   meal_key: MealKey;
   quantity: number;
   logged_at: string;
-  food?: Food;
+  food: Food;
+};
+
+export type RecipeRating = {
+  avg_rating: number;
+  rating_count: number;
 };
 
 export type Recipe = {
   id: string;
   title: string;
   description?: string;
-  image_url?: string;
   kcal: number;
   protein_g: number;
   carbs_g: number;
@@ -139,20 +144,45 @@ export type Recipe = {
   dietary_tags?: string[];
   ingredients?: { qty: string; name: string }[];
   steps?: { text: string; duration_min?: number }[];
-  rating?: number;
+  rating: RecipeRating;
   saved?: boolean;
+  cover_url?: string;
 };
+
+export type ArticleAuthor = {
+  name: string;
+  avatar_url?: string;
+};
+
+export type ArticleBlock =
+  | { type: "p"; text: string }
+  | { type: "h2"; text: string }
+  | { type: "list"; items: string[] }
+  | { type: "quote"; text: string };
 
 export type Article = {
   id: string;
   title: string;
   excerpt?: string;
-  body?: string;
-  image_url?: string;
-  category?: string;
+  body_blocks?: ArticleBlock[];
+  category_slug: string;
+  category_label: string;
+  category_color?: string;
+  tags?: string[];
+  author: ArticleAuthor;
+  published_at?: string;
   read_min?: number;
-  bookmarked?: boolean;
-  read_pct?: number;
+  bookmarked: boolean;
+  read_pct: number;
+  read_at: string | null;
+  cover_url?: string;
+};
+
+export type ArticleCategory = {
+  slug: string;
+  label: string;
+  color?: string;
+  count: number;
 };
 
 export type WeightEntry = {

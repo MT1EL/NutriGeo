@@ -12,6 +12,11 @@ export type Summary = {
 };
 
 export type SeriesPoint = { date: string; value: number };
+export type CaloriesPoint = {
+  date: string;
+  kcal: number;
+  on_target: boolean;
+};
 export type MacrosPoint = {
   date: string;
   protein_g: number;
@@ -44,7 +49,7 @@ export function getSummary(range: Range = 'week') {
 }
 
 export function getCaloriesSeries(range: Range = 'week') {
-  return api.get<ApiResponse<SeriesPoint[]>>('/v1/stats/calories', rangeQuery(range));
+  return api.get<ApiResponse<CaloriesPoint[]>>('/v1/stats/calories', rangeQuery(range));
 }
 
 export function getMacrosSeries(range: Range = 'week') {

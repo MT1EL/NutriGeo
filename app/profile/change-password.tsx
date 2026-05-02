@@ -1,12 +1,16 @@
+import { HttpError } from "@/api/client";
+import { updatePassword } from "@/api/me";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useToast } from "@/contexts/ToastContext";
+import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Check, Lock, ShieldCheck, X } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
-import { Alert, StyleSheet, useColorScheme, View } from "react-native";
+import { StyleSheet, useColorScheme, View } from "react-native";
 
 const RULES = [
   { key: "len", label: "მინ. 8 სიმბოლო", test: (s: string) => s.length >= 8 },
@@ -21,9 +25,11 @@ const RULES = [
 export default function ChangePasswordScreen() {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+  const toast = useToast();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const checks = useMemo(
     () => RULES.map((r) => ({ ...r, ok: r.test(next) })),
@@ -31,7 +37,50 @@ export default function ChangePasswordScreen() {
   );
   const allRulesOk = checks.every((c) => c.ok);
   const matches = next.length > 0 && next === confirm;
-  const canSave = current.length >= 4 && allRulesOk && matches;
+
+  const mutation = useMutation({
+    mutationFn: ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+    }) => updatePassword(currentPassword, newPassword),
+    onSuccess: () => {
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+      setServerError(null);
+      toast.success("პაროლი წარმატებით შეიცვალა");
+      router.back();
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        if (err.status === 401 || err.status === 403) {
+          setServerError("მიმდინარე პაროლი არასწორია");
+          return;
+        }
+        if (err.status === 422) {
+          setServerError("ახალი პაროლი არ აკმაყოფილებს მოთხოვნებს");
+          return;
+        }
+      }
+      const message =
+        err instanceof Error ? err.message : "პაროლის შეცვლა ვერ მოხერხდა";
+      toast.error(message, "შეცდომა");
+    },
+  });
+
+  const canSave =
+    current.length >= 4 &&
+    allRulesOk &&
+    matches &&
+    !mutation.isPending;
+
+  const handleSave = () => {
+    setServerError(null);
+    mutation.mutate({ currentPassword: current, newPassword: next });
+  };
 
   return (
     <SubScreenLayout title="პაროლის შეცვლა" subtitle="გააძლიერე უსაფრთხოება">
@@ -48,7 +97,11 @@ export default function ChangePasswordScreen() {
           placeholder="••••••••"
           secure
           value={current}
-          onChangeText={setCurrent}
+          onChangeText={(text) => {
+            setCurrent(text);
+            if (serverError) setServerError(null);
+          }}
+          errorText={serverError ?? undefined}
         />
         <Input
           Icon={Lock}
@@ -110,17 +163,8 @@ export default function ChangePasswordScreen() {
         ))}
       </View>
 
-      <Button
-        onPress={() => {
-          Alert.alert(
-            "პაროლი შეცვლილია",
-            "შემდეგი შესვლისას გამოიყენე ახალი პაროლი.",
-            [{ text: "კარგი", onPress: () => router.back() }]
-          );
-        }}
-        disabled={!canSave}
-      >
-        პაროლის შენახვა
+      <Button onPress={handleSave} disabled={!canSave}>
+        {mutation.isPending ? "ინახება..." : "პაროლის შენახვა"}
       </Button>
     </SubScreenLayout>
   );

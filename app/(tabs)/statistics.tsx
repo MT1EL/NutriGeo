@@ -1,9 +1,23 @@
+import { getProfile } from "@/api/profile";
+import {
+  getCaloriesSeries,
+  getInsights,
+  getMacrosSeries,
+  getRecords,
+  getStreak,
+  getSummary,
+  getTopFoods,
+  getWeightSeries,
+} from "@/api/stats";
+import type { Range as ApiRange } from "@/api/types";
 import BaseCard from "@/components/cards/BaseCard";
 import { LineChart } from "@/components/charts/LineChart";
 import { DayState, StreakGrid } from "@/components/charts/StreakGrid";
 import { GradientView } from "@/components/ui/GradientView";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
 import {
   Activity,
   Award,
@@ -11,14 +25,18 @@ import {
   Droplet,
   Flame,
   LucideIcon,
+  Plus,
+  Scale,
   Sparkles,
   Target,
   TrendingDown,
   Trophy,
+  UtensilsCrossed,
   Wheat,
 } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -28,79 +46,56 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
-type Range = "week" | "month" | "quarter";
+type UiRange = "week" | "month" | "quarter";
 
-const RANGES: { key: Range; label: string }[] = [
+const RANGES: { key: UiRange; label: string }[] = [
   { key: "week", label: "კვირა" },
   { key: "month", label: "თვე" },
   { key: "quarter", label: "3 თვე" },
 ];
 
-const CAL_GOAL = 2000;
-const WEIGHT_GOAL = 75;
-
-const DATA: Record<
-  Range,
-  {
-    calories: number[];
-    weight: number[];
-    weightLabel: string;
-    streak: DayState[];
-    avgCal: number;
-    weightChange: string;
-    streakLabel: string;
-  }
-> = {
-  week: {
-    calories: [1850, 2050, 1720, 2200, 1980, 1640, 1820],
-    weight: [80.8, 80.6, 80.4, 80.5, 80.2, 79.9, 80.0],
-    weightLabel: "−0.8კგ კვირაში",
-    streak: [
-      "logged", "logged", "logged", "partial", "logged", "logged", "logged",
-    ],
-    avgCal: 1894,
-    weightChange: "−0.8კგ",
-    streakLabel: "7 დღე",
-  },
-  month: {
-    calories: [1820, 1950, 1880, 2020, 1740, 1900, 2080,
-               1830, 1990, 1880, 2150, 1780, 1620, 1900,
-               1980, 1850, 1730, 2030, 1900, 1950, 1840,
-               2050, 1860, 1720, 1980, 1900, 1820, 1890],
-    weight: [82.4, 82.1, 81.9, 82.0, 81.7, 81.5, 81.4,
-             81.2, 81.3, 81.0, 80.8, 80.9, 80.6, 80.4,
-             80.5, 80.3, 80.1, 80.2, 80.0, 79.9, 80.0,
-             79.8, 79.6, 79.7, 79.5, 79.3, 79.2, 79.0],
-    weightLabel: "−3.4კგ თვეში",
-    streak: [
-      "logged","logged","logged","partial","logged","logged","missed",
-      "logged","logged","logged","logged","partial","logged","logged",
-      "logged","missed","logged","logged","logged","partial","logged",
-      "logged","logged","logged","logged","logged","logged","logged",
-    ],
-    avgCal: 1891,
-    weightChange: "−3.4კგ",
-    streakLabel: "12 დღე",
-  },
-  quarter: {
-    calories: Array.from({ length: 12 }, (_, i) =>
-      1850 + Math.round(Math.sin(i / 2) * 180)
-    ),
-    weight: [85.1, 84.6, 84.0, 83.5, 83.0, 82.4, 81.8, 81.2, 80.6, 80.0, 79.4, 79.0],
-    weightLabel: "−6.1კგ 3 თვეში",
-    streak: [
-      "logged","logged","partial","logged","logged","missed","logged",
-      "logged","logged","logged","partial","logged","missed","logged",
-      "logged","logged","logged","missed","logged","logged","partial",
-      "logged","logged","logged","logged","missed","logged","logged",
-    ],
-    avgCal: 1873,
-    weightChange: "−6.1კგ",
-    streakLabel: "21 დღე",
-  },
+const UI_TO_API_RANGE: Record<UiRange, ApiRange> = {
+  week: "week",
+  month: "month",
+  quarter: "year",
 };
 
-const WEEK_LABELS = ["ორ", "სა", "ოთ", "ხუ", "პა", "შა", "კვ"];
+const QUARTER_DAYS = 90;
+const WEEK_LABELS_KA = ["კვ", "ორ", "სა", "ოთ", "ხუ", "პა", "შა"];
+const MIN_DAYS_FOR_TREND = 3;
+
+const TOP_FOOD_PALETTE = [
+  "#7C5CFF",
+  "#F5A623",
+  "#34A867",
+  "#3FA9F5",
+  "#FF7A45",
+  "#E85A8C",
+];
+
+const SEVERITY_STYLES: Record<
+  NonNullable<import("@/api/stats").Insight["severity"]>,
+  { color: string; tint: string; tintDark: string; Icon: LucideIcon }
+> = {
+  positive: {
+    color: "#34A867",
+    tint: "#E6F6EA",
+    tintDark: "#1F3A28",
+    Icon: Sparkles,
+  },
+  warning: {
+    color: "#FF7A45",
+    tint: "#FEEDE2",
+    tintDark: "#3A2010",
+    Icon: Flame,
+  },
+  info: {
+    color: "#5B6CE0",
+    tint: "#EEF0FB",
+    tintDark: "#222B4A",
+    Icon: Target,
+  },
+};
 
 type InsightProps = {
   Icon: LucideIcon;
@@ -124,101 +119,338 @@ const InsightCard = ({ Icon, title, body, color, tint }: InsightProps) => (
   </View>
 );
 
-function StatisticsPage() {
+function dayStateForCalories(
+  kcal: number,
+  onTarget: boolean,
+  goal: number,
+): DayState {
+  if (!kcal) return "missed";
+  if (onTarget) return "logged";
+  if (goal && kcal < goal * 0.5) return "partial";
+  return "logged";
+}
+
+function weekdayShort(dateStr: string | undefined): string {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "";
+  return WEEK_LABELS_KA[d.getDay()] ?? "";
+}
+
+function formatChange(kg: number | undefined) {
+  if (kg == null) return "—";
+  const sign = kg > 0 ? "+" : kg < 0 ? "−" : "";
+  return `${sign}${Math.abs(kg).toFixed(1)}კგ`;
+}
+
+export default function StatisticsPage() {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const [range, setRange] = useState<Range>("week");
-  const d = DATA[range];
+  const [range, setRange] = useState<UiRange>("week");
+  const apiRange = UI_TO_API_RANGE[range];
 
-  const max = Math.max(...d.calories, CAL_GOAL) * 1.1;
-  const onTargetDays = d.calories.filter((c) => c <= CAL_GOAL).length;
+  const profileQuery = useQuery({
+    queryKey: ["Profile"] as const,
+    queryFn: getProfile,
+  });
+  const profile = profileQuery.data?.data;
+  const calGoal = profile?.daily_calorie_target ?? 2000;
+  const weightGoal = profile?.target_weight_kg ?? null;
 
-  const summary = [
+  const summaryQuery = useQuery({
+    queryKey: ["stats", "summary", apiRange],
+    queryFn: () => getSummary(apiRange),
+  });
+  const caloriesQuery = useQuery({
+    queryKey: ["stats", "calories", apiRange],
+    queryFn: () => getCaloriesSeries(apiRange),
+  });
+  const weightQuery = useQuery({
+    queryKey: ["stats", "weight", apiRange],
+    queryFn: () => getWeightSeries(apiRange),
+  });
+  const macrosQuery = useQuery({
+    queryKey: ["stats", "macros", apiRange],
+    queryFn: () => getMacrosSeries(apiRange),
+  });
+  const streakQuery = useQuery({
+    queryKey: ["stats", "streak", apiRange],
+    queryFn: () => getStreak(apiRange),
+  });
+  const topFoodsQuery = useQuery({
+    queryKey: ["stats", "top-foods", apiRange],
+    queryFn: () => getTopFoods(apiRange),
+  });
+  const recordsQuery = useQuery({
+    queryKey: ["stats", "records"],
+    queryFn: getRecords,
+  });
+  const insightsQuery = useQuery({
+    queryKey: ["stats", "insights", apiRange],
+    queryFn: () => getInsights(apiRange),
+  });
+
+  const summary = summaryQuery.data?.data;
+
+  const caloriesSeries = useMemo(() => {
+    const raw = caloriesQuery.data?.data;
+    const all = Array.isArray(raw) ? raw : [];
+    if (range === "quarter") return all.slice(-QUARTER_DAYS);
+    return all;
+  }, [caloriesQuery.data, range]);
+
+  const weightSeries = useMemo(() => {
+    const raw = weightQuery.data?.data;
+    const all = Array.isArray(raw) ? raw : [];
+    if (range === "quarter") return all.slice(-QUARTER_DAYS);
+    return all;
+  }, [weightQuery.data, range]);
+
+  const macrosSeries = useMemo(() => {
+    const raw = macrosQuery.data?.data;
+    const all = Array.isArray(raw) ? raw : [];
+    if (range === "quarter") return all.slice(-QUARTER_DAYS);
+    return all;
+  }, [macrosQuery.data, range]);
+
+  const streakDays: DayState[] = useMemo(
+    () =>
+      caloriesSeries.map((p) =>
+        dayStateForCalories(p.kcal, p.on_target, calGoal),
+      ),
+    [caloriesSeries, calGoal],
+  );
+
+  const onTargetDays = useMemo(
+    () => caloriesSeries.filter((p) => p.on_target).length,
+    [caloriesSeries],
+  );
+
+  const loggedDays = useMemo(
+    () => caloriesSeries.filter((p) => p.kcal > 0).length,
+    [caloriesSeries],
+  );
+  const hasTrendData = loggedDays >= MIN_DAYS_FOR_TREND;
+
+  const macroAverages = useMemo(() => {
+    if (!macrosSeries.length) {
+      return { proteinG: 0, carbsG: 0, fatG: 0 };
+    }
+    const totals = macrosSeries.reduce(
+      (acc, m) => ({
+        proteinG: acc.proteinG + m.protein_g,
+        carbsG: acc.carbsG + m.carbs_g,
+        fatG: acc.fatG + m.fat_g,
+      }),
+      { proteinG: 0, carbsG: 0, fatG: 0 },
+    );
+    const n = macrosSeries.length;
+    return {
+      proteinG: totals.proteinG / n,
+      carbsG: totals.carbsG / n,
+      fatG: totals.fatG / n,
+    };
+  }, [macrosSeries]);
+
+  const macroPcts = useMemo(() => {
+    const proteinKcal = macroAverages.proteinG * 4;
+    const carbsKcal = macroAverages.carbsG * 4;
+    const fatKcal = macroAverages.fatG * 9;
+    const total = proteinKcal + carbsKcal + fatKcal;
+    if (!total) return { protein: 0, carbs: 0, fat: 0 };
+    return {
+      protein: Math.round((proteinKcal / total) * 100),
+      carbs: Math.round((carbsKcal / total) * 100),
+      fat: Math.round((fatKcal / total) * 100),
+    };
+  }, [macroAverages]);
+
+  const summaryCards = [
     {
       Icon: Flame,
       label: "საშ. კალორია",
-      value: `${d.avgCal}`,
+      value: summary?.kcal_avg ? Math.round(summary.kcal_avg).toString() : "—",
       tint: colorScheme === "dark" ? "#3A2010" : "#FEEDE2",
       color: "#FF7A45",
     },
     {
       Icon: TrendingDown,
       label: "წონის ცვლა",
-      value: d.weightChange,
+      value: formatChange(summary?.weight_change_kg),
       tint: colorScheme === "dark" ? "#1F3A28" : "#E6F6EA",
       color: "#34A867",
     },
     {
       Icon: Activity,
       label: "სტრიკი",
-      value: d.streakLabel,
+      value: `${streakQuery.data?.data.current ?? summary?.streak_days ?? 0} დღე`,
       tint: colorScheme === "dark" ? "#222B4A" : "#EEF0FB",
       color: "#5B6CE0",
     },
   ];
 
-  const insights = useMemo(() => {
-    const list: InsightProps[] = [];
-    list.push({
-      Icon: Flame,
-      title: `${d.streakLabel}იანი სტრიკი`,
-      body: "განაგრძე — შენი რუტინა მუშაობს.",
-      color: "#FF7A45",
-      tint: colorScheme === "dark" ? "#3A2010" : "#FEEDE2",
-    });
-    list.push({
-      Icon: Target,
-      title: `${onTargetDays}/${d.calories.length} დღე მიზანში`,
-      body:
-        onTargetDays / d.calories.length > 0.6
-          ? "შესანიშნავი დისციპლინა — განაგრძე ასე."
-          : "სცადე უფრო ხშირად ჩაეტიო კალორიის მიზანში.",
-      color: "#5B6CE0",
-      tint: colorScheme === "dark" ? "#222B4A" : "#EEF0FB",
-    });
-    if (d.weight.length >= 2) {
-      const last = d.weight[d.weight.length - 1];
-      const remaining = (last - WEIGHT_GOAL).toFixed(1);
-      list.push({
+  const insights = useMemo<InsightProps[]>(() => {
+    const rawInsights = insightsQuery.data?.data;
+    const apiInsights = Array.isArray(rawInsights) ? rawInsights : [];
+    if (apiInsights.length) {
+      return apiInsights.map((i) => {
+        const sev = i.severity ?? "info";
+        const s = SEVERITY_STYLES[sev];
+        return {
+          Icon: s.Icon,
+          title: i.title,
+          body: i.body,
+          color: s.color,
+          tint: colorScheme === "dark" ? s.tintDark : s.tint,
+        };
+      });
+    }
+    const fallback: InsightProps[] = [];
+    const streakValue =
+      streakQuery.data?.data.current ?? summary?.streak_days ?? 0;
+    if (streakValue > 0) {
+      fallback.push({
+        Icon: Flame,
+        title: `${streakValue} დღიანი სტრიკი`,
+        body: "განაგრძე — შენი რუტინა მუშაობს.",
+        color: "#FF7A45",
+        tint: colorScheme === "dark" ? "#3A2010" : "#FEEDE2",
+      });
+    }
+    if (loggedDays >= MIN_DAYS_FOR_TREND) {
+      fallback.push({
+        Icon: Target,
+        title: `${onTargetDays}/${loggedDays} დღე მიზანში`,
+        body:
+          onTargetDays / loggedDays > 0.6
+            ? "შესანიშნავი დისციპლინა — განაგრძე ასე."
+            : "სცადე უფრო ხშირად ჩაეტიო კალორიის მიზანში.",
+        color: "#5B6CE0",
+        tint: colorScheme === "dark" ? "#222B4A" : "#EEF0FB",
+      });
+    }
+    if (weightSeries.length >= MIN_DAYS_FOR_TREND && weightGoal != null) {
+      const last = weightSeries[weightSeries.length - 1].value;
+      const remaining = (last - weightGoal).toFixed(1);
+      fallback.push({
         Icon: Sparkles,
         title: `მიზნამდე ${remaining}კგ`,
-        body: `მიმდინარე ტემპით გრაფიკში ხარ ${range === "week" ? "5-6 კვირაში" : range === "month" ? "თვენახევარში" : "ერთ თვეში"}.`,
+        body: "მიმდინარე ტემპს თუ შეინარჩუნებ — მიზანი მისაღწევია.",
         color: "#7C5CFF",
         tint: colorScheme === "dark" ? "#2A1F4A" : "#F0EBFE",
       });
     }
-    return list;
-  }, [d, onTargetDays, range, colorScheme]);
+    return fallback;
+  }, [
+    insightsQuery.data,
+    streakQuery.data,
+    summary,
+    loggedDays,
+    onTargetDays,
+    weightSeries,
+    weightGoal,
+    colorScheme,
+  ]);
 
-  const records = [
-    {
-      Icon: Trophy,
-      label: "ყველაზე გრძელი სტრიკი",
-      value: "21 დღე",
-      color: "#FFB020",
-    },
-    {
-      Icon: TrendingDown,
-      label: "ყველაზე დაბალი წონა",
-      value: `${Math.min(...d.weight).toFixed(1)}კგ`,
-      color: "#34A867",
-    },
-    {
-      Icon: Award,
-      label: "საუკეთესო დღე",
-      value: `${Math.min(...d.calories)} კალ`,
-      color: "#5B6CE0",
-    },
-  ];
+  const records = useMemo(() => {
+    const r = recordsQuery.data?.data;
+    return [
+      {
+        Icon: Trophy,
+        label: "ყველაზე გრძელი სტრიკი",
+        value: r ? `${r.longest_streak} დღე` : "—",
+        color: "#FFB020",
+      },
+      {
+        Icon: TrendingDown,
+        label: "ყველაზე დაბალი წონა",
+        value:
+          r?.lowest_weight_kg != null
+            ? `${r.lowest_weight_kg.toFixed(1)}კგ`
+            : "—",
+        color: "#34A867",
+      },
+      {
+        Icon: Award,
+        label: "საუკეთესო დღე",
+        value: r?.best_logging_day
+          ? `${r.best_logging_day.entries} ჩანაწერი`
+          : "—",
+        color: "#5B6CE0",
+      },
+    ];
+  }, [recordsQuery.data]);
 
-  const topFoods = [
-    { name: "ქათამი", count: 14, color: "#7C5CFF" },
-    { name: "ბრინჯი", count: 11, color: "#F5A623" },
-    { name: "ავოკადო", count: 9, color: "#34A867" },
-    { name: "ბერძნული იოგურტი", count: 8, color: "#3FA9F5" },
-    { name: "შვრიის ფაფა", count: 6, color: "#FF7A45" },
-  ];
-  const topMax = Math.max(...topFoods.map((f) => f.count));
+  const topFoods = useMemo(() => {
+    const raw = topFoodsQuery.data?.data;
+    const list = Array.isArray(raw) ? raw : [];
+    return list.map((f, i) => ({
+      name: f.name,
+      count: f.count,
+      color: TOP_FOOD_PALETTE[i % TOP_FOOD_PALETTE.length],
+    }));
+  }, [topFoodsQuery.data]);
+  const topMax = topFoods.length
+    ? Math.max(...topFoods.map((f) => f.count))
+    : 0;
+
+  const calorieBars = useMemo(() => {
+    const bars = range === "week" ? caloriesSeries : caloriesSeries.slice(-7);
+    return bars;
+  }, [caloriesSeries, range]);
+  const barMax = calorieBars.length
+    ? Math.max(...calorieBars.map((b) => b.kcal), calGoal) * 1.1
+    : calGoal * 1.1;
+
+  const lastWeight = weightSeries.length
+    ? weightSeries[weightSeries.length - 1].value
+    : null;
+  const weightLabelText =
+    summary?.weight_change_kg != null
+      ? `${formatChange(summary.weight_change_kg)} ${range === "week" ? "კვირაში" : range === "month" ? "თვეში" : "3 თვეში"}`
+      : "მონაცემი არ არის";
+
+  const isInitialLoading =
+    summaryQuery.isLoading && caloriesQuery.isLoading && weightQuery.isLoading;
+
+  const hasAnyCalories = caloriesSeries.some((p) => p.kcal > 0);
+  const hasAnyWeight = weightSeries.length > 0;
+  const hasAnyTopFoods = topFoods.length > 0;
+  const currentStreak =
+    streakQuery.data?.data.current ?? summary?.streak_days ?? 0;
+  const isTotallyEmpty =
+    !isInitialLoading &&
+    !hasAnyCalories &&
+    !hasAnyWeight &&
+    !hasAnyTopFoods &&
+    currentStreak === 0 &&
+    !summary?.kcal_avg;
+
+  const EmptyCardBody = ({
+    Icon,
+    title,
+    hint,
+    color,
+    tint,
+  }: {
+    Icon: LucideIcon;
+    title: string;
+    hint?: string;
+    color: string;
+    tint: string;
+  }) => (
+    <View style={styles.cardEmpty}>
+      <View style={[styles.cardEmptyIcon, { backgroundColor: tint }]}>
+        <Icon color={color} size={22} />
+      </View>
+      <ThemedText style={styles.cardEmptyTitle}>{title}</ThemedText>
+      {hint ? (
+        <ThemedText type="secondary" style={styles.cardEmptyHint}>
+          {hint}
+        </ThemedText>
+      ) : null}
+    </View>
+  );
 
   return (
     <ScrollView
@@ -242,7 +474,9 @@ function StatisticsPage() {
               style={styles.headerSubtitle}
               color="rgba(255,255,255,0.85)"
             >
-              {d.weightLabel} · {d.streakLabel}იანი სტრიკი
+              {weightLabelText} ·{" "}
+              {streakQuery.data?.data.current ?? summary?.streak_days ?? 0}{" "}
+              დღიანი სტრიკი
             </ThemedText>
           </View>
 
@@ -277,361 +511,493 @@ function StatisticsPage() {
       </GradientView>
 
       <View style={styles.body}>
-        <View style={styles.summaryRow}>
-          {summary.map(({ Icon, label, value, tint, color }) => (
-            <BaseCard key={label} style={styles.summaryCard}>
-              <View style={[styles.summaryIcon, { backgroundColor: tint }]}>
-                <Icon color={color} size={18} />
-              </View>
-              <ThemedText style={styles.summaryValue}>{value}</ThemedText>
-              <ThemedText type="secondary" style={styles.summaryLabel}>
-                {label}
-              </ThemedText>
-            </BaseCard>
-          ))}
-        </View>
+        {isInitialLoading ? (
+          <View style={styles.loaderRow}>
+            <ActivityIndicator color={theme.brand} />
+          </View>
+        ) : null}
 
-        <BaseCard>
-          <View style={styles.cardHeader}>
-            <ThemedText style={styles.cardTitle}>ინსაითი</ThemedText>
-            <ThemedText type="secondary" style={styles.cardCaption}>
-              {range === "week" ? "ეს კვირა" : range === "month" ? "ეს თვე" : "ბოლო 3 თვე"}
+        {isTotallyEmpty ? (
+          <View
+            style={[
+              styles.heroEmpty,
+              { backgroundColor: theme.card, borderColor: theme.borderLight },
+            ]}
+          >
+            <View
+              style={[
+                styles.heroEmptyIcon,
+                { backgroundColor: theme.brandSoft },
+              ]}
+            >
+              <Activity color={theme.brand} size={32} />
+            </View>
+            <ThemedText style={styles.heroEmptyTitle}>
+              ჯერ მონაცემი არ გაქვს
             </ThemedText>
+            <ThemedText type="secondary" style={styles.heroEmptyBody}>
+              დაიწყე კვების ჩაწერა და აქ დაინახავ კალორიის, წონის და
+              მაკრო-ნუტრიენტების დინამიკას.
+            </ThemedText>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.push("/add")}
+              style={[styles.heroEmptyCta, { backgroundColor: theme.brand }]}
+            >
+              <Plus color={theme.textOnBrand} size={18} />
+              <ThemedText
+                style={styles.heroEmptyCtaText}
+                color={theme.textOnBrand}
+              >
+                დაიწყე ჩაწერა
+              </ThemedText>
+            </TouchableOpacity>
           </View>
-          <View style={{ gap: Spacing.md }}>
-            {insights.map((ins) => (
-              <InsightCard key={ins.title} {...ins} />
-            ))}
-          </View>
-        </BaseCard>
+        ) : (
+          <>
+            <View style={styles.summaryRow}>
+              {summaryCards.map(({ Icon, label, value, tint, color }) => (
+                <BaseCard key={label} style={styles.summaryCard}>
+                  <View style={[styles.summaryIcon, { backgroundColor: tint }]}>
+                    <Icon color={color} size={18} />
+                  </View>
+                  <ThemedText style={styles.summaryValue}>{value}</ThemedText>
+                  <ThemedText type="secondary" style={styles.summaryLabel}>
+                    {label}
+                  </ThemedText>
+                </BaseCard>
+              ))}
+            </View>
 
-        <BaseCard>
-          <View style={styles.cardHeader}>
-            <View style={{ gap: 2 }}>
-              <ThemedText style={styles.cardTitle}>წონის დინამიკა</ThemedText>
-              <ThemedText type="secondary" style={styles.cardCaption}>
-                მიზანი {WEIGHT_GOAL}კგ
-              </ThemedText>
-            </View>
-            <View style={[styles.deltaBadge, { backgroundColor: "#E6F6EA" }]}>
-              <TrendingDown color="#34A867" size={12} />
-              <ThemedText style={styles.deltaText} color="#34A867">
-                {d.weightChange}
-              </ThemedText>
-            </View>
-          </View>
-          <LineChart
-            values={d.weight}
-            color={theme.brand}
-            goal={WEIGHT_GOAL}
-            goalColor={theme.textSecondary}
-            height={140}
-          />
-          <View style={styles.weightFooter}>
-            <View>
-              <ThemedText type="secondary" style={styles.weightLabel}>
-                მიმდინარე
-              </ThemedText>
-              <ThemedText style={styles.weightValue}>
-                {d.weight[d.weight.length - 1].toFixed(1)}კგ
-              </ThemedText>
-            </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <ThemedText type="secondary" style={styles.weightLabel}>
-                მიზანი
-              </ThemedText>
-              <ThemedText style={styles.weightValue} color={theme.brand}>
-                {WEIGHT_GOAL}კგ
-              </ThemedText>
-            </View>
-          </View>
-        </BaseCard>
+            {insights.length > 0 && (
+              <BaseCard>
+                <View style={styles.cardHeader}>
+                  <ThemedText style={styles.cardTitle}>ინსაითი</ThemedText>
+                  <ThemedText type="secondary" style={styles.cardCaption}>
+                    {range === "week"
+                      ? "ეს კვირა"
+                      : range === "month"
+                        ? "ეს თვე"
+                        : "ბოლო 3 თვე"}
+                  </ThemedText>
+                </View>
+                <View style={{ gap: Spacing.md }}>
+                  {insights.map((ins) => (
+                    <InsightCard key={ins.title} {...ins} />
+                  ))}
+                </View>
+              </BaseCard>
+            )}
 
-        <BaseCard>
-          <View style={styles.cardHeader}>
-            <View style={{ gap: 2 }}>
-              <ThemedText style={styles.cardTitle}>კვირის კალორია</ThemedText>
-              <ThemedText type="secondary" style={styles.cardCaption}>
-                მიზანი {CAL_GOAL} კალ/დღეში
-              </ThemedText>
-            </View>
-            <View style={styles.legendRow}>
-              <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: theme.brand }]} />
-                <ThemedText style={styles.legendText} type="secondary">
-                  დღეს
-                </ThemedText>
-              </View>
-              <View style={styles.legendItem}>
-                <View
-                  style={[styles.legendDot, { backgroundColor: theme.warning }]}
-                />
-                <ThemedText style={styles.legendText} type="secondary">
-                  გადაჭარბება
-                </ThemedText>
-              </View>
-            </View>
-          </View>
-          {(() => {
-            const bars =
-              range === "week" ? d.calories : d.calories.slice(-7);
-            const goalLineTop = Spacing.sm + (1 - CAL_GOAL / max) * 130;
-            return (
-              <View style={styles.chart}>
-                <View
-                  pointerEvents="none"
-                  style={[styles.goalLine, { top: goalLineTop }]}
-                >
+            <BaseCard>
+              <View style={styles.cardHeader}>
+                <View style={{ gap: 2 }}>
+                  <ThemedText style={styles.cardTitle}>
+                    წონის დინამიკა
+                  </ThemedText>
+                  <ThemedText type="secondary" style={styles.cardCaption}>
+                    {weightGoal != null
+                      ? `მიზანი ${weightGoal}კგ`
+                      : "მიზანი დაყენებული არ არის"}
+                  </ThemedText>
+                </View>
+                {summary?.weight_change_kg != null && (
                   <View
-                    style={[
-                      styles.goalLineRule,
-                      { backgroundColor: theme.textSecondary },
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.goalLineLabelWrap,
-                      { backgroundColor: theme.card },
-                    ]}
+                    style={[styles.deltaBadge, { backgroundColor: "#E6F6EA" }]}
                   >
-                    <ThemedText
-                      style={styles.goalLineLabel}
-                      type="secondary"
-                    >
-                      {CAL_GOAL}
+                    <TrendingDown color="#34A867" size={12} />
+                    <ThemedText style={styles.deltaText} color="#34A867">
+                      {formatChange(summary.weight_change_kg)}
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
+              {weightSeries.length > 2 ? (
+                <>
+                  <LineChart
+                    values={weightSeries.map((p) => p.value)}
+                    color={theme.brand}
+                    goal={weightGoal ?? undefined}
+                    goalColor={theme.textSecondary}
+                    height={140}
+                  />
+                  <View style={styles.weightFooter}>
+                    <View>
+                      <ThemedText type="secondary" style={styles.weightLabel}>
+                        მიმდინარე
+                      </ThemedText>
+                      <ThemedText style={styles.weightValue}>
+                        {lastWeight?.toFixed(1)}კგ
+                      </ThemedText>
+                    </View>
+                    <View style={{ alignItems: "flex-end" }}>
+                      <ThemedText type="secondary" style={styles.weightLabel}>
+                        მიზანი
+                      </ThemedText>
+                      <ThemedText
+                        style={styles.weightValue}
+                        color={theme.brand}
+                      >
+                        {weightGoal != null ? `${weightGoal}კგ` : "—"}
+                      </ThemedText>
+                    </View>
+                  </View>
+                </>
+              ) : (
+                <EmptyCardBody
+                  Icon={Scale}
+                  title="წონის ჩანაწერი არ არის"
+                  hint="ჩაწერე შენი წონა და ნახე დინამიკა გრაფიკზე."
+                  color="#34A867"
+                  tint={colorScheme === "dark" ? "#1F3A28" : "#E6F6EA"}
+                />
+              )}
+            </BaseCard>
+
+            <BaseCard>
+              <View style={styles.cardHeader}>
+                <View style={{ gap: 2 }}>
+                  <ThemedText style={styles.cardTitle}>
+                    კვირის კალორია
+                  </ThemedText>
+                  <ThemedText type="secondary" style={styles.cardCaption}>
+                    მიზანი {calGoal} კალ/დღეში
+                  </ThemedText>
+                </View>
+                <View style={styles.legendRow}>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendDot,
+                        { backgroundColor: theme.brand },
+                      ]}
+                    />
+                    <ThemedText style={styles.legendText} type="secondary">
+                      დღეს
+                    </ThemedText>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendDot,
+                        { backgroundColor: theme.warning },
+                      ]}
+                    />
+                    <ThemedText style={styles.legendText} type="secondary">
+                      გადაჭარბება
                     </ThemedText>
                   </View>
                 </View>
-                {bars.map((v, i) => {
-                  const h = (v / max) * 130;
-                  const overGoal = v > CAL_GOAL;
-                  const isToday = i === bars.length - 1;
-                  const valueText =
-                    v >= 1000 ? `${(v / 1000).toFixed(1)}კ` : `${v}`;
-                  return (
-                    <View key={i} style={styles.barCol}>
-                      <View style={styles.barTrack}>
-                        <ThemedText
-                          style={styles.barValue}
-                          color={
-                            isToday ? theme.text : theme.textSecondary
-                          }
-                        >
-                          {valueText}
-                        </ThemedText>
+              </View>
+              {calorieBars.length ? (
+                <View style={styles.chart}>
+                  <View
+                    pointerEvents="none"
+                    style={[
+                      styles.goalLine,
+                      { top: Spacing.sm + (1 - calGoal / barMax) * 130 },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.goalLineRule,
+                        { backgroundColor: theme.textSecondary },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.goalLineLabelWrap,
+                        { backgroundColor: theme.card },
+                      ]}
+                    >
+                      <ThemedText style={styles.goalLineLabel} type="secondary">
+                        {calGoal}
+                      </ThemedText>
+                    </View>
+                  </View>
+                  {calorieBars.map((p, i) => {
+                    const v = Number(p.kcal) || 0;
+                    const h = (v / barMax) * 130;
+                    const overGoal = v > calGoal;
+                    const isToday = i === calorieBars.length - 1;
+                    const valueText =
+                      v >= 1000 ? `${(v / 1000).toFixed(1)}კ` : `${v}`;
+                    const label = weekdayShort(p.date) || `${i + 1}`;
+                    return (
+                      <View key={p.date ?? i} style={styles.barCol}>
+                        <View style={styles.barTrack}>
+                          {v > 0 ? (
+                            <ThemedText
+                              style={styles.barValue}
+                              color={isToday ? theme.text : theme.textSecondary}
+                            >
+                              {valueText}
+                            </ThemedText>
+                          ) : null}
+                          <View
+                            style={[
+                              styles.bar,
+                              {
+                                height: h,
+                                backgroundColor: overGoal
+                                  ? theme.warning
+                                  : isToday
+                                    ? theme.brand
+                                    : theme.brand + "55",
+                              },
+                            ]}
+                          />
+                        </View>
                         <View
                           style={[
-                            styles.bar,
+                            styles.barDayWrap,
+                            isToday && {
+                              backgroundColor: theme.brandSoft,
+                            },
+                          ]}
+                        >
+                          <ThemedText
+                            style={styles.barLabel}
+                            color={isToday ? theme.brand : theme.textSecondary}
+                          >
+                            {label}
+                          </ThemedText>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : (
+                <EmptyCardBody
+                  Icon={Flame}
+                  title="კალორიის მონაცემი არ არის"
+                  hint="დაამატე კვება რომ ნახო შენი დღიური ბალანსი."
+                  color="#FF7A45"
+                  tint={colorScheme === "dark" ? "#3A2010" : "#FEEDE2"}
+                />
+              )}
+            </BaseCard>
+
+            <BaseCard>
+              <View style={styles.cardHeader}>
+                <ThemedText style={styles.cardTitle}>მაკრო ბალანსი</ThemedText>
+                <ThemedText type="secondary" style={styles.cardCaption}>
+                  {range === "week"
+                    ? "7 დღის"
+                    : range === "month"
+                      ? "30 დღის"
+                      : "90 დღის"}{" "}
+                  საშუალო
+                </ThemedText>
+              </View>
+              {hasTrendData ? (
+              <View style={{ gap: Spacing.md }}>
+                {[
+                  {
+                    Icon: Beef,
+                    label: "ცილა",
+                    pct: macroPcts.protein,
+                    color: theme.macroProtein,
+                  },
+                  {
+                    Icon: Wheat,
+                    label: "ნახშირწყალი",
+                    pct: macroPcts.carbs,
+                    color: theme.macroCarbs,
+                  },
+                  {
+                    Icon: Droplet,
+                    label: "ცხიმი",
+                    pct: macroPcts.fat,
+                    color: theme.macroFat,
+                  },
+                ].map(({ Icon, label, pct, color }) => (
+                  <View key={label} style={{ gap: Spacing.xs + 2 }}>
+                    <View style={styles.macroRow}>
+                      <View style={[styles.macroLabel]}>
+                        <Icon color={color} size={14} />
+                        <ThemedText style={styles.macroLabelText}>
+                          {label}
+                        </ThemedText>
+                      </View>
+                      <ThemedText style={styles.macroPct} type="secondary">
+                        {pct}%
+                      </ThemedText>
+                    </View>
+                    <View
+                      style={[
+                        styles.macroTrack,
+                        { backgroundColor: theme.borderLight },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.macroFill,
+                          { width: `${pct}%`, backgroundColor: color },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                ))}
+              </View>
+              ) : (
+                <EmptyCardBody
+                  Icon={Beef}
+                  title="ჯერ საკმარისი მონაცემი არ არის"
+                  hint={`დააფიქსირე ${MIN_DAYS_FOR_TREND} დღის კვება რომ ნახო შენი მაკრო ბალანსი.`}
+                  color={theme.macroProtein}
+                  tint={colorScheme === "dark" ? "#3A1A1A" : "#FCEAEA"}
+                />
+              )}
+            </BaseCard>
+
+            <BaseCard>
+              <View style={styles.cardHeader}>
+                <View style={{ gap: 2 }}>
+                  <ThemedText style={styles.cardTitle}>
+                    ლოგინგ სტრიკი
+                  </ThemedText>
+                  <ThemedText type="secondary" style={styles.cardCaption}>
+                    ბოლო {streakDays.length} დღე
+                  </ThemedText>
+                </View>
+                <View style={styles.legendRow}>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendDot,
+                        { backgroundColor: theme.brand },
+                      ]}
+                    />
+                    <ThemedText style={styles.legendText} type="secondary">
+                      ჩაწერილი
+                    </ThemedText>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendDot,
+                        { backgroundColor: theme.brand + "55" },
+                      ]}
+                    />
+                    <ThemedText style={styles.legendText} type="secondary">
+                      ნაწილობრ.
+                    </ThemedText>
+                  </View>
+                </View>
+              </View>
+              {streakDays.length ? (
+                <StreakGrid
+                  days={streakDays}
+                  color={theme.brand}
+                  partialColor={theme.brand + "55"}
+                  mutedColor={theme.borderLight}
+                />
+              ) : (
+                <EmptyCardBody
+                  Icon={Activity}
+                  title="სტრიკი ჯერ არ გაქვს"
+                  hint="ყოველდღე ჩაწერე საკვები რომ აიგო სტრიკი."
+                  color="#5B6CE0"
+                  tint={colorScheme === "dark" ? "#222B4A" : "#EEF0FB"}
+                />
+              )}
+            </BaseCard>
+
+            <BaseCard>
+              <View style={styles.cardHeader}>
+                <ThemedText style={styles.cardTitle}>ხშირი საკვები</ThemedText>
+                <ThemedText type="secondary" style={styles.cardCaption}>
+                  ბოლო{" "}
+                  {range === "week" ? "7" : range === "month" ? "30" : "90"} დღე
+                </ThemedText>
+              </View>
+              {topFoods.length && hasTrendData ? (
+                <View style={{ gap: Spacing.md }}>
+                  {topFoods.map((f, i) => (
+                    <View key={f.name} style={{ gap: Spacing.xs + 2 }}>
+                      <View style={styles.macroRow}>
+                        <View style={styles.foodLabel}>
+                          <View
+                            style={[
+                              styles.foodRank,
+                              { backgroundColor: theme.borderLight },
+                            ]}
+                          >
+                            <ThemedText
+                              style={styles.foodRankText}
+                              type="secondary"
+                            >
+                              {i + 1}
+                            </ThemedText>
+                          </View>
+                          <ThemedText style={styles.foodName}>
+                            {f.name}
+                          </ThemedText>
+                        </View>
+                        <ThemedText style={styles.foodCount} type="secondary">
+                          {f.count}×
+                        </ThemedText>
+                      </View>
+                      <View
+                        style={[
+                          styles.macroTrack,
+                          { backgroundColor: theme.borderLight },
+                        ]}
+                      >
+                        <View
+                          style={[
+                            styles.macroFill,
                             {
-                              height: h,
-                              backgroundColor: overGoal
-                                ? theme.warning
-                                : isToday
-                                  ? theme.brand
-                                  : theme.brand + "55",
+                              width: `${(f.count / topMax) * 100}%`,
+                              backgroundColor: f.color,
                             },
                           ]}
                         />
                       </View>
-                      <View
-                        style={[
-                          styles.barDayWrap,
-                          isToday && {
-                            backgroundColor: theme.brandSoft,
-                          },
-                        ]}
-                      >
-                        <ThemedText
-                          style={styles.barLabel}
-                          color={
-                            isToday ? theme.brand : theme.textSecondary
-                          }
-                        >
-                          {WEEK_LABELS[i % 7]}
-                        </ThemedText>
-                      </View>
                     </View>
-                  );
-                })}
-              </View>
-            );
-          })()}
-        </BaseCard>
-
-        <BaseCard>
-          <View style={styles.cardHeader}>
-            <ThemedText style={styles.cardTitle}>მაკრო ბალანსი</ThemedText>
-            <ThemedText type="secondary" style={styles.cardCaption}>
-              {range === "week" ? "7 დღის" : range === "month" ? "30 დღის" : "90 დღის"} საშუალო
-            </ThemedText>
-          </View>
-          <View style={{ gap: Spacing.md }}>
-            {[
-              {
-                Icon: Beef,
-                label: "ცილა",
-                pct: 28,
-                color: theme.macroProtein,
-              },
-              {
-                Icon: Wheat,
-                label: "ნახშირწყალი",
-                pct: 48,
-                color: theme.macroCarbs,
-              },
-              {
-                Icon: Droplet,
-                label: "ცხიმი",
-                pct: 24,
-                color: theme.macroFat,
-              },
-            ].map(({ Icon, label, pct, color }) => (
-              <View key={label} style={{ gap: Spacing.xs + 2 }}>
-                <View style={styles.macroRow}>
-                  <View style={[styles.macroLabel]}>
-                    <Icon color={color} size={14} />
-                    <ThemedText style={styles.macroLabelText}>
-                      {label}
-                    </ThemedText>
-                  </View>
-                  <ThemedText style={styles.macroPct} type="secondary">
-                    {pct}%
-                  </ThemedText>
+                  ))}
                 </View>
-                <View
-                  style={[
-                    styles.macroTrack,
-                    { backgroundColor: theme.borderLight },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.macroFill,
-                      { width: `${pct}%`, backgroundColor: color },
-                    ]}
-                  />
-                </View>
-              </View>
-            ))}
-          </View>
-        </BaseCard>
-
-        <BaseCard>
-          <View style={styles.cardHeader}>
-            <View style={{ gap: 2 }}>
-              <ThemedText style={styles.cardTitle}>ლოგინგ სტრიკი</ThemedText>
-              <ThemedText type="secondary" style={styles.cardCaption}>
-                ბოლო {d.streak.length} დღე
-              </ThemedText>
-            </View>
-            <View style={styles.legendRow}>
-              <View style={styles.legendItem}>
-                <View
-                  style={[styles.legendDot, { backgroundColor: theme.brand }]}
+              ) : (
+                <EmptyCardBody
+                  Icon={UtensilsCrossed}
+                  title="საკვების ჩანაწერი არ არის"
+                  hint="ჩაწერილი საკვებები რეიტინგულად აქ გამოჩნდება."
+                  color="#7C5CFF"
+                  tint={colorScheme === "dark" ? "#2A1F4A" : "#F0EBFE"}
                 />
-                <ThemedText style={styles.legendText} type="secondary">
-                  ჩაწერილი
-                </ThemedText>
-              </View>
-              <View style={styles.legendItem}>
-                <View
-                  style={[
-                    styles.legendDot,
-                    { backgroundColor: theme.brand + "55" },
-                  ]}
-                />
-                <ThemedText style={styles.legendText} type="secondary">
-                  ნაწილობრ.
-                </ThemedText>
-              </View>
-            </View>
-          </View>
-          <StreakGrid
-            days={d.streak}
-            color={theme.brand}
-            partialColor={theme.brand + "55"}
-            mutedColor={theme.borderLight}
-          />
-        </BaseCard>
+              )}
+            </BaseCard>
 
-        <BaseCard>
-          <View style={styles.cardHeader}>
-            <ThemedText style={styles.cardTitle}>ხშირი საკვები</ThemedText>
-            <ThemedText type="secondary" style={styles.cardCaption}>
-              ბოლო {range === "week" ? "7" : range === "month" ? "30" : "90"} დღე
-            </ThemedText>
-          </View>
-          <View style={{ gap: Spacing.md }}>
-            {topFoods.map((f, i) => (
-              <View key={f.name} style={{ gap: Spacing.xs + 2 }}>
-                <View style={styles.macroRow}>
-                  <View style={styles.foodLabel}>
+            <BaseCard>
+              <View style={styles.cardHeader}>
+                <ThemedText style={styles.cardTitle}>რეკორდები</ThemedText>
+              </View>
+              <View style={{ gap: Spacing.sm }}>
+                {records.map(({ Icon, label, value, color }) => (
+                  <View key={label} style={styles.recordRow}>
                     <View
                       style={[
-                        styles.foodRank,
-                        { backgroundColor: theme.borderLight },
+                        styles.recordIcon,
+                        { backgroundColor: color + "20" },
                       ]}
                     >
-                      <ThemedText style={styles.foodRankText} type="secondary">
-                        {i + 1}
-                      </ThemedText>
+                      <Icon color={color} size={16} />
                     </View>
-                    <ThemedText style={styles.foodName}>{f.name}</ThemedText>
+                    <ThemedText style={styles.recordLabel}>{label}</ThemedText>
+                    <ThemedText style={styles.recordValue} color={color}>
+                      {value}
+                    </ThemedText>
                   </View>
-                  <ThemedText style={styles.foodCount} type="secondary">
-                    {f.count}×
-                  </ThemedText>
-                </View>
-                <View
-                  style={[
-                    styles.macroTrack,
-                    { backgroundColor: theme.borderLight },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.macroFill,
-                      {
-                        width: `${(f.count / topMax) * 100}%`,
-                        backgroundColor: f.color,
-                      },
-                    ]}
-                  />
-                </View>
+                ))}
               </View>
-            ))}
-          </View>
-        </BaseCard>
-
-        <BaseCard>
-          <View style={styles.cardHeader}>
-            <ThemedText style={styles.cardTitle}>რეკორდები</ThemedText>
-          </View>
-          <View style={{ gap: Spacing.sm }}>
-            {records.map(({ Icon, label, value, color }) => (
-              <View key={label} style={styles.recordRow}>
-                <View
-                  style={[
-                    styles.recordIcon,
-                    { backgroundColor: color + "20" },
-                  ]}
-                >
-                  <Icon color={color} size={16} />
-                </View>
-                <ThemedText style={styles.recordLabel}>{label}</ThemedText>
-                <ThemedText style={styles.recordValue} color={color}>
-                  {value}
-                </ThemedText>
-              </View>
-            ))}
-          </View>
-        </BaseCard>
+            </BaseCard>
+          </>
+        )}
       </View>
     </ScrollView>
   );
 }
-
-export default StatisticsPage;
 
 const styles = StyleSheet.create({
   headerContainer: {
@@ -666,6 +1032,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     gap: Spacing.lg,
     marginTop: -Spacing.lg,
+  },
+  loaderRow: {
+    paddingVertical: Spacing.lg,
+    alignItems: "center",
   },
   summaryRow: {
     flexDirection: "row",
@@ -904,6 +1274,74 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   recordValue: {
+    fontSize: Type.base,
+    fontWeight: "700",
+  },
+  emptyHint: {
+    fontSize: Type.sm,
+    textAlign: "center",
+    paddingVertical: Spacing.md,
+  },
+  cardEmpty: {
+    alignItems: "center",
+    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  cardEmptyIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.xs,
+  },
+  cardEmptyTitle: {
+    fontSize: Type.base,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  cardEmptyHint: {
+    fontSize: Type.xs,
+    textAlign: "center",
+    lineHeight: 18,
+    paddingHorizontal: Spacing.md,
+  },
+  heroEmpty: {
+    alignItems: "center",
+    paddingVertical: Spacing.xxxl,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: Radius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: Spacing.sm,
+  },
+  heroEmptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: Radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.sm,
+  },
+  heroEmptyTitle: {
+    fontSize: Type.xl,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  heroEmptyBody: {
+    fontSize: Type.sm,
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: Spacing.lg,
+  },
+  heroEmptyCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.pill,
+  },
+  heroEmptyCtaText: {
     fontSize: Type.base,
     fontWeight: "700",
   },

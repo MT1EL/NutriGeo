@@ -11,7 +11,7 @@ const Suggestion = () => {
 
   const computed = useMemo(() => {
     if (
-      !data.sex ||
+      !data.biological_sex ||
       !data.activity_level ||
       !data.goal_type ||
       !data.height_cm ||
@@ -21,7 +21,7 @@ const Suggestion = () => {
       return null;
     }
     return calculateMacroTargets({
-      sex: data.sex,
+      biological_sex: data.biological_sex,
       weight_kg: Number(data.weight_kg),
       height_cm: Number(data.height_cm),
       age: Number(data.age),
@@ -29,7 +29,7 @@ const Suggestion = () => {
       goal_type: data.goal_type,
     });
   }, [
-    data.sex,
+    data.biological_sex,
     data.activity_level,
     data.goal_type,
     data.height_cm,
@@ -40,7 +40,8 @@ const Suggestion = () => {
   // Seed inputs with computed defaults the first time we have all data.
   useEffect(() => {
     if (!computed) return;
-    if (!data.daily_calorie_goal) setField("daily_calorie_goal", String(computed.kcal));
+    if (!data.daily_calorie_target)
+      setField("daily_calorie_target", String(computed.kcal));
     if (!data.protein_g) setField("protein_g", String(computed.protein_g));
     if (!data.carbs_g) setField("carbs_g", String(computed.carbs_g));
     if (!data.fat_g) setField("fat_g", String(computed.fat_g));
@@ -49,7 +50,7 @@ const Suggestion = () => {
 
   const fields = [
     {
-      key: "daily_calorie_goal" as const,
+      key: "daily_calorie_target" as const,
       label: "კალორია",
       Icon: Flame,
     },

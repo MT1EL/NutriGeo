@@ -1,5 +1,10 @@
 import { api } from './client';
-import type { ApiResponse, Paginated, Recipe } from './types';
+import type {
+  ApiResponse,
+  Paginated,
+  Recipe,
+  RecipeRating,
+} from './types';
 
 export type ListRecipesParams = {
   page?: number;
@@ -7,6 +12,7 @@ export type ListRecipesParams = {
   category?: string;
   difficulty?: 'easy' | 'medium' | 'hard';
   diet?: string;
+  q?: string;
 };
 
 export function listRecipes(params: ListRecipesParams = {}) {
@@ -36,10 +42,16 @@ export function unsaveRecipe(id: string) {
   return api.delete<ApiResponse<{ ok: true }>>(`/v1/recipes/${id}/save`);
 }
 
+export type RateRecipeResponse = {
+  rating: RecipeRating;
+  my_rating: number;
+};
+
 export function rateRecipe(id: string, rating: number) {
-  return api.post<ApiResponse<{ rating: number }>>(`/v1/recipes/${id}/rate`, {
-    rating,
-  });
+  return api.post<ApiResponse<RateRecipeResponse>>(
+    `/v1/recipes/${id}/rate`,
+    { rating },
+  );
 }
 
 export type CreateRecipeInput = {

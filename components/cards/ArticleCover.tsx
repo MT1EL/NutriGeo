@@ -1,17 +1,12 @@
+import type { Article } from "@/api/types";
 import BaseCard from "@/components/cards/BaseCard";
 import ThemedText from "@/components/ui/ThemedText";
-import { Article } from "@/constants/articles";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import {
-  Canvas,
-  LinearGradient,
-  Rect,
-  vec,
-} from "@shopify/react-native-skia";
+import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Clock } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   LayoutChangeEvent,
   StyleSheet,
@@ -19,6 +14,36 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+
+const CATEGORY_PALETTE = [
+  "#5B6CE0",
+  "#7C5CFF",
+  "#F5A623",
+  "#3FA9F5",
+  "#FF6B9D",
+  "#34A867",
+  "#FF7A45",
+  "#E85A8C",
+];
+
+function hashedColor(key: string | undefined) {
+  if (!key) return CATEGORY_PALETTE[0];
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) | 0;
+  }
+  return CATEGORY_PALETTE[Math.abs(hash) % CATEGORY_PALETTE.length];
+}
+
+export function categoryColor(
+  article: Pick<Article, "category_color" | "category_slug">,
+) {
+  return article.category_color || hashedColor(article.category_slug);
+}
+
+export function articleImageSource(url: string | undefined) {
+  return url ? { uri: url } : require("@/assets/images/article_cover.png");
+}
 
 type Props = {
   article: Article;
@@ -36,37 +61,33 @@ const ArticleCover = ({ article, variant = "card" }: Props) => {
   };
 
   const navigate = () => router.push(`/articles/${article.id}`);
+  const cover = articleImageSource(article.cover_url);
+  const color = categoryColor(article);
+  const category = article.category_label ?? "";
+  const readMin = article.read_min ?? 0;
 
   if (variant === "row") {
     return (
       <TouchableOpacity activeOpacity={0.85} onPress={navigate}>
         <BaseCard style={styles.rowCard}>
-          <Image
-            source={article.cover}
-            style={styles.rowImage}
-            contentFit="cover"
-          />
+          <Image source={cover} style={styles.rowImage} contentFit="cover" />
           <View style={styles.rowContent}>
-            <View
-              style={[
-                styles.rowBadge,
-                { backgroundColor: article.categoryColor + "22" },
-              ]}
-            >
-              <ThemedText
-                style={styles.rowBadgeText}
-                color={article.categoryColor}
+            {category ? (
+              <View
+                style={[styles.rowBadge, { backgroundColor: color + "22" }]}
               >
-                {article.category}
-              </ThemedText>
-            </View>
+                <ThemedText style={styles.rowBadgeText} color={color}>
+                  {category}
+                </ThemedText>
+              </View>
+            ) : null}
             <ThemedText style={styles.rowTitle} numberOfLines={2}>
               {article.title}
             </ThemedText>
             <View style={styles.rowMeta}>
               <Clock color={theme.textSecondary} size={11} />
               <ThemedText style={styles.rowMetaText} type="secondary">
-                {article.readMin} წთ.
+                {readMin} წთ.
               </ThemedText>
             </View>
           </View>
@@ -79,7 +100,7 @@ const ArticleCover = ({ article, variant = "card" }: Props) => {
     <TouchableOpacity activeOpacity={0.9} onPress={navigate}>
       <View style={styles.container} onLayout={onLayout}>
         <Image
-          source={article.cover}
+          source={cover}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
         />
@@ -100,27 +121,21 @@ const ArticleCover = ({ article, variant = "card" }: Props) => {
             </Canvas>
           </View>
         )}
-        <View
-          style={[
-            styles.tag,
-            { backgroundColor: article.categoryColor + "EE" },
-          ]}
-        >
-          <ThemedText style={styles.tagText} color="#FFFFFF">
-            {article.category}
-          </ThemedText>
-        </View>
+        {category ? (
+          <View style={[styles.tag, { backgroundColor: color + "EE" }]}>
+            <ThemedText style={styles.tagText} color="#FFFFFF">
+              {category}
+            </ThemedText>
+          </View>
+        ) : null}
         <View style={styles.titleWrap}>
           <ThemedText style={styles.title} numberOfLines={2} color="#FFFFFF">
             {article.title}
           </ThemedText>
           <View style={styles.meta}>
             <Clock color="rgba(255,255,255,0.85)" size={11} />
-            <ThemedText
-              style={styles.metaText}
-              color="rgba(255,255,255,0.85)"
-            >
-              {article.readMin} წთ.
+            <ThemedText style={styles.metaText} color="rgba(255,255,255,0.85)">
+              {readMin} წთ.
             </ThemedText>
           </View>
         </View>

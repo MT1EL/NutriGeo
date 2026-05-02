@@ -1,14 +1,24 @@
-import ArticleCover from "@/components/cards/ArticleCover";
+import {
+  getArticleCategories,
+  getFeaturedArticles,
+  listArticles,
+} from "@/api/articles";
+import type { Article, ArticleCategory } from "@/api/types";
+import ArticleCover, {
+  articleImageSource,
+  categoryColor,
+} from "@/components/cards/ArticleCover";
 import BaseCard from "@/components/cards/BaseCard";
 import { GradientView } from "@/components/ui/GradientView";
 import ThemedText from "@/components/ui/ThemedText";
-import { ARTICLES } from "@/constants/articles";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ChevronLeft, Clock } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -22,24 +32,58 @@ export default function ArticlesIndex() {
   const theme = Colors[colorScheme];
   const [activeCat, setActiveCat] = useState<string>("all");
 
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    ARTICLES.forEach((a) => set.add(a.category));
-    return ["all", ...Array.from(set)];
-  }, []);
+  const listQuery = useQuery({
+    queryKey: ["articles", "list", activeCat],
+    queryFn: () =>
+      listArticles({
+        limit: 30,
+        sort: "published_at_desc",
+        ...(activeCat !== "all" ? { category: activeCat } : {}),
+      }),
+  });
+  const categoriesQuery = useQuery({
+    queryKey: ["articles", "categories"],
+    queryFn: getArticleCategories,
+  });
+  const featuredQuery = useQuery({
+    queryKey: ["articles", "featured"],
+    queryFn: getFeaturedArticles,
+  });
 
-  const filtered = useMemo(() => {
-    if (activeCat === "all") return ARTICLES;
-    return ARTICLES.filter((a) => a.category === activeCat);
-  }, [activeCat]);
+  const articles: Article[] = useMemo(() => {
+    const raw = listQuery.data?.data;
+    return Array.isArray(raw) ? raw : [];
+  }, [listQuery.data]);
 
-  const [hero, ...rest] = filtered;
+  const featuredList: Article[] = useMemo(() => {
+    const raw = featuredQuery.data?.data;
+    return Array.isArray(raw) ? raw : [];
+  }, [featuredQuery.data]);
+
+  const categories: { slug: string; label: string }[] = useMemo(() => {
+    const raw = categoriesQuery.data?.data;
+    const list: ArticleCategory[] = Array.isArray(raw) ? raw : [];
+    return [
+      { slug: "all", label: "ყველა" },
+      ...list.map((c) => ({ slug: c.slug, label: c.label })),
+    ];
+  }, [categoriesQuery.data]);
+
+  const hero: Article | undefined =
+    activeCat === "all" ? featuredList[0] ?? articles[0] : articles[0];
+  const rest = useMemo(() => {
+    if (!hero) return articles;
+    return articles.filter((a) => a.id !== hero.id);
+  }, [articles, hero]);
+
+  const isLoading = listQuery.isLoading;
 
   return (
     <ScrollView
       style={{ backgroundColor: theme.surface }}
       contentContainerStyle={{ paddingBottom: Spacing.huge }}
       showsVerticalScrollIndicator={false}
+      refreshControl={undefined}
     >
       <GradientView
         colors={[theme.brandDeep, theme.brand]}
@@ -73,38 +117,48 @@ export default function ArticlesIndex() {
       </GradientView>
 
       <View style={styles.body}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsRow}
-          style={{ marginHorizontal: -Spacing.xl, paddingHorizontal: Spacing.xl }}
-        >
-          {categories.map((c) => {
-            const isActive = c === activeCat;
-            const label = c === "all" ? "ყველა" : c;
-            return (
-              <TouchableOpacity
-                key={c}
-                onPress={() => setActiveCat(c)}
-                activeOpacity={0.85}
-                style={[
-                  styles.chip,
-                  {
-                    backgroundColor: isActive ? theme.brand : theme.card,
-                    borderColor: isActive ? theme.brand : theme.border,
-                  },
-                ]}
-              >
-                <ThemedText
-                  style={styles.chipLabel}
-                  color={isActive ? "#FFFFFF" : theme.text}
+        {categories.length > 1 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipsRow}
+            style={{
+              marginHorizontal: -Spacing.xl,
+              paddingHorizontal: Spacing.xl,
+            }}
+          >
+            {categories.map((c) => {
+              const isActive = c.slug === activeCat;
+              return (
+                <TouchableOpacity
+                  key={c.slug}
+                  onPress={() => setActiveCat(c.slug)}
+                  activeOpacity={0.85}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: isActive ? theme.brand : theme.card,
+                      borderColor: isActive ? theme.brand : theme.border,
+                    },
+                  ]}
                 >
-                  {label}
-                </ThemedText>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                  <ThemedText
+                    style={styles.chipLabel}
+                    color={isActive ? "#FFFFFF" : theme.text}
+                  >
+                    {c.label}
+                  </ThemedText>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
+
+        {isLoading && articles.length === 0 ? (
+          <View style={styles.loaderRow}>
+            <ActivityIndicator color={theme.brand} />
+          </View>
+        ) : null}
 
         {hero && (
           <View style={{ gap: Spacing.sm }}>
@@ -116,37 +170,40 @@ export default function ArticlesIndex() {
               <BaseCard style={styles.heroCard}>
                 <View style={styles.heroCoverWrap}>
                   <Image
-                    source={hero.cover}
+                    source={articleImageSource(hero.cover_url)}
                     style={styles.heroCover}
                     contentFit="cover"
                   />
-                  <View
-                    style={[
-                      styles.heroBadge,
-                      { backgroundColor: hero.categoryColor + "EE" },
-                    ]}
-                  >
-                    <ThemedText style={styles.heroBadgeText} color="#FFFFFF">
-                      {hero.category}
-                    </ThemedText>
-                  </View>
+                  {hero.category_label && (
+                    <View
+                      style={[
+                        styles.heroBadge,
+                        {
+                          backgroundColor: categoryColor(hero) + "EE",
+                        },
+                      ]}
+                    >
+                      <ThemedText style={styles.heroBadgeText} color="#FFFFFF">
+                        {hero.category_label}
+                      </ThemedText>
+                    </View>
+                  )}
                 </View>
                 <View style={{ gap: Spacing.sm }}>
                   <ThemedText style={styles.heroTitle}>{hero.title}</ThemedText>
-                  <ThemedText
-                    type="secondary"
-                    style={styles.heroExcerpt}
-                    numberOfLines={3}
-                  >
-                    {hero.excerpt}
-                  </ThemedText>
+                  {hero.excerpt && (
+                    <ThemedText
+                      type="secondary"
+                      style={styles.heroExcerpt}
+                      numberOfLines={3}
+                    >
+                      {hero.excerpt}
+                    </ThemedText>
+                  )}
                   <View style={styles.metaRow}>
                     <Clock color={theme.textSecondary} size={12} />
-                    <ThemedText
-                      style={styles.metaText}
-                      type="secondary"
-                    >
-                      {hero.readMin} წთ. წაკითხვა · {hero.author}
+                    <ThemedText style={styles.metaText} type="secondary">
+                      {hero.read_min ?? 0} წთ. წაკითხვა
                     </ThemedText>
                   </View>
                 </View>
@@ -163,6 +220,17 @@ export default function ArticlesIndex() {
                 <ArticleCover key={a.id} article={a} variant="row" />
               ))}
             </View>
+          </View>
+        )}
+
+        {!isLoading && articles.length === 0 && !hero && (
+          <View style={styles.empty}>
+            <ThemedText style={styles.emptyTitle}>
+              სტატია ვერ მოიძებნა
+            </ThemedText>
+            <ThemedText type="secondary" style={styles.emptyText}>
+              სცადე სხვა კატეგორია
+            </ThemedText>
           </View>
         )}
       </View>
@@ -266,5 +334,21 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: Type.xs,
     fontWeight: "600",
+  },
+  loaderRow: {
+    paddingVertical: Spacing.huge,
+    alignItems: "center",
+  },
+  empty: {
+    alignItems: "center",
+    paddingVertical: Spacing.huge,
+    gap: Spacing.sm,
+  },
+  emptyTitle: {
+    fontSize: Type.lg,
+    fontWeight: "700",
+  },
+  emptyText: {
+    fontSize: Type.sm,
   },
 });

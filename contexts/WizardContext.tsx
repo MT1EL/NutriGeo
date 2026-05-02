@@ -13,7 +13,7 @@ import React, {
 } from "react";
 
 export type WizardData = {
-  sex: Sex | null;
+  biological_sex: Sex | null;
   height_cm: string;
   weight_kg: string;
   age: string;
@@ -22,14 +22,14 @@ export type WizardData = {
   diet: Diet;
   allergies: string[];
   restrictions: string[];
-  daily_calorie_goal: string;
+  daily_calorie_target: string;
   protein_g: string;
   carbs_g: string;
   fat_g: string;
 };
 
 const INITIAL: WizardData = {
-  sex: null,
+  biological_sex: null,
   height_cm: "",
   weight_kg: "",
   age: "",
@@ -38,7 +38,7 @@ const INITIAL: WizardData = {
   diet: "none",
   allergies: [],
   restrictions: [],
-  daily_calorie_goal: "",
+  daily_calorie_target: "",
   protein_g: "",
   carbs_g: "",
   fat_g: "",

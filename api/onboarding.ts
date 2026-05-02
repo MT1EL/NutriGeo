@@ -11,7 +11,7 @@ import type {
 
 export type OnboardingInput = {
   name: string;
-  sex: Sex;
+  biological_sex: Sex;
   birth_date: string;
   height_cm: number;
   weight_kg: number;

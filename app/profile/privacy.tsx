@@ -1,5 +1,6 @@
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import ThemedText from "@/components/ui/ThemedText";
+import { LEGAL_LAST_UPDATED } from "@/constants/legal";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Shield } from "lucide-react-native";
 import React from "react";
@@ -28,7 +29,7 @@ const SECTIONS: { h: string; p: string }[] = [
   },
   {
     h: "6. ცვლილებები",
-    p: "ამ პოლიტიკის ცვლილების შემთხვევაში შეგატყობინებთ აპლიკაციით ან ელფოსტით. ბოლო განახლება: 2026 წლის 1 მაისი.",
+    p: `ამ პოლიტიკის ცვლილების შემთხვევაში შეგატყობინებთ აპლიკაციით ან ელფოსტით. ბოლო განახლება: ${LEGAL_LAST_UPDATED}.`,
   },
 ];
 
@@ -64,7 +65,7 @@ export default function PrivacyScreen() {
       </View>
 
       <ThemedText style={styles.footer} type="secondary">
-        ბოლო განახლება: 2026 წლის 1 მაისი
+        ბოლო განახლება: {LEGAL_LAST_UPDATED}
       </ThemedText>
     </SubScreenLayout>
   );

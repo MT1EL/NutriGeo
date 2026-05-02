@@ -7,9 +7,11 @@ import {
   View,
 } from "react-native";
 
+import { listArticles } from "@/api/articles";
 import { getTodayMeals } from "@/api/meals";
 import { getStreak } from "@/api/stats";
 import { getSteps } from "@/api/steps";
+import type { Article } from "@/api/types";
 import { getWaterToday } from "@/api/water";
 import ArticleCover from "@/components/cards/ArticleCover";
 import MacrosCard from "@/components/cards/MacrosCard";
@@ -17,22 +19,39 @@ import MealsCard from "@/components/cards/MealsCard";
 import { CalorieRing } from "@/components/charts/CalorieRing";
 import { GradientView } from "@/components/ui/GradientView";
 import ThemedText from "@/components/ui/ThemedText";
-import { ARTICLES } from "@/constants/articles";
 import {
   APPLE_HEALTH_CONNECTED,
   LAST_SYNC_LABEL,
 } from "@/constants/integrations";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Bell, Droplet, Flame, Footprints, Heart } from "lucide-react-native";
+import { useMemo } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 const HEADER_OVERLAP = 56;
-const USER_NAME = "თორნიკე";
-const TODAY_DATE = "1 მაისი, 2026";
+
+const KA_MONTHS = [
+  "იანვარი",
+  "თებერვალი",
+  "მარტი",
+  "აპრილი",
+  "მაისი",
+  "ივნისი",
+  "ივლისი",
+  "აგვისტო",
+  "სექტემბერი",
+  "ოქტომბერი",
+  "ნოემბერი",
+  "დეკემბერი",
+];
+
+function formatTodayKa(d = new Date()) {
+  return `${d.getDate()} ${KA_MONTHS[d.getMonth()]}, ${d.getFullYear()}`;
+}
 
 function useHomeData() {
   return useQueries({
@@ -71,9 +90,19 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const initial = USER_NAME.charAt(0);
+  const userName = user?.profile?.name?.trim() || user?.email?.split("@")[0] || "";
+  const initial = userName.charAt(0).toUpperCase() || "?";
+  const todayLabel = useMemo(() => formatTodayKa(), []);
 
   const { meals, streak, water, steps, isLoading, isError } = useHomeData();
+  const articlesQuery = useQuery({
+    queryKey: ["articles", "list"],
+    queryFn: () => listArticles({ limit: 4 }),
+  });
+  const homeArticles: Article[] = useMemo(() => {
+    const raw = articlesQuery.data?.data;
+    return Array.isArray(raw) ? raw.slice(0, 4) : [];
+  }, [articlesQuery.data]);
 
   if (isLoading) {
     return (
@@ -85,7 +114,7 @@ export default function HomeScreen() {
   if (isError || !meals) return null;
 
   const kcalEaten = Math.round(meals.totals.kcal);
-  const kcalGoal = user?.goals?.daily_calorie_goal ?? 0;
+  const kcalGoal = user?.goals?.daily_calorie_target ?? 0;
   const waterLiters = ((water?.total_ml ?? 0) / 1000).toFixed(1);
   const stepsToday = steps?.[0]?.count ?? 0;
   const streakDays = streak?.current ?? 0;
@@ -134,10 +163,10 @@ export default function HomeScreen() {
                 გამარჯობა,
               </ThemedText>
               <ThemedText style={styles.name} color="#FFFFFF">
-                {USER_NAME}
+                {userName}
               </ThemedText>
               <ThemedText style={styles.date} color="rgba(255,255,255,0.85)">
-                {TODAY_DATE}
+                {todayLabel}
               </ThemedText>
             </View>
             <View style={styles.headerActions}>
@@ -230,7 +259,7 @@ export default function HomeScreen() {
             }}
             style={{ marginLeft: -Spacing.xl, paddingLeft: Spacing.xl }}
           >
-            {ARTICLES.slice(0, 4).map((a) => (
+            {homeArticles.map((a) => (
               <ArticleCover key={a.id} article={a} />
             ))}
           </ScrollView>

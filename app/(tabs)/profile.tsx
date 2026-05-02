@@ -1,8 +1,10 @@
+import { getProfile } from "@/api/profile";
 import BaseCard from "@/components/cards/BaseCard";
 import { GradientView } from "@/components/ui/GradientView";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { Href, router } from "expo-router";
 import {
   Bell,
@@ -11,7 +13,6 @@ import {
   Heart,
   LogOut,
   LucideIcon,
-  Plug,
   Settings,
   Target,
   User,
@@ -65,10 +66,14 @@ const Row = ({ Icon, label, hint, tint, iconColor, href }: RowProps) => {
 
 const ProfilePage = () => {
   const { signOut } = useAuth();
-
+  const { user } = useAuth();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const initial = USER_NAME.charAt(0);
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["Profile"],
+    queryFn: getProfile,
+  });
 
   return (
     <ScrollView
@@ -86,14 +91,14 @@ const ProfilePage = () => {
         <SafeAreaView edges={["top"]} style={styles.headerSafe}>
           <View style={styles.avatar}>
             <ThemedText style={styles.avatarText} color={theme.brand}>
-              {initial}
+              {data?.data.display_name?.split(" ")[0][0]}
             </ThemedText>
           </View>
           <ThemedText style={styles.name} color="#FFFFFF">
-            {USER_NAME}
+            {data?.data.display_name}
           </ThemedText>
           <ThemedText style={styles.email} color="rgba(255,255,255,0.85)">
-            {USER_EMAIL}
+            {data?.data?.activity_level}
           </ThemedText>
 
           <View style={styles.statsStrip}>
@@ -145,14 +150,14 @@ const ProfilePage = () => {
             iconColor="#E85A8C"
             href="/profile/health"
           />
-          <Row
+          {/* <Row
             Icon={Plug}
             label="კავშირები"
             hint="Apple Health, Garmin, Strava"
             tint={colorScheme === "dark" ? "#1F3A28" : "#E6F6EA"}
             iconColor="#34A867"
             href="/profile/connections"
-          />
+          /> */}
         </BaseCard>
 
         <ThemedText style={styles.sectionTitle}>აპლიკაცია</ThemedText>

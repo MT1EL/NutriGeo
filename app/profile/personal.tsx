@@ -1,50 +1,160 @@
+import { Sex } from "@/api";
+import { getProfile, updatePersonal, type PersonalInput } from "@/api/profile";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { SettingsGroup } from "@/components/ui/SettingsRow";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFormik } from "formik";
 import {
   Calendar,
+  Mars,
   Ruler,
   User,
   Venus,
-  Mars,
   Weight,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import { useEffect } from "react";
 import {
+  ActivityIndicator,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
 
-type Sex = "male" | "female";
+const PROFILE_QUERY_KEY = ["Profile"] as const;
+
+type PersonalForm = {
+  name: string;
+  biological_sex: Sex;
+  age: string;
+  height_cm: string;
+  weight_kg: string;
+};
+
+function ageFromBirthDate(birthDate: string | null | undefined): number | null {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let years = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birth.getDate())
+  ) {
+    years -= 1;
+  }
+  return years;
+}
+
+function birthDateFromAge(ageStr: string): string {
+  const age = Number(ageStr);
+  const today = new Date();
+  const birth = new Date(
+    today.getFullYear() - age,
+    today.getMonth(),
+    today.getDate(),
+  );
+  return birth.toISOString().slice(0, 10);
+}
 
 export default function PersonalScreen() {
+  const { user, refreshUser } = useAuth();
+  const toast = useToast();
+  const queryClient = useQueryClient();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const [sex, setSex] = useState<Sex>("male");
+
+  const profileQuery = useQuery({
+    queryKey: PROFILE_QUERY_KEY,
+    queryFn: getProfile,
+  });
+  const profile = profileQuery.data?.data;
+
+  const form = useFormik<PersonalForm>({
+    enableReinitialize: true,
+    initialValues: {
+      name: profile?.name ?? "",
+      biological_sex: (profile?.biological_sex as Sex) ?? "male",
+      age:
+        profile?.age?.toString() ??
+        ageFromBirthDate(profile?.birth_date)?.toString() ??
+        "",
+      height_cm: profile?.height_cm?.toString() ?? "",
+      weight_kg: profile?.weight_kg?.toString() ?? "",
+    },
+    onSubmit: (values) => {
+      const payload: PersonalInput = {
+        name: values.name.trim(),
+        biological_sex: values.biological_sex,
+        birth_date: birthDateFromAge(values.age),
+        height_cm: Number(values.height_cm),
+        weight_kg: Number(values.weight_kg),
+      };
+      mutation.mutate(payload);
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: (input: PersonalInput) => updatePersonal(input),
+    onSuccess: async (res) => {
+      queryClient.setQueryData(PROFILE_QUERY_KEY, res);
+      await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+      await refreshUser();
+      toast.success("პირადი მონაცემები შენახულია");
+    },
+    onError: (err) => {
+      const message =
+        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
+      toast.error(message, "შეცდომა");
+    },
+  });
+
+  useEffect(() => {
+    if (profileQuery.isError) {
+      toast.error("პროფილის ჩატვირთვა ვერ მოხერხდა");
+    }
+  }, [profileQuery.isError, toast]);
 
   const sexOptions: { key: Sex; label: string; Icon: typeof Mars }[] = [
     { key: "male", label: "კაცი", Icon: Mars },
     { key: "female", label: "ქალი", Icon: Venus },
   ];
 
+  if (profileQuery.isLoading) {
+    return (
+      <SubScreenLayout
+        title="პირადი ინფორმაცია"
+        subtitle="შენი პროფილის მონაცემები"
+      >
+        <View style={styles.loader}>
+          <ActivityIndicator color={theme.brand} />
+        </View>
+      </SubScreenLayout>
+    );
+  }
+
   return (
-    <SubScreenLayout title="პირადი ინფორმაცია" subtitle="შენი პროფილის მონაცემები">
+    <SubScreenLayout
+      title="პირადი ინფორმაცია"
+      subtitle="შენი პროფილის მონაცემები"
+    >
       <View style={{ gap: Spacing.sm }}>
         <ThemedText style={styles.groupTitle} type="secondary">
           სქესი
         </ThemedText>
         <View style={styles.sexRow}>
           {sexOptions.map(({ key, label, Icon }) => {
-            const isActive = key === sex;
+            const isActive = key === form.values.biological_sex;
             return (
               <TouchableOpacity
                 key={key}
-                onPress={() => setSex(key)}
+                onPress={() => form.setFieldValue("biological_sex", key)}
                 activeOpacity={0.85}
                 style={[
                   styles.sexCard,
@@ -85,11 +195,17 @@ export default function PersonalScreen() {
         <ThemedText style={styles.groupTitle} type="secondary">
           ძირითადი მონაცემები
         </ThemedText>
-        <Input Icon={User} label="სახელი" defaultValue="თორნიკე" />
+        <Input
+          Icon={User}
+          label="სახელი"
+          value={form.values.name}
+          onChangeText={(text) => form.setFieldValue("name", text)}
+        />
         <Input
           Icon={Calendar}
           label="ასაკი"
-          defaultValue="28"
+          value={form.values.age}
+          onChangeText={(text) => form.setFieldValue("age", text)}
           keyboardType="number-pad"
         />
         <View style={styles.twoCol}>
@@ -97,7 +213,8 @@ export default function PersonalScreen() {
             <Input
               Icon={Ruler}
               label="სიმაღლე (სმ)"
-              defaultValue="178"
+              value={form.values.height_cm}
+              onChangeText={(text) => form.setFieldValue("height_cm", text)}
               keyboardType="number-pad"
             />
           </View>
@@ -105,23 +222,33 @@ export default function PersonalScreen() {
             <Input
               Icon={Weight}
               label="წონა (კგ)"
-              defaultValue="80.4"
+              value={form.values.weight_kg}
+              onChangeText={(text) => form.setFieldValue("weight_kg", text)}
               keyboardType="decimal-pad"
             />
           </View>
         </View>
       </View>
 
-      <SettingsGroup title="საკონტაქტო">
+      <View style={{ gap: Spacing.md }}>
+        <ThemedText style={styles.groupTitle} type="secondary">
+          საკონტაქტო
+        </ThemedText>
         <Input
           Icon={User}
           label="ელფოსტა"
-          defaultValue="tornike@nutrigeo.ge"
+          defaultValue={user?.email}
           keyboardType="email-address"
+          disabled
         />
-      </SettingsGroup>
+      </View>
 
-      <Button onPress={() => null}>შენახვა</Button>
+      <Button
+        onPress={() => form.handleSubmit()}
+        disabled={mutation.isPending || !form.dirty}
+      >
+        {mutation.isPending ? "ინახება..." : "შენახვა"}
+      </Button>
     </SubScreenLayout>
   );
 }
@@ -162,5 +289,9 @@ const styles = StyleSheet.create({
   twoCol: {
     flexDirection: "row",
     gap: Spacing.md,
+  },
+  loader: {
+    paddingVertical: Spacing.xxxl,
+    alignItems: "center",
   },
 });

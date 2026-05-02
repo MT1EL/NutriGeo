@@ -25,6 +25,8 @@ type Props = {
   buttons?: button[];
   activeButton?: string;
   onButtonPress?: (button: button) => void;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 };
 
 const Header = ({
@@ -35,6 +37,8 @@ const Header = ({
   buttons,
   activeButton,
   onButtonPress,
+  searchValue,
+  onSearchChange,
 }: Props) => {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -54,7 +58,13 @@ const Header = ({
         </View>
         <View style={{ gap: Spacing.md }}>
           {hasInput && (
-            <Input Icon={Search} placeholder={inputPlaceholder} compact />
+            <Input
+              Icon={Search}
+              placeholder={inputPlaceholder}
+              compact
+              value={searchValue}
+              onChangeText={onSearchChange}
+            />
           )}
           {buttons && (
             <FlatList

@@ -1,10 +1,22 @@
 import { api } from './client';
-import type { ApiResponse, Article, Paginated } from './types';
+import type {
+  ApiResponse,
+  Article,
+  ArticleCategory,
+  Paginated,
+} from './types';
+
+export type ArticleSort =
+  | 'published_at_desc'
+  | 'read_min_asc'
+  | 'popular';
 
 export type ListArticlesParams = {
   page?: number;
   limit?: number;
   category?: string;
+  q?: string;
+  sort?: ArticleSort;
 };
 
 export function listArticles(params: ListArticlesParams = {}) {
@@ -22,14 +34,30 @@ export function getBookmarkedArticles() {
   return api.get<ApiResponse<Article[]>>('/v1/bookmarks/articles');
 }
 
+export function getArticleCategories() {
+  return api.get<ApiResponse<ArticleCategory[]>>('/v1/articles/categories');
+}
+
 export function getArticleById(id: string) {
   return api.get<ApiResponse<Article>>(`/v1/articles/${id}`);
 }
 
-export function recordArticleRead(id: string, readPct: number) {
-  return api.post<ApiResponse<{ read_pct: number }>>(`/v1/articles/${id}/read`, {
-    read_pct: readPct,
+export function getRelatedArticles(id: string, limit = 3) {
+  return api.get<ApiResponse<Article[]>>(`/v1/articles/${id}/related`, {
+    query: { limit },
   });
+}
+
+export type RecordReadResponse = {
+  read_pct: number;
+  read_at?: string | null;
+};
+
+export function recordArticleRead(id: string, readPct: number) {
+  return api.post<ApiResponse<RecordReadResponse>>(
+    `/v1/articles/${id}/read`,
+    { read_pct: readPct },
+  );
 }
 
 export function bookmarkArticle(id: string) {

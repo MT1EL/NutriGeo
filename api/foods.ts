@@ -1,15 +1,26 @@
 import { api } from './client';
 import type { ApiResponse, Food, Paginated } from './types';
 
+export type ListFoodsParams = {
+  page?: number;
+  limit?: number;
+};
+
+export function listFoods({ page = 1, limit = 50 }: ListFoodsParams = {}) {
+  return api.get<Paginated<Food>>('/v1/foods', {
+    query: { page, limit },
+  });
+}
+
 export type SearchFoodsParams = {
-  q: string;
+  q?: string;
   page?: number;
   limit?: number;
 };
 
 export function searchFoods({ q, page = 1, limit = 20 }: SearchFoodsParams) {
   return api.get<Paginated<Food>>('/v1/foods/search', {
-    query: { q, page, limit },
+    query: { ...(q ? { q } : {}), page, limit },
   });
 }
 

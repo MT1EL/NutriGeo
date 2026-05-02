@@ -3,6 +3,7 @@ import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import { SettingsGroup, SettingsRow } from "@/components/ui/SettingsRow";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import Constants from "expo-constants";
 import { router } from "expo-router";
 import {
   Code,
@@ -19,9 +20,14 @@ import { Linking, StyleSheet, useColorScheme, View } from "react-native";
 export default function AboutScreen() {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+  const appVersion = Constants.expoConfig?.version ?? "—";
+  const nativeBuild = Constants.nativeBuildVersion;
 
   return (
-    <SubScreenLayout title="აპლიკაციის შესახებ" subtitle="NutriGeo · v1.0.0">
+    <SubScreenLayout
+      title="აპლიკაციის შესახებ"
+      subtitle={`NutriGeo · v${appVersion}`}
+    >
       <BaseCard style={styles.heroCard}>
         <View style={[styles.logo, { backgroundColor: theme.brandSoft }]}>
           <ThemedText style={styles.logoText} color={theme.brand}>
@@ -41,7 +47,8 @@ export default function AboutScreen() {
           ]}
         >
           <ThemedText style={styles.versionText} type="secondary">
-            ვერსია 1.0.0 · build 100
+            ვერსია {appVersion}
+            {nativeBuild ? ` · build ${nativeBuild}` : ""}
           </ThemedText>
         </View>
       </BaseCard>

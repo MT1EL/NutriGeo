@@ -17,7 +17,7 @@ type Props = {
   onActionTextPress?: () => void;
   actionText?: string;
   errorText?: string;
-  defaultValue?: string;
+  defaultValue?: string | number;
   value?: string;
   onChangeText?: (text: string) => void;
   keyboardType?: KeyboardTypeOptions;
@@ -91,7 +91,7 @@ const Input = ({
           style={[styles.input, { color: theme.text }]}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          defaultValue={defaultValue}
+          defaultValue={defaultValue?.toString()}
           value={value}
           onChangeText={onChangeText}
           keyboardType={keyboardType}

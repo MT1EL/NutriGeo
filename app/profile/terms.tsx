@@ -1,5 +1,6 @@
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import ThemedText from "@/components/ui/ThemedText";
+import { LEGAL_EFFECTIVE_FROM } from "@/constants/legal";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { FileText } from "lucide-react-native";
 import React from "react";
@@ -68,7 +69,7 @@ export default function TermsScreen() {
       </View>
 
       <ThemedText style={styles.footer} type="secondary">
-        ძალაშია 2026 წლის 1 მაისიდან
+        ძალაშია {LEGAL_EFFECTIVE_FROM}
       </ThemedText>
     </SubScreenLayout>
   );
