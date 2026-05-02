@@ -3,7 +3,12 @@ import FoodCard from "@/components/cards/FoodCard";
 import ThemedText from "@/components/ui/ThemedText";
 import type { MealConfig } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { caloriesForFood, macroForFood, servingLabel } from "@/utils/foodMath";
+import {
+  caloriesForFood,
+  entryDisplayServing,
+  entryServings,
+  macroForFood,
+} from "@/utils/foodMath";
 import { foodImageSource } from "@/utils/image";
 import {
   ActivityIndicator,
@@ -59,13 +64,13 @@ export default function MealEntriesList({
           {entries.map((entry) => {
             const food = entry.food;
             if (!food) return null;
-            const q = entry.quantity || 1;
+            const q = entryServings(entry);
             return (
               <FoodCard
                 key={entry.id}
                 title={food.name}
                 calories={caloriesForFood(food, q)}
-                serving={`${servingLabel(food)}${q !== 1 ? ` × ${q}` : ""}`}
+                serving={entryDisplayServing(entry)}
                 proteinG={macroForFood(food.protein_g_per_100g, food, q)}
                 carbsG={macroForFood(food.carbs_g_per_100g, food, q)}
                 fatG={macroForFood(food.fat_g_per_100g, food, q)}

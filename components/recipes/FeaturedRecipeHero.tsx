@@ -3,7 +3,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { foodImageSource } from "@/utils/image";
 import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
-import { Image } from "expo-image";
+import { ImageBackground } from "expo-image";
 import { router } from "expo-router";
 import { Clock, Flame, Star, Users } from "lucide-react-native";
 import { useState } from "react";
@@ -36,14 +36,16 @@ export default function FeaturedRecipeHero({ recipe }: Props) {
       activeOpacity={0.9}
       onPress={() => router.push(`/recipes/${recipe.id}`)}
     >
-      <View style={styles.hero} onLayout={onLayout}>
-        <Image
-          source={foodImageSource(recipe.cover_url)}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-        />
+      <ImageBackground
+        source={foodImageSource(recipe.cover_url)}
+        style={styles.hero}
+        onLayout={onLayout}
+      >
         {size.w > 0 && size.h > 0 && (
-          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          <View
+            style={[StyleSheet.absoluteFill, { height: 242 }]}
+            pointerEvents="none"
+          >
             <Canvas style={StyleSheet.absoluteFill}>
               <Rect x={0} y={0} width={size.w} height={size.h}>
                 <LinearGradient
@@ -68,9 +70,7 @@ export default function FeaturedRecipeHero({ recipe }: Props) {
             </ThemedText>
           </View>
           {tagLabel && (
-            <View
-              style={[styles.tag, { backgroundColor: theme.brand + "EE" }]}
-            >
+            <View style={[styles.tag, { backgroundColor: theme.brand + "EE" }]}>
               <ThemedText style={styles.tagText} color="#FFFFFF">
                 {tagLabel}
               </ThemedText>
@@ -120,7 +120,7 @@ export default function FeaturedRecipeHero({ recipe }: Props) {
             )}
           </View>
         </View>
-      </View>
+      </ImageBackground>
     </TouchableOpacity>
   );
 }

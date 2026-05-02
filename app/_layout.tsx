@@ -6,7 +6,7 @@ import {
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Appearance, View } from "react-native";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -15,6 +15,22 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// Push the user's saved theme preference into RN's Appearance system so every
+// `useColorScheme()` consumer (i.e. the whole app) follows it. Setting the
+// override to null reverts to the OS default — correct when not signed in or
+// when the user picked "system".
+function ThemeSync() {
+  const { user } = useAuth();
+  const pref = user?.profile?.theme;
+
+  useEffect(() => {
+    const override = !pref || pref === "system" ? null : pref;
+    Appearance.setColorScheme(override);
+  }, [pref]);
+
+  return null;
+}
 
 // Routes that an unauthenticated user is allowed to land on.
 const PUBLIC_AUTH_SCREENS = new Set([
@@ -82,6 +98,7 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
             <AuthProvider>
+              <ThemeSync />
               <AuthGate>
                 <Stack>
                   <Stack.Screen

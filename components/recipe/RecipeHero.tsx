@@ -10,6 +10,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -33,6 +34,7 @@ export default function RecipeHero({
 }: Props) {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+  const { width } = useWindowDimensions();
   const dietaryTags = recipe.dietary_tags ?? [];
 
   return (
@@ -46,7 +48,7 @@ export default function RecipeHero({
         style={[StyleSheet.absoluteFill, { height: RECIPE_HERO_HEIGHT }]}
         pointerEvents="none"
       >
-        <Rect x={0} y={0} width={500} height={RECIPE_HERO_HEIGHT}>
+        <Rect x={0} y={0} width={width} height={RECIPE_HERO_HEIGHT}>
           <LinearGradient
             start={vec(0, 0)}
             end={vec(0, RECIPE_HERO_HEIGHT)}

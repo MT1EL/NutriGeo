@@ -1,11 +1,18 @@
 import { makeIdempotencyKey } from '@/utils/idempotency';
 import { api } from './client';
-import type { ApiResponse, FoodLogEntry, MealKey } from './types';
+import type {
+  ApiResponse,
+  FoodLogEntry,
+  FoodLogQuantityUnit,
+  MealKey,
+} from './types';
 
 export type CreateFoodLogInput = {
   food_id: string;
   meal_key: MealKey;
   quantity: number;
+  // Unit `quantity` is in. Backend defaults to "servings" if omitted.
+  unit?: FoodLogQuantityUnit;
   logged_at?: string;
 };
 

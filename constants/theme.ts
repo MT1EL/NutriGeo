@@ -47,14 +47,16 @@ export const Colors = {
     shadow: "rgba(15, 23, 42, 0.08)",
     overlay: "rgba(15, 23, 42, 0.55)",
   },
+  // Dark palette v2 — warmer base, visible tracks, slightly lifted card.
+  // To revert, swap the values back to DARK_V1 below.
   dark: {
     text: "#F1F5F9",
     textSecondary: "#94A3B8",
     textOnBrand: "#FFFFFF",
 
-    background: "#0B1220",
-    surface: "#0F172A",
-    card: "#172033",
+    background: "#0A0E18",
+    surface: "#101626",
+    card: "#1A2236",
 
     tint: brandSurfaceDark,
     brand: tintColorDark,
@@ -75,13 +77,21 @@ export const Colors = {
     tabIconDefault: "#64748B",
     tabIconSelected: tintColorDark,
 
-    border: "#1F2A44",
-    borderLight: "#172033",
+    border: "#2A3550",
+    borderLight: "#242C46", // visible against card (was #172033 = card → invisible tracks)
 
     shadow: "rgba(0, 0, 0, 0.5)",
     overlay: "rgba(0, 0, 0, 0.6)",
   },
 };
+
+// DARK_V1 — original palette. Keep for one-line revert.
+//   background: "#0B1220",
+//   surface:    "#0F172A",
+//   card:       "#172033",
+//   border:     "#1F2A44",
+//   borderLight:"#172033",  // ← bug: identical to card, tracks invisible
+//   (everything else unchanged from current dark)
 
 export const Spacing = {
   xs: 4,

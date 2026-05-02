@@ -114,11 +114,16 @@ export type Food = {
   image_url?: string;
 };
 
+export type FoodLogQuantityUnit = "servings" | "grams";
+
 export type FoodLogEntry = {
   id: string;
   food_id: string;
   meal_key: MealKey;
   quantity: number;
+  // Unit `quantity` is expressed in. Missing/undefined → treat as "servings"
+  // for back-compat with entries logged before the field existed.
+  unit?: FoodLogQuantityUnit;
   logged_at: string;
   food: Food;
 };

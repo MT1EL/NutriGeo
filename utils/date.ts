@@ -17,8 +17,16 @@ export function formatTodayKa(d: Date = new Date()): string {
   return `${d.getDate()} ${KA_MONTHS[d.getMonth()]}, ${d.getFullYear()}`;
 }
 
+// Local-timezone "today" as YYYY-MM-DD — matches backend's notion of today
+// (which honors X-Timezone → users.timezone). Avoid `.toISOString()` here:
+// that's UTC and silently rolls back a day for users east of UTC during the
+// late-night hours.
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 const WEEK_LABELS_KA = ["კვ", "ორ", "სა", "ოთ", "ხუ", "პა", "შა"];
@@ -52,10 +60,8 @@ export function ageFromBirthDate(
 export function birthDateFromAge(ageStr: string): string {
   const age = Number(ageStr);
   const today = new Date();
-  const birth = new Date(
-    today.getFullYear() - age,
-    today.getMonth(),
-    today.getDate(),
-  );
-  return birth.toISOString().slice(0, 10);
+  const yyyy = today.getFullYear() - age;
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }

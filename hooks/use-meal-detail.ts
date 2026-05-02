@@ -3,7 +3,7 @@ import type { ApiResponse, FoodLogEntry } from "@/api/types";
 import { MEAL_KEY_TO_API, MealKey } from "@/constants/meals";
 import { useToast } from "@/contexts/ToastContext";
 import { todayISO } from "@/utils/date";
-import { caloriesForFood, macroForFood } from "@/utils/foodMath";
+import { caloriesForFood, entryServings, macroForFood } from "@/utils/foodMath";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -30,7 +30,7 @@ export function useMealDetail(mealKey: MealKey) {
       loggedForMeal.reduce(
         (acc, e) => {
           if (!e.food) return acc;
-          const q = e.quantity || 1;
+          const q = entryServings(e);
           return {
             consumed: acc.consumed + caloriesForFood(e.food, q),
             protein:

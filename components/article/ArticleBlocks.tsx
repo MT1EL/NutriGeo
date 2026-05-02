@@ -66,7 +66,9 @@ export default function ArticleBlocks({ blocks, excerpt }: Props) {
                   },
                 ]}
               >
-                <ThemedText style={styles.quoteText} color={theme.brandDeep}>
+                {/* Use theme.text not brandDeep — brandDeep is dark blue and
+                    becomes unreadable on dark mode's brandSoft. */}
+                <ThemedText style={styles.quoteText} color={theme.text}>
                   {block.text}
                 </ThemedText>
               </View>

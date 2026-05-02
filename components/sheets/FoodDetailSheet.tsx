@@ -5,6 +5,7 @@ import type {
   ApiResponse,
   Food,
   FoodLogEntry,
+  FoodLogQuantityUnit,
 } from "@/api/types";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
@@ -39,7 +40,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const SERVINGS_STEP = 0.5;
 const GRAMS_STEP = 10;
 
-type Unit = "servings" | "grams";
+type Unit = FoodLogQuantityUnit;
 
 type Props = {
   visible: boolean;
@@ -84,7 +85,10 @@ export default function FoodDetailSheet({
   const queryClient = useQueryClient();
 
   const isEdit = !!entry;
-  const [unit, setUnit] = useState<Unit>("servings");
+  // `quantity` is the value in the *currently displayed unit*, not always
+  // servings. Toggling the unit converts the value so what the user sees is
+  // what gets sent to the backend.
+  const [unit, setUnit] = useState<Unit>(entry?.unit ?? "servings");
   const [quantity, setQuantity] = useState<number>(entry?.quantity ?? 1);
   const [mealKey, setMealKey] = useState<ApiMealKey>(
     entry?.meal_key ?? defaultMealKey,
@@ -99,7 +103,7 @@ export default function FoodDetailSheet({
     if (!visible) return;
     setQuantity(entry?.quantity ?? 1);
     setMealKey(entry?.meal_key ?? defaultMealKey);
-    setUnit("servings");
+    setUnit(entry?.unit ?? "servings");
     setFavoriteOverride(null);
   }, [
     visible,
@@ -108,17 +112,35 @@ export default function FoodDetailSheet({
     defaultMealKey,
     entry?.quantity,
     entry?.meal_key,
+    entry?.unit,
   ]);
 
-  // Keep inputValue synced with quantity / unit when not actively editing.
+  // Keep inputValue display synced with quantity (already in current unit).
   useEffect(() => {
     if (!food) return;
-    if (unit === "servings") {
-      setInputValue(formatServings(quantity));
-    } else {
-      setInputValue(formatGrams(servingsToGrams(quantity, food)));
-    }
+    setInputValue(
+      unit === "servings" ? formatServings(quantity) : formatGrams(quantity),
+    );
   }, [quantity, unit, food]);
+
+  // Convert the displayed quantity when the user switches units so the
+  // amount represented stays the same.
+  const handleSetUnit = (next: Unit) => {
+    if (next === unit || !food) return;
+    if (next === "grams") {
+      setQuantity(parseFloat(servingsToGrams(quantity, food).toFixed(0)));
+    } else {
+      setQuantity(parseFloat(gramsToServings(quantity, food).toFixed(2)));
+    }
+    setUnit(next);
+  };
+
+  // Servings-equivalent quantity used by all nutrition math below.
+  const quantityServings = food
+    ? unit === "servings"
+      ? quantity
+      : gramsToServings(quantity, food)
+    : quantity;
 
   const isFavoriteFromCache = useMemo(() => {
     if (!food) return false;
@@ -138,12 +160,14 @@ export default function FoodDetailSheet({
       food_id: string;
       meal_key: ApiMealKey;
       quantity: number;
+      unit: Unit;
     }) =>
       createFoodLog(
         {
           food_id: input.food_id,
           meal_key: input.meal_key,
           quantity: input.quantity,
+          unit: input.unit,
           logged_at: new Date().toISOString(),
         },
         makeIdempotencyKey(),
@@ -165,10 +189,12 @@ export default function FoodDetailSheet({
       id: string;
       meal_key: ApiMealKey;
       quantity: number;
+      unit: Unit;
     }) =>
       updateFoodLog(input.id, {
         meal_key: input.meal_key,
         quantity: input.quantity,
+        unit: input.unit,
       }),
     onSuccess: () => {
       invalidateFoodLogQueries(queryClient, todayKey);
@@ -213,42 +239,44 @@ export default function FoodDetailSheet({
 
   if (!food) return null;
 
-  const minQuantity = unit === "servings" ? SERVINGS_STEP : 0.01;
+  const minQuantity = unit === "servings" ? SERVINGS_STEP : GRAMS_STEP;
+  const stepSize = unit === "servings" ? SERVINGS_STEP : GRAMS_STEP;
 
   const adjustQuantity = (deltaUnits: number) => {
-    if (unit === "servings") {
-      const next = Math.max(minQuantity, quantity + deltaUnits);
-      setQuantity(parseFloat(next.toFixed(2)));
-    } else {
-      const currentGrams = servingsToGrams(quantity, food);
-      const nextGrams = Math.max(GRAMS_STEP, currentGrams + deltaUnits);
-      setQuantity(gramsToServings(nextGrams, food));
+    const next = Math.max(minQuantity, quantity + deltaUnits);
+    setQuantity(parseFloat(next.toFixed(2)));
+  };
+
+  // Sync `quantity` on every keystroke so it never lags behind what the user
+  // sees. Without this, tapping the submit button without first blurring the
+  // input would send the previous quantity (1, or 100 after toggling to grams).
+  const handleInputChange = (text: string) => {
+    setInputValue(text);
+    const parsed = parseFloat(text.replace(",", "."));
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      setQuantity(parsed);
     }
   };
 
-  const commitInput = () => {
+  // On blur, snap the displayed string back to a clean format if the user
+  // left junk in there (e.g. "abc" or empty).
+  const restoreInputDisplay = () => {
     const parsed = parseFloat(inputValue.replace(",", "."));
     if (Number.isNaN(parsed) || parsed <= 0) {
-      // restore display from current quantity
-      if (unit === "servings") setInputValue(formatServings(quantity));
-      else setInputValue(formatGrams(servingsToGrams(quantity, food)));
-      return;
-    }
-    if (unit === "servings") {
-      setQuantity(parsed);
-    } else {
-      setQuantity(gramsToServings(parsed, food));
+      setInputValue(
+        unit === "servings" ? formatServings(quantity) : formatGrams(quantity),
+      );
     }
   };
 
-  const kcal = caloriesForFood(food, quantity);
-  const proteinG = macroForFood(food.protein_g_per_100g, food, quantity);
-  const carbsG = macroForFood(food.carbs_g_per_100g, food, quantity);
-  const fatG = macroForFood(food.fat_g_per_100g, food, quantity);
+  const kcal = caloriesForFood(food, quantityServings);
+  const proteinG = macroForFood(food.protein_g_per_100g, food, quantityServings);
+  const carbsG = macroForFood(food.carbs_g_per_100g, food, quantityServings);
+  const fatG = macroForFood(food.fat_g_per_100g, food, quantityServings);
   const fiberG = food.fiber_g_per_100g
-    ? macroForFood(food.fiber_g_per_100g, food, quantity)
+    ? macroForFood(food.fiber_g_per_100g, food, quantityServings)
     : null;
-  const totalGrams = Math.round(servingsToGrams(quantity, food));
+  const totalGrams = Math.round(servingsToGrams(quantityServings, food));
 
   const handlePrimary = () => {
     if (isEdit && entry) {
@@ -256,12 +284,14 @@ export default function FoodDetailSheet({
         id: entry.id,
         meal_key: mealKey,
         quantity,
+        unit,
       });
     } else {
       logMutation.mutate({
         food_id: food.id,
         meal_key: mealKey,
         quantity,
+        unit,
       });
     }
   };
@@ -363,7 +393,7 @@ export default function FoodDetailSheet({
                   return (
                     <TouchableOpacity
                       key={u}
-                      onPress={() => setUnit(u)}
+                      onPress={() => handleSetUnit(u)}
                       activeOpacity={0.85}
                       style={[
                         styles.segmentItem,
@@ -391,11 +421,7 @@ export default function FoodDetailSheet({
               {/* Stepper */}
               <View style={styles.stepperRow}>
                 <TouchableOpacity
-                  onPress={() =>
-                    adjustQuantity(
-                      unit === "servings" ? -SERVINGS_STEP : -GRAMS_STEP,
-                    )
-                  }
+                  onPress={() => adjustQuantity(-stepSize)}
                   activeOpacity={0.7}
                   style={[styles.stepBtn, { backgroundColor: theme.brandSoft }]}
                   hitSlop={6}
@@ -406,9 +432,9 @@ export default function FoodDetailSheet({
                 <View style={styles.amountWrap}>
                   <TextInput
                     value={inputValue}
-                    onChangeText={setInputValue}
-                    onBlur={commitInput}
-                    onSubmitEditing={commitInput}
+                    onChangeText={handleInputChange}
+                    onBlur={restoreInputDisplay}
+                    onSubmitEditing={restoreInputDisplay}
                     keyboardType="decimal-pad"
                     selectTextOnFocus
                     style={[styles.amountInput, { color: theme.text }]}
@@ -420,11 +446,7 @@ export default function FoodDetailSheet({
                 </View>
 
                 <TouchableOpacity
-                  onPress={() =>
-                    adjustQuantity(
-                      unit === "servings" ? SERVINGS_STEP : GRAMS_STEP,
-                    )
-                  }
+                  onPress={() => adjustQuantity(stepSize)}
                   activeOpacity={0.7}
                   style={[styles.stepBtn, { backgroundColor: theme.brandSoft }]}
                   hitSlop={6}
@@ -436,7 +458,7 @@ export default function FoodDetailSheet({
               <ThemedText type="secondary" style={styles.equivText}>
                 {unit === "servings"
                   ? `≈ ${totalGrams}გ`
-                  : `≈ ${formatServings(quantity)} პორცია`}
+                  : `≈ ${formatServings(quantityServings)} პორცია`}
               </ThemedText>
 
               {/* Nutrition */}

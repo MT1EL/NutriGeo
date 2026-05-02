@@ -9,7 +9,12 @@ import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Bookmark, ChevronLeft, Clock, Share2 } from "lucide-react-native";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export const ARTICLE_HERO_HEIGHT = 320;
@@ -30,6 +35,7 @@ export default function ArticleHero({
   onShare,
 }: Props) {
   const color = categoryColor(article);
+  const { width } = useWindowDimensions();
 
   return (
     <View style={styles.heroWrap}>
@@ -42,7 +48,7 @@ export default function ArticleHero({
         style={[StyleSheet.absoluteFill, { height: ARTICLE_HERO_HEIGHT }]}
         pointerEvents="none"
       >
-        <Rect x={0} y={0} width={500} height={ARTICLE_HERO_HEIGHT}>
+        <Rect x={0} y={0} width={width} height={ARTICLE_HERO_HEIGHT}>
           <LinearGradient
             start={vec(0, 0)}
             end={vec(0, ARTICLE_HERO_HEIGHT)}

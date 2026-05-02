@@ -1,4 +1,4 @@
-import type { Food } from "@/api/types";
+import type { Food, FoodLogEntry } from "@/api/types";
 
 export function servingGrams(food: Food): number {
   return food.serving_grams ?? 100;
@@ -37,4 +37,27 @@ export function formatServings(value: number): string {
 
 export function formatGrams(value: number): string {
   return Math.round(value).toString();
+}
+
+// Normalize a food-log entry to "servings" so existing nutrition math
+// (caloriesForFood, macroForFood) works whether the entry was logged
+// in servings or in grams.
+export function entryServings(entry: FoodLogEntry): number {
+  if (entry.unit === "grams" && entry.food) {
+    return gramsToServings(entry.quantity, entry.food);
+  }
+  return entry.quantity || 1;
+}
+
+// Human label for a logged entry that respects the unit it was logged in,
+// e.g. "1 cup × 2" for servings or "150გ" for grams.
+export function entryDisplayServing(entry: FoodLogEntry): string {
+  if (!entry.food) return "";
+  if (entry.unit === "grams") {
+    return `${Math.round(entry.quantity)}გ`;
+  }
+  const base = servingLabel(entry.food);
+  return entry.quantity !== 1
+    ? `${base} × ${formatServings(entry.quantity)}`
+    : base;
 }
