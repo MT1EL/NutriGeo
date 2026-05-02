@@ -59,7 +59,9 @@ export default function GoalsScreen() {
   const queryClient = useQueryClient();
   const goals = user?.goals;
 
-  const [pace, setPace] = useState<Pace>(paceFromWeeklyKg(goals?.weekly_pace_kg));
+  const [pace, setPace] = useState<Pace>(
+    paceFromWeeklyKg(goals?.weekly_pace_kg),
+  );
   const [targetWeight, setTargetWeight] = useState<string>(
     goals?.target_weight_kg != null ? String(goals.target_weight_kg) : "",
   );
@@ -98,7 +100,8 @@ export default function GoalsScreen() {
   const handleSave = () => {
     if (!goals) return;
     const weeklyPaceKg =
-      PACE_OPTIONS.find((o) => o.key === pace)?.weeklyKg ?? goals.weekly_pace_kg;
+      PACE_OPTIONS.find((o) => o.key === pace)?.weeklyKg ??
+      goals.weekly_pace_kg;
     const targetWeightNum = parseFloat(targetWeight.replace(",", "."));
     const calorieNum = parseInt(calorieTarget, 10);
     mutation.mutate({
@@ -108,7 +111,9 @@ export default function GoalsScreen() {
         ? targetWeightNum
         : undefined,
       weekly_pace_kg: weeklyPaceKg,
-      daily_calorie_target: Number.isFinite(calorieNum) ? calorieNum : undefined,
+      daily_calorie_target: Number.isFinite(calorieNum)
+        ? calorieNum
+        : undefined,
       protein_pct: goals.protein_pct,
       carbs_pct: goals.carbs_pct,
       fat_pct: goals.fat_pct,
@@ -116,7 +121,8 @@ export default function GoalsScreen() {
   };
 
   const calorieForMacroPct = (pct: number | undefined) => {
-    const kcalGoal = parseInt(calorieTarget, 10) || goals?.daily_calorie_target || 0;
+    const kcalGoal =
+      parseInt(calorieTarget, 10) || goals?.daily_calorie_target || 0;
     return Math.round(((pct ?? 0) / 100) * kcalGoal);
   };
 

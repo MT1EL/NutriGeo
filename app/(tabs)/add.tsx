@@ -526,10 +526,7 @@ export default function AddScreen() {
           )}
         </View>
 
-        <Button
-          onPress={() => setCreateSheetVisible(true)}
-          variant="secondary"
-        >
+        <Button onPress={() => setCreateSheetVisible(true)} variant="secondary">
           + შექმენი ახალი საკვები
         </Button>
       </ScrollView>

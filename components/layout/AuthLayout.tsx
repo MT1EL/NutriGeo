@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   inputsContainer: {
-    gap: 20,
+    gap: 4,
   },
   footerContainer: {
     gap: 12,

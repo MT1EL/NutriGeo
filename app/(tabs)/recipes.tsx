@@ -5,7 +5,7 @@ import Header from "@/components/headers";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
@@ -15,6 +15,7 @@ import {
   Search,
   Star,
   Users,
+  Zap,
 } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -168,6 +169,7 @@ export default function RecipesScreen() {
   const [active, setActive] = useState<string>("all");
   const [searchInput, setSearchInput] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   useEffect(() => {
     const id = setTimeout(() => setDebouncedQuery(searchInput.trim()), 300);
@@ -182,11 +184,15 @@ export default function RecipesScreen() {
         ...(active !== "all" ? { category: active } : {}),
         ...(debouncedQuery ? { q: debouncedQuery } : {}),
       }),
+    // Keep showing the previous tab's results while the new tab loads,
+    // so swapping categories doesn't flash the spinner / push layout.
+    placeholderData: keepPreviousData,
   });
   const featuredQuery = useQuery({
     queryKey: ["recipes", "featured"],
     queryFn: getFeaturedRecipes,
     enabled: !debouncedQuery,
+    placeholderData: keepPreviousData,
   });
 
   const rawRecipes: Recipe[] = useMemo(() => {
@@ -220,20 +226,8 @@ export default function RecipesScreen() {
     return recipes.filter((r) => r.id !== hero.id);
   }, [recipes, hero]);
 
-  const avgCal = useMemo(
-    () =>
-      recipes.length === 0
-        ? 0
-        : Math.round(recipes.reduce((a, r) => a + r.kcal, 0) / recipes.length),
-    [recipes],
-  );
-  const avgTime = useMemo(
-    () =>
-      recipes.length === 0
-        ? 0
-        : Math.round(
-            recipes.reduce((a, r) => a + r.duration_min, 0) / recipes.length,
-          ),
+  const quickCount = useMemo(
+    () => recipes.filter((r) => r.duration_min <= 30).length,
     [recipes],
   );
 
@@ -287,24 +281,15 @@ export default function RecipesScreen() {
               რეცეპტი
             </ThemedText>
           </View>
+
           <View
             style={[styles.statsSep, { backgroundColor: theme.borderLight }]}
           />
           <View style={styles.statsItem}>
-            <Flame color="#FF7A45" size={14} />
-            <ThemedText style={styles.statsValue}>{avgCal}</ThemedText>
+            <Zap color="#5B6CE0" size={14} />
+            <ThemedText style={styles.statsValue}>{quickCount}</ThemedText>
             <ThemedText type="secondary" style={styles.statsLabel}>
-              საშ. კალ
-            </ThemedText>
-          </View>
-          <View
-            style={[styles.statsSep, { backgroundColor: theme.borderLight }]}
-          />
-          <View style={styles.statsItem}>
-            <Clock color="#5B6CE0" size={14} />
-            <ThemedText style={styles.statsValue}>{avgTime}</ThemedText>
-            <ThemedText type="secondary" style={styles.statsLabel}>
-              საშ. წთ
+              30 წთ-მდე
             </ThemedText>
           </View>
         </View>
@@ -374,8 +359,15 @@ export default function RecipesScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={{ height: Spacing.md }} />}
-        refreshing={listQuery.isFetching}
-        onRefresh={() => listQuery.refetch()}
+        refreshing={isManualRefreshing}
+        onRefresh={async () => {
+          setIsManualRefreshing(true);
+          try {
+            await listQuery.refetch();
+          } finally {
+            setIsManualRefreshing(false);
+          }
+        }}
         keyboardShouldPersistTaps="handled"
       />
     </View>

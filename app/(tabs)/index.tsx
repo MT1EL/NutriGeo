@@ -19,15 +19,11 @@ import MealsCard from "@/components/cards/MealsCard";
 import { CalorieRing } from "@/components/charts/CalorieRing";
 import { GradientView } from "@/components/ui/GradientView";
 import ThemedText from "@/components/ui/ThemedText";
-import {
-  APPLE_HEALTH_CONNECTED,
-  LAST_SYNC_LABEL,
-} from "@/constants/integrations";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Bell, Droplet, Flame, Footprints, Heart } from "lucide-react-native";
+import { Calendar, Droplet, Flame, Footprints } from "lucide-react-native";
 import { useMemo } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TAB_BAR_HEIGHT } from "./_layout";
@@ -90,8 +86,8 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const userName = user?.profile?.name?.trim() || user?.email?.split("@")[0] || "";
-  const initial = userName.charAt(0).toUpperCase() || "?";
+  const userName =
+    user?.profile?.name?.trim() || user?.email?.split("@")[0] || "";
   const todayLabel = useMemo(() => formatTodayKa(), []);
 
   const { meals, streak, water, steps, isLoading, isError } = useHomeData();
@@ -170,13 +166,11 @@ export default function HomeScreen() {
               </ThemedText>
             </View>
             <View style={styles.headerActions}>
-              <View style={styles.iconButton}>
+              {/* <View style={styles.iconButton}>
                 <Bell color="#FFFFFF" size={20} />
-              </View>
-              <View style={styles.avatar}>
-                <ThemedText style={styles.avatarText} color={theme.brand}>
-                  {initial}
-                </ThemedText>
+              </View> */}
+              <View style={styles.iconButton}>
+                <Calendar color="#FFFFFF" size={20} />
               </View>
             </View>
           </View>
@@ -214,7 +208,7 @@ export default function HomeScreen() {
             ))}
           </View>
 
-          {APPLE_HEALTH_CONNECTED && (
+          {/* {APPLE_HEALTH_CONNECTED && (
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => router.push("/profile/connections")}
@@ -229,7 +223,7 @@ export default function HomeScreen() {
                 Apple Health-დან · {LAST_SYNC_LABEL}
               </ThemedText>
             </TouchableOpacity>
-          )}
+          )} */}
         </SafeAreaView>
       </GradientView>
 

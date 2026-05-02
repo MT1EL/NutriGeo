@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   form: {
-    gap: Spacing.md,
+    gap: 0,
     paddingBottom: Spacing.md,
   },
   twoCol: {

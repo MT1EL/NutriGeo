@@ -1,4 +1,5 @@
 import { getProfile } from "@/api/profile";
+import { getStreak, getSummary, getWeightSeries } from "@/api/stats";
 import BaseCard from "@/components/cards/BaseCard";
 import { GradientView } from "@/components/ui/GradientView";
 import ThemedText from "@/components/ui/ThemedText";
@@ -17,6 +18,7 @@ import {
   Target,
   User,
 } from "lucide-react-native";
+import { useMemo } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -27,8 +29,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
-const USER_NAME = "თორნიკე გიორგაძე";
-const USER_EMAIL = "tornike@nutrigeo.ge";
+function formatWeightChange(kg: number | undefined): string {
+  if (kg == null) return "—";
+  if (Math.abs(kg) < 0.05) return "0 კგ";
+  const sign = kg > 0 ? "+" : "−";
+  return `${sign}${Math.abs(kg).toFixed(1)} კგ`;
+}
 
 type RowProps = {
   Icon: LucideIcon;
@@ -66,7 +72,6 @@ const Row = ({ Icon, label, hint, tint, iconColor, href }: RowProps) => {
 
 const ProfilePage = () => {
   const { signOut } = useAuth();
-  const { user } = useAuth();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -74,6 +79,48 @@ const ProfilePage = () => {
     queryKey: ["Profile"],
     queryFn: getProfile,
   });
+  const profile = data?.data;
+
+  const streakQuery = useQuery({
+    queryKey: ["stats", "streak", "week"],
+    queryFn: () => getStreak("week"),
+  });
+  const summaryQuery = useQuery({
+    queryKey: ["stats", "summary", "month"],
+    queryFn: () => getSummary("month"),
+  });
+  // Year span gives the longest available history, so we can anchor "% to goal"
+  // against an early baseline weight rather than today's weight.
+  const weightSeriesQuery = useQuery({
+    queryKey: ["stats", "weight", "year"],
+    queryFn: () => getWeightSeries("year"),
+  });
+
+  const streak = streakQuery.data?.data.current ?? 0;
+  const weightChange = summaryQuery.data?.data.weight_change_kg;
+
+  const goalPct = useMemo<number | null>(() => {
+    if (!profile) return null;
+    const target = profile.target_weight_kg;
+    const current = profile.weight_kg;
+    if (target == null || !current) return null;
+    if (profile.goal_type === "maintain") return null;
+    const series = weightSeriesQuery.data?.data ?? [];
+    const start = series.length > 0 ? series[0].value : current;
+    const total = Math.abs(start - target);
+    if (total < 0.1) return null;
+    const done =
+      profile.goal_type === "lose"
+        ? Math.max(0, start - current)
+        : Math.max(0, current - start);
+    return Math.min(100, Math.max(0, Math.round((done / total) * 100)));
+  }, [profile, weightSeriesQuery.data]);
+
+  const stats = [
+    { value: `${streak}`, label: "სტრიკი" },
+    { value: formatWeightChange(weightChange), label: "პროგრესი" },
+    { value: goalPct != null ? `${goalPct || 0}%` : "—", label: "მიზანი" },
+  ];
 
   return (
     <ScrollView
@@ -102,11 +149,7 @@ const ProfilePage = () => {
           </ThemedText>
 
           <View style={styles.statsStrip}>
-            {[
-              { value: "7", label: "სტრიკი" },
-              { value: "−2.4კგ", label: "პროგრესი" },
-              { value: "84%", label: "მიზანი" },
-            ].map((s) => (
+            {stats.map((s) => (
               <View key={s.label} style={styles.statBlock}>
                 <ThemedText style={styles.statValue} color="#FFFFFF">
                   {s.value}

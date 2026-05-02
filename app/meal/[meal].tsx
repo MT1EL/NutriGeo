@@ -1,5 +1,5 @@
 import { deleteFoodLog, getFoodLog } from "@/api/foodLog";
-import type { ApiResponse, Food, FoodLogEntry } from "@/api/types";
+import type { ApiResponse, FoodLogEntry } from "@/api/types";
 import FoodCard from "@/components/cards/FoodCard";
 import FoodDetailSheet from "@/components/sheets/FoodDetailSheet";
 import Button from "@/components/ui/Button";
@@ -12,20 +12,12 @@ import {
 } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useToast } from "@/contexts/ToastContext";
-import {
-  caloriesForFood,
-  macroForFood,
-  servingLabel,
-} from "@/utils/foodMath";
+import { caloriesForFood, macroForFood, servingLabel } from "@/utils/foodMath";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { Plus, X } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -38,7 +30,9 @@ import {
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
-
+function imageSource(url: string | undefined) {
+  return url ? { uri: url } : require("@/assets/images/cheesecake.png");
+}
 export default function MealModal() {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -105,8 +99,7 @@ export default function MealModal() {
       if (ctx?.previous) {
         queryClient.setQueryData(["food-log", today], ctx.previous);
       }
-      const message =
-        err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
+      const message = err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
       toast.error(message, "შეცდომა");
     },
   });
@@ -145,9 +138,7 @@ export default function MealModal() {
 
   return (
     <View style={[styles.root, { backgroundColor: theme.surface }]}>
-      <View
-        style={[styles.handleWrap, { backgroundColor: theme.surface }]}
-      >
+      <View style={[styles.handleWrap, { backgroundColor: theme.surface }]}>
         <View style={[styles.handle, { backgroundColor: theme.border }]} />
       </View>
 
@@ -213,9 +204,7 @@ export default function MealModal() {
                 style={styles.remainingValue}
                 color={overGoal ? theme.warning : theme.brand}
               >
-                {overGoal
-                  ? `+${summary.consumed - config.goal}`
-                  : remaining}
+                {overGoal ? `+${summary.consumed - config.goal}` : remaining}
               </ThemedText>
               <ThemedText style={styles.remainingLabel} type="secondary">
                 {overGoal ? "გადაჭარბდა" : "დარჩა"}
@@ -223,9 +212,7 @@ export default function MealModal() {
             </View>
           </View>
 
-          <View
-            style={[styles.track, { backgroundColor: theme.borderLight }]}
-          >
+          <View style={[styles.track, { backgroundColor: theme.borderLight }]}>
             <View
               style={[
                 styles.fill,
@@ -287,10 +274,7 @@ export default function MealModal() {
               ]}
             >
               <View
-                style={[
-                  styles.emptyIcon,
-                  { backgroundColor: theme.brandSoft },
-                ]}
+                style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}
               >
                 <config.Icon color={theme.brand} size={22} />
               </View>
@@ -316,8 +300,8 @@ export default function MealModal() {
                     proteinG={macroForFood(food.protein_g_per_100g, food, q)}
                     carbsG={macroForFood(food.carbs_g_per_100g, food, q)}
                     fatG={macroForFood(food.fat_g_per_100g, food, q)}
+                    image={imageSource(food.image_url)}
                     action="remove"
-                    onPress={() => setSheetEntry(entry)}
                     onActionPress={() => removeMutation.mutate(entry.id)}
                   />
                 );

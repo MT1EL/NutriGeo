@@ -56,7 +56,7 @@ const Header = ({
           <ThemedText style={styles.title}>{title}</ThemedText>
           {hasGoBack && <ChevronLeft color={"transparent"} />}
         </View>
-        <View style={{ gap: Spacing.md }}>
+        <View>
           {hasInput && (
             <Input
               Icon={Search}

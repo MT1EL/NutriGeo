@@ -394,9 +394,50 @@ export default function StatisticsPage() {
     ? Math.max(...topFoods.map((f) => f.count))
     : 0;
 
-  const calorieBars = useMemo(() => {
-    const bars = range === "week" ? caloriesSeries : caloriesSeries.slice(-7);
-    return bars;
+  // Calorie bars:
+  //   week    → 7 daily bars (raw kcal)
+  //   month   → 4 weekly bars (avg kcal/day across *logged* days in that week)
+  //   quarter → 12 weekly bars (same averaging — avg per logged day so sparse
+  //             logging doesn't drag bars below the daily-goal line)
+  const calorieBars = useMemo<
+    { key: string; kcal: number; label: string; showLabel: boolean }[]
+  >(() => {
+    if (range === "week") {
+      return caloriesSeries.map((p, i) => ({
+        key: p.date ?? `${i}`,
+        kcal: Number(p.kcal) || 0,
+        label: weekdayShort(p.date) || `${i + 1}`,
+        showLabel: true,
+      }));
+    }
+    const bucketCount = range === "month" ? 4 : 12;
+    const len = caloriesSeries.length;
+    if (len === 0) return [];
+    const size = Math.ceil(len / bucketCount);
+    const buckets: {
+      key: string;
+      kcal: number;
+      label: string;
+      showLabel: boolean;
+    }[] = [];
+    for (let i = 0; i < bucketCount; i++) {
+      const slice = caloriesSeries.slice(i * size, (i + 1) * size);
+      if (slice.length === 0) continue;
+      const logged = slice.filter((p) => p.kcal > 0);
+      const avg = logged.length
+        ? Math.round(
+            logged.reduce((a, p) => a + (Number(p.kcal) || 0), 0) /
+              logged.length,
+          )
+        : 0;
+      buckets.push({
+        key: `wk-${i}`,
+        kcal: avg,
+        label: range === "month" ? `კვ ${i + 1}` : `${i + 1}`,
+        showLabel: true,
+      });
+    }
+    return buckets;
   }, [caloriesSeries, range]);
   const barMax = calorieBars.length
     ? Math.max(...calorieBars.map((b) => b.kcal), calGoal) * 1.1
@@ -658,10 +699,16 @@ export default function StatisticsPage() {
               <View style={styles.cardHeader}>
                 <View style={{ gap: 2 }}>
                   <ThemedText style={styles.cardTitle}>
-                    კვირის კალორია
+                    {range === "week"
+                      ? "კვირის კალორია"
+                      : range === "month"
+                        ? "თვის კალორია"
+                        : "3 თვის კალორია"}
                   </ThemedText>
                   <ThemedText type="secondary" style={styles.cardCaption}>
-                    მიზანი {calGoal} კალ/დღეში
+                    {range === "week"
+                      ? `მიზანი ${calGoal} კალ/დღეში`
+                      : `საშ. კალ/დღე · მიზანი ${calGoal}`}
                   </ThemedText>
                 </View>
                 <View style={styles.legendRow}>
@@ -673,7 +720,7 @@ export default function StatisticsPage() {
                       ]}
                     />
                     <ThemedText style={styles.legendText} type="secondary">
-                      დღეს
+                      {range === "week" ? "დღეს" : "მიმდ."}
                     </ThemedText>
                   </View>
                   <View style={styles.legendItem}>
@@ -689,7 +736,7 @@ export default function StatisticsPage() {
                   </View>
                 </View>
               </View>
-              {calorieBars.length ? (
+              {hasAnyCalories ? (
                 <View style={styles.chart}>
                   <View
                     pointerEvents="none"
@@ -715,57 +762,67 @@ export default function StatisticsPage() {
                       </ThemedText>
                     </View>
                   </View>
-                  {calorieBars.map((p, i) => {
-                    const v = Number(p.kcal) || 0;
-                    const h = (v / barMax) * 130;
-                    const overGoal = v > calGoal;
-                    const isToday = i === calorieBars.length - 1;
-                    const valueText =
-                      v >= 1000 ? `${(v / 1000).toFixed(1)}კ` : `${v}`;
-                    const label = weekdayShort(p.date) || `${i + 1}`;
-                    return (
-                      <View key={p.date ?? i} style={styles.barCol}>
-                        <View style={styles.barTrack}>
-                          {v > 0 ? (
-                            <ThemedText
-                              style={styles.barValue}
-                              color={isToday ? theme.text : theme.textSecondary}
-                            >
-                              {valueText}
-                            </ThemedText>
-                          ) : null}
+                  {(() => {
+                    // Bar width shrinks as count grows so 30 daily bars still fit.
+                    const count = calorieBars.length;
+                    const barWidth = count <= 7 ? 26 : count <= 12 ? 18 : 7;
+                    const showValueText = count <= 7;
+                    return calorieBars.map((p, i) => {
+                      const v = p.kcal;
+                      const h = (v / barMax) * 130;
+                      const overGoal = v > calGoal;
+                      const isCurrent = i === calorieBars.length - 1;
+                      const valueText =
+                        v >= 1000 ? `${(v / 1000).toFixed(1)}კ` : `${v}`;
+                      return (
+                        <View key={p.key} style={styles.barCol}>
+                          <View style={[styles.barTrack, { width: barWidth }]}>
+                            {showValueText && v > 0 ? (
+                              <ThemedText
+                                style={styles.barValue}
+                                color={
+                                  isCurrent ? theme.text : theme.textSecondary
+                                }
+                              >
+                                {valueText}
+                              </ThemedText>
+                            ) : null}
+                            <View
+                              style={[
+                                styles.bar,
+                                {
+                                  height: h,
+                                  backgroundColor: overGoal
+                                    ? theme.warning
+                                    : isCurrent
+                                      ? theme.brand
+                                      : theme.brand + "55",
+                                },
+                              ]}
+                            />
+                          </View>
                           <View
                             style={[
-                              styles.bar,
-                              {
-                                height: h,
-                                backgroundColor: overGoal
-                                  ? theme.warning
-                                  : isToday
-                                    ? theme.brand
-                                    : theme.brand + "55",
-                              },
+                              styles.barDayWrap,
+                              isCurrent &&
+                                p.showLabel && {
+                                  backgroundColor: theme.brandSoft,
+                                },
                             ]}
-                          />
-                        </View>
-                        <View
-                          style={[
-                            styles.barDayWrap,
-                            isToday && {
-                              backgroundColor: theme.brandSoft,
-                            },
-                          ]}
-                        >
-                          <ThemedText
-                            style={styles.barLabel}
-                            color={isToday ? theme.brand : theme.textSecondary}
                           >
-                            {label}
-                          </ThemedText>
+                            <ThemedText
+                              style={styles.barLabel}
+                              color={
+                                isCurrent ? theme.brand : theme.textSecondary
+                              }
+                            >
+                              {p.showLabel ? p.label : ""}
+                            </ThemedText>
+                          </View>
                         </View>
-                      </View>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </View>
               ) : (
                 <EmptyCardBody
@@ -791,55 +848,55 @@ export default function StatisticsPage() {
                 </ThemedText>
               </View>
               {hasTrendData ? (
-              <View style={{ gap: Spacing.md }}>
-                {[
-                  {
-                    Icon: Beef,
-                    label: "ცილა",
-                    pct: macroPcts.protein,
-                    color: theme.macroProtein,
-                  },
-                  {
-                    Icon: Wheat,
-                    label: "ნახშირწყალი",
-                    pct: macroPcts.carbs,
-                    color: theme.macroCarbs,
-                  },
-                  {
-                    Icon: Droplet,
-                    label: "ცხიმი",
-                    pct: macroPcts.fat,
-                    color: theme.macroFat,
-                  },
-                ].map(({ Icon, label, pct, color }) => (
-                  <View key={label} style={{ gap: Spacing.xs + 2 }}>
-                    <View style={styles.macroRow}>
-                      <View style={[styles.macroLabel]}>
-                        <Icon color={color} size={14} />
-                        <ThemedText style={styles.macroLabelText}>
-                          {label}
+                <View style={{ gap: Spacing.md }}>
+                  {[
+                    {
+                      Icon: Beef,
+                      label: "ცილა",
+                      pct: macroPcts.protein,
+                      color: theme.macroProtein,
+                    },
+                    {
+                      Icon: Wheat,
+                      label: "ნახშირწყალი",
+                      pct: macroPcts.carbs,
+                      color: theme.macroCarbs,
+                    },
+                    {
+                      Icon: Droplet,
+                      label: "ცხიმი",
+                      pct: macroPcts.fat,
+                      color: theme.macroFat,
+                    },
+                  ].map(({ Icon, label, pct, color }) => (
+                    <View key={label} style={{ gap: Spacing.xs + 2 }}>
+                      <View style={styles.macroRow}>
+                        <View style={[styles.macroLabel]}>
+                          <Icon color={color} size={14} />
+                          <ThemedText style={styles.macroLabelText}>
+                            {label}
+                          </ThemedText>
+                        </View>
+                        <ThemedText style={styles.macroPct} type="secondary">
+                          {pct}%
                         </ThemedText>
                       </View>
-                      <ThemedText style={styles.macroPct} type="secondary">
-                        {pct}%
-                      </ThemedText>
-                    </View>
-                    <View
-                      style={[
-                        styles.macroTrack,
-                        { backgroundColor: theme.borderLight },
-                      ]}
-                    >
                       <View
                         style={[
-                          styles.macroFill,
-                          { width: `${pct}%`, backgroundColor: color },
+                          styles.macroTrack,
+                          { backgroundColor: theme.borderLight },
                         ]}
-                      />
+                      >
+                        <View
+                          style={[
+                            styles.macroFill,
+                            { width: `${pct}%`, backgroundColor: color },
+                          ]}
+                        />
+                      </View>
                     </View>
-                  </View>
-                ))}
-              </View>
+                  ))}
+                </View>
               ) : (
                 <EmptyCardBody
                   Icon={Beef}
@@ -861,6 +918,7 @@ export default function StatisticsPage() {
                     ბოლო {streakDays.length} დღე
                   </ThemedText>
                 </View>
+
                 <View style={styles.legendRow}>
                   <View style={styles.legendItem}>
                     <View
@@ -1158,7 +1216,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   barDayWrap: {
-    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: Radius.sm,
     minWidth: 26,

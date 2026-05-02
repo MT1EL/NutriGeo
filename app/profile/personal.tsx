@@ -43,10 +43,7 @@ function ageFromBirthDate(birthDate: string | null | undefined): number | null {
   const today = new Date();
   let years = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
-  if (
-    monthDiff < 0 ||
-    (monthDiff === 0 && today.getDate() < birth.getDate())
-  ) {
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
     years -= 1;
   }
   return years;
@@ -195,19 +192,21 @@ export default function PersonalScreen() {
         <ThemedText style={styles.groupTitle} type="secondary">
           ძირითადი მონაცემები
         </ThemedText>
-        <Input
-          Icon={User}
-          label="სახელი"
-          value={form.values.name}
-          onChangeText={(text) => form.setFieldValue("name", text)}
-        />
-        <Input
-          Icon={Calendar}
-          label="ასაკი"
-          value={form.values.age}
-          onChangeText={(text) => form.setFieldValue("age", text)}
-          keyboardType="number-pad"
-        />
+        <View>
+          <Input
+            Icon={User}
+            label="სახელი"
+            value={form.values.name}
+            onChangeText={(text) => form.setFieldValue("name", text)}
+          />
+          <Input
+            Icon={Calendar}
+            label="ასაკი"
+            value={form.values.age}
+            onChangeText={(text) => form.setFieldValue("age", text)}
+            keyboardType="number-pad"
+          />
+        </View>
         <View style={styles.twoCol}>
           <View style={{ flex: 1 }}>
             <Input

@@ -101,11 +101,9 @@ const Input = ({
           autoCorrect={!secure}
         />
       </View>
-      {errorText && (
-        <ThemedText style={styles.errorText} color={theme.error}>
-          {errorText}
-        </ThemedText>
-      )}
+      <ThemedText style={styles.errorText} color={theme.error}>
+        {errorText}
+      </ThemedText>
       {actionText && !errorText && (
         <TouchableOpacity onPress={onActionTextPress}>
           <ThemedText style={styles.forgotPasswordText} type="secondary">

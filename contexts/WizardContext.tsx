@@ -16,8 +16,9 @@ export type WizardData = {
   biological_sex: Sex | null;
   height_cm: string;
   weight_kg: string;
-  age: string;
+  birth_date: string; // ISO YYYY-MM-DD
   goal_type: GoalType | null;
+  target_weight_kg: string;
   activity_level: ActivityLevelType | null;
   diet: Diet;
   allergies: string[];
@@ -26,14 +27,16 @@ export type WizardData = {
   protein_g: string;
   carbs_g: string;
   fat_g: string;
+  weekly_pace_kg: string; // kg/week, only meaningful when goal != maintain
 };
 
 const INITIAL: WizardData = {
   biological_sex: null,
   height_cm: "",
   weight_kg: "",
-  age: "",
+  birth_date: "",
   goal_type: null,
+  target_weight_kg: "",
   activity_level: null,
   diet: "none",
   allergies: [],
@@ -42,6 +45,7 @@ const INITIAL: WizardData = {
   protein_g: "",
   carbs_g: "",
   fat_g: "",
+  weekly_pace_kg: "0.5",
 };
 
 type WizardApi = {

@@ -8,11 +8,14 @@ const ACTIVITY_MULTIPLIER: Record<ActivityLevel, number> = {
   very_active: 1.9,
 };
 
-const GOAL_KCAL_OFFSET: Record<GoalType, number> = {
-  lose: -500,
+// 1 kg of body fat ≈ 7700 kcal, so daily kcal delta = pace_kg * 7700 / 7.
+const KCAL_PER_KG = 7700;
+const GOAL_DIRECTION: Record<GoalType, -1 | 0 | 1> = {
+  lose: -1,
   maintain: 0,
-  gain: 500,
+  gain: 1,
 };
+const DEFAULT_PACE_KG = 0.5;
 
 export type MacroTargets = {
   kcal: number;
@@ -45,10 +48,16 @@ export function calculateMacroTargets(input: {
   age: number;
   activity_level: ActivityLevel;
   goal_type: GoalType;
+  weekly_pace_kg?: number;
 }): MacroTargets {
   const bmr = bmrMifflinStJeor(input);
   const tdee = bmr * ACTIVITY_MULTIPLIER[input.activity_level];
-  const kcal = Math.max(1200, Math.round(tdee + GOAL_KCAL_OFFSET[input.goal_type]));
+  const pace =
+    input.goal_type === "maintain"
+      ? 0
+      : Math.max(0, input.weekly_pace_kg ?? DEFAULT_PACE_KG);
+  const offset = GOAL_DIRECTION[input.goal_type] * ((pace * KCAL_PER_KG) / 7);
+  const kcal = Math.max(1200, Math.round(tdee + offset));
 
   const protein_g = Math.round((kcal * 0.3) / 4);
   const carbs_g = Math.round((kcal * 0.45) / 4);

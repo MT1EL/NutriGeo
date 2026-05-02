@@ -9,7 +9,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Check, Lock, ShieldCheck, X } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 const RULES = [
@@ -33,7 +33,7 @@ export default function ChangePasswordScreen() {
 
   const checks = useMemo(
     () => RULES.map((r) => ({ ...r, ok: r.test(next) })),
-    [next]
+    [next],
   );
   const allRulesOk = checks.every((c) => c.ok);
   const matches = next.length > 0 && next === confirm;
@@ -72,10 +72,7 @@ export default function ChangePasswordScreen() {
   });
 
   const canSave =
-    current.length >= 4 &&
-    allRulesOk &&
-    matches &&
-    !mutation.isPending;
+    current.length >= 4 && allRulesOk && matches && !mutation.isPending;
 
   const handleSave = () => {
     setServerError(null);
@@ -90,7 +87,7 @@ export default function ChangePasswordScreen() {
         </View>
       </View>
 
-      <View style={{ gap: Spacing.md }}>
+      <View>
         <Input
           Icon={Lock}
           label="მიმდინარე პაროლი"

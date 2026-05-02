@@ -26,17 +26,19 @@ export const CalorieRing = ({
   color = "#50E3C2",
   textColor = "#FFFFFF",
   trackColor = "rgba(255,255,255,0.2)",
-  label = "KCAL LEFT",
+  label = "კალორია დარჩა",
 }: Props) => {
   const center = size / 2;
   const radius = (size - strokeWidth) / 2;
 
   const caloriesLeft = goal ? goal - progress : 0;
 
+  const progressValue = goal ? progress / goal : 0;
+
   const animated = useSharedValue(0);
 
   useEffect(() => {
-    animated.value = withTiming(Math.min(Math.max(progress, 0), 1), {
+    animated.value = withTiming(Math.min(Math.max(progressValue, 0), 1), {
       duration: 900,
     });
   }, [progress, animated]);

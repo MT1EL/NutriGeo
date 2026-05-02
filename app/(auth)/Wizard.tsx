@@ -5,6 +5,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import ActivityLevel from "@/components/wizard/ActivityLevel";
 import DietPreferences from "@/components/wizard/DietPreferences";
 import Goal from "@/components/wizard/Goal";
+import GoalDetails from "@/components/wizard/GoalDetails";
 import PhysicalData from "@/components/wizard/PhysicalData";
 import SexPage from "@/components/wizard/SexPage";
 import Suggestion from "@/components/wizard/Suggestion";
@@ -39,6 +40,7 @@ const STEPS: WizardStep[] = [
   { component: <SexPage />, validate: validateSex },
   { component: <PhysicalData />, validate: validatePhysical },
   { component: <Goal />, validate: validateGoal },
+  { component: <GoalDetails />, validate: validateGoalDetails },
   { component: <ActivityLevel />, validate: validateActivity },
   { component: <DietPreferences />, validate: () => null },
   { component: <Suggestion />, validate: validateSuggestion },
@@ -47,17 +49,40 @@ const STEPS: WizardStep[] = [
 function validateSex(d: WizardData) {
   return d.biological_sex ? null : "აირჩიე სქესი";
 }
+function ageFromBirthDate(iso: string): number | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - d.getFullYear();
+  const m = today.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1;
+  return age;
+}
 function validatePhysical(d: WizardData) {
   const h = Number(d.height_cm);
   const w = Number(d.weight_kg);
-  const a = Number(d.age);
+  const age = ageFromBirthDate(d.birth_date);
   if (!h || h < 100 || h > 250) return "შეიყვანე სწორი სიმაღლე";
   if (!w || w < 20 || w > 300) return "შეიყვანე სწორი წონა";
-  if (!a || a < 10 || a > 120) return "შეიყვანე სწორი ასაკი";
+  if (age == null || age < 10 || age > 120)
+    return "აირჩიე დაბადების თარიღი";
   return null;
 }
 function validateGoal(d: WizardData) {
   return d.goal_type ? null : "აირჩიე მიზანი";
+}
+function validateGoalDetails(d: WizardData) {
+  if (d.goal_type === "maintain") return null;
+  const target = Number(d.target_weight_kg);
+  const current = Number(d.weight_kg);
+  if (!target) return "შეიყვანე მიზნობრივი წონა";
+  if (d.goal_type === "lose" && target >= current)
+    return "მიზნობრივი წონა მიმდინარეზე ნაკლები უნდა იყოს";
+  if (d.goal_type === "gain" && target <= current)
+    return "მიზნობრივი წონა მიმდინარეზე მეტი უნდა იყოს";
+  if (!Number(d.weekly_pace_kg)) return "აირჩიე კვირის ტემპი";
+  return null;
 }
 function validateActivity(d: WizardData) {
   return d.activity_level ? null : "აირჩიე აქტიურობის დონე";
@@ -70,17 +95,6 @@ function validateSuggestion(d: WizardData) {
   return null;
 }
 
-function birthDateFromAge(ageStr: string): string {
-  const age = Number(ageStr);
-  const today = new Date();
-  const birth = new Date(
-    today.getFullYear() - age,
-    today.getMonth(),
-    today.getDate(),
-  );
-  return birth.toISOString().slice(0, 10);
-}
-
 function getDeviceTimezone() {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Tbilisi";
@@ -90,14 +104,21 @@ function getDeviceTimezone() {
 }
 
 function buildOnboardingPayload(data: WizardData, name: string): OnboardingInput {
+  const isMaintain = data.goal_type === "maintain";
   return {
     name,
     biological_sex: data.biological_sex!,
-    birth_date: birthDateFromAge(data.age),
+    birth_date: data.birth_date,
     height_cm: Number(data.height_cm),
     weight_kg: Number(data.weight_kg),
     activity_level: data.activity_level!,
     goal_type: data.goal_type!,
+    ...(isMaintain
+      ? {}
+      : {
+          target_weight_kg: Number(data.target_weight_kg),
+          weekly_pace_kg: Number(data.weekly_pace_kg),
+        }),
     diet: data.diet,
     allergies: data.allergies,
     restrictions: data.restrictions,
@@ -119,6 +140,7 @@ function buildGoalsPayload(data: WizardData): GoalsInput {
   const fatKcal = fat_g * 9;
   const totalMacroKcal = proteinKcal + carbsKcal + fatKcal || 1;
 
+  const isMaintain = data.goal_type === "maintain";
   return {
     goal_type: data.goal_type!,
     activity_level: data.activity_level!,
@@ -126,6 +148,12 @@ function buildGoalsPayload(data: WizardData): GoalsInput {
     protein_pct: Math.round((proteinKcal / totalMacroKcal) * 100),
     carbs_pct: Math.round((carbsKcal / totalMacroKcal) * 100),
     fat_pct: Math.round((fatKcal / totalMacroKcal) * 100),
+    ...(isMaintain
+      ? {}
+      : {
+          target_weight_kg: Number(data.target_weight_kg),
+          weekly_pace_kg: Number(data.weekly_pace_kg),
+        }),
   };
 }
 
