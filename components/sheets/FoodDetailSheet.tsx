@@ -19,6 +19,7 @@ import {
   servingLabel,
   servingsToGrams,
 } from "@/utils/foodMath";
+import { loggedAtForDate } from "@/utils/date";
 import { makeIdempotencyKey } from "@/utils/idempotency";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -168,7 +169,10 @@ export default function FoodDetailSheet({
           meal_key: input.meal_key,
           quantity: input.quantity,
           unit: input.unit,
-          logged_at: new Date().toISOString(),
+          // Land the entry on whichever day the user is currently viewing,
+          // not "now" — so logging from a past-date home view goes to that
+          // past date.
+          logged_at: loggedAtForDate(todayKey),
         },
         makeIdempotencyKey(),
       ),

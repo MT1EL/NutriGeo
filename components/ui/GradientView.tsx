@@ -1,9 +1,4 @@
-import {
-  Canvas,
-  LinearGradient,
-  Rect,
-  vec,
-} from "@shopify/react-native-skia";
+import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
 import React, { useState } from "react";
 import {
   LayoutChangeEvent,
@@ -20,6 +15,7 @@ type Props = {
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
   borderRadius?: number;
+  borderBottomRadius?: number;
 };
 
 export const GradientView = ({
@@ -29,6 +25,7 @@ export const GradientView = ({
   style,
   children,
   borderRadius,
+  borderBottomRadius,
 }: Props) => {
   const [size, setSize] = useState({ w: 0, h: 0 });
 
@@ -39,7 +36,17 @@ export const GradientView = ({
 
   return (
     <View
-      style={[style, borderRadius ? { borderRadius, overflow: "hidden" } : null]}
+      style={[
+        style,
+        borderRadius || borderBottomRadius
+          ? {
+              borderRadius,
+              borderBottomRightRadius: borderBottomRadius,
+              borderBottomLeftRadius: borderBottomRadius,
+              overflow: "hidden",
+            }
+          : null,
+      ]}
       onLayout={onLayout}
     >
       {size.w > 0 && size.h > 0 && (

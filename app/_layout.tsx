@@ -11,6 +11,7 @@ import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { Colors } from "@/constants/theme";
+import { ActiveDateProvider } from "@/contexts/ActiveDateContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -99,40 +100,42 @@ export default function RootLayout() {
           <ToastProvider>
             <AuthProvider>
               <ThemeSync />
-              <AuthGate>
-                <Stack>
-                  <Stack.Screen
-                    name="(auth)"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="(tabs)"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="articles"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="recipes"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="profile"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="meal/[meal]"
-                    options={{
-                      headerShown: false,
-                      presentation: "modal",
-                      sheetAllowedDetents: "fitToContents",
-                      contentStyle: { backgroundColor: "transparent" },
-                    }}
-                  />
-                </Stack>
-                <StatusBar style="auto" />
-              </AuthGate>
+              <ActiveDateProvider>
+                <AuthGate>
+                  <Stack>
+                    <Stack.Screen
+                      name="(auth)"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="(tabs)"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="articles"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="recipes"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="profile"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="meal/[meal]"
+                      options={{
+                        headerShown: false,
+                        presentation: "modal",
+                        sheetAllowedDetents: "fitToContents",
+                        contentStyle: { backgroundColor: "transparent" },
+                      }}
+                    />
+                  </Stack>
+                  <StatusBar style="auto" />
+                </AuthGate>
+              </ActiveDateProvider>
             </AuthProvider>
           </ToastProvider>
         </QueryClientProvider>

@@ -1,5 +1,5 @@
 import { getProfile } from "@/api/profile";
-import { getRecords, getStatsOverview } from "@/api/stats";
+import { getStatsOverview } from "@/api/stats";
 import type { Range as ApiRange } from "@/api/types";
 import { DayState } from "@/components/charts/StreakGrid";
 import { useQuery } from "@tanstack/react-query";
@@ -29,14 +29,10 @@ export function useStats() {
     queryKey: ["stats", "overview", apiRange],
     queryFn: () => getStatsOverview(apiRange),
   });
-  const recordsQuery = useQuery({
-    queryKey: ["stats", "records"],
-    queryFn: getRecords,
-  });
 
   const profile = profileQuery.data?.data;
   const overview = overviewQuery.data?.data;
-  const records = recordsQuery.data?.data;
+  const records = overview?.records;
   const summary = overview?.summary;
 
   const sliceForRange = useCallback(

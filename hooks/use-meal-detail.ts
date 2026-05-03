@@ -1,8 +1,8 @@
 import { deleteFoodLog, getFoodLog } from "@/api/foodLog";
 import type { ApiResponse, FoodLogEntry } from "@/api/types";
 import { MEAL_KEY_TO_API, MealKey } from "@/constants/meals";
+import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
-import { todayISO } from "@/utils/date";
 import { caloriesForFood, entryServings, macroForFood } from "@/utils/foodMath";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,7 +11,7 @@ import { useMemo } from "react";
 export function useMealDetail(mealKey: MealKey) {
   const toast = useToast();
   const queryClient = useQueryClient();
-  const today = useMemo(() => todayISO(), []);
+  const { date: today } = useActiveDate();
   const apiMealKey = MEAL_KEY_TO_API[mealKey];
 
   const foodLogQuery = useQuery({

@@ -73,6 +73,7 @@ export default function CustomFoodSheet({ visible, onClose }: Props) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["foods", "all"] });
       queryClient.invalidateQueries({ queryKey: ["foods", "recent"] });
+      queryClient.invalidateQueries({ queryKey: ["foods", "mine"] });
       queryClient.invalidateQueries({ queryKey: ["foods", "search"] });
       toast.success("საკვები შეიქმნა");
       onClose();

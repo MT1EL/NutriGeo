@@ -2,20 +2,22 @@ import { createFoodLog, deleteFoodLog, getFoodLog } from "@/api/foodLog";
 import {
   getFavoriteFoods,
   getFrequentFoods,
+  getMyFoods,
   getRecentFoods,
   listFoods,
   searchFoods,
 } from "@/api/foods";
 import type { ApiResponse, Food, FoodLogEntry, MealKey } from "@/api/types";
 import { MEAL_KEY_TO_API, MealKey as UiMealKey } from "@/constants/meals";
+import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
-import { todayISO } from "@/utils/date";
+import { loggedAtForDate } from "@/utils/date";
 import { caloriesForFood, entryServings, macroForFood } from "@/utils/foodMath";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
-export type BrowseTab = "all" | "frequent" | "favorites" | "recent";
+export type BrowseTab = "all" | "frequent" | "favorites" | "recent" | "my";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -35,7 +37,9 @@ export function useAddScreen(activeMeal: UiMealKey) {
     return () => clearTimeout(id);
   }, [searchInput]);
 
-  const today = useMemo(() => todayISO(), []);
+  // The "today" cache key is dynamic now — it tracks the active date the
+  // user selected on the home screen. Mutations log entries to this date.
+  const { date: today } = useActiveDate();
   const apiMealKey: MealKey = MEAL_KEY_TO_API[activeMeal];
 
   // Today's full food log (shared with /home and /meal/[key]).
@@ -65,6 +69,11 @@ export function useAddScreen(activeMeal: UiMealKey) {
     queryFn: getRecentFoods,
     enabled: !debouncedQuery && browse === "recent",
   });
+  const myFoodsQuery = useQuery({
+    queryKey: ["foods", "mine"],
+    queryFn: getMyFoods,
+    enabled: !debouncedQuery && browse === "my",
+  });
   const searchQuery = useQuery({
     queryKey: ["foods", "search", debouncedQuery],
     queryFn: () => searchFoods({ q: debouncedQuery, limit: 20 }),
@@ -77,7 +86,7 @@ export function useAddScreen(activeMeal: UiMealKey) {
         food_id: food.id,
         meal_key: apiMealKey,
         quantity: 1,
-        logged_at: new Date().toISOString(),
+        logged_at: loggedAtForDate(today),
       }),
     onMutate: async ({ food }) => {
       await queryClient.cancelQueries({ queryKey: ["food-log", today] });
@@ -90,7 +99,7 @@ export function useAddScreen(activeMeal: UiMealKey) {
         food_id: food.id,
         meal_key: apiMealKey,
         quantity: 1,
-        logged_at: new Date().toISOString(),
+        logged_at: loggedAtForDate(today),
         food,
       };
       queryClient.setQueryData<ApiResponse<FoodLogEntry[]>>(
@@ -201,7 +210,9 @@ export function useAddScreen(activeMeal: UiMealKey) {
         ? frequentQuery
         : browse === "favorites"
           ? favoritesQuery
-          : recentQuery;
+          : browse === "my"
+            ? myFoodsQuery
+            : recentQuery;
 
   const browseFoods: Food[] = debouncedQuery
     ? (searchQuery.data?.data ?? [])
@@ -215,7 +226,9 @@ export function useAddScreen(activeMeal: UiMealKey) {
         ? "ბოლო ჩანაწერები არ არის"
         : browse === "frequent"
           ? "ხშირი საკვები ჯერ არ არის"
-          : "კატალოგი ცარიელია";
+          : browse === "my"
+            ? "შენი საკვები ჯერ არ არის — შექმენი ქვემოთ"
+            : "კატალოგი ცარიელია";
 
   return {
     today,

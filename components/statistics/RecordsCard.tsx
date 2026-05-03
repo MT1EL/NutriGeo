@@ -2,7 +2,7 @@ import type { Records } from "@/api/stats";
 import BaseCard from "@/components/cards/BaseCard";
 import ThemedText from "@/components/ui/ThemedText";
 import { Radius, Spacing, Type } from "@/constants/theme";
-import { Award, Trophy, TrendingDown } from "lucide-react-native";
+import { Trophy, TrendingDown } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 
 type Props = {
@@ -25,14 +25,6 @@ export default function RecordsCard({ records }: Props) {
           ? `${records.lowest_weight_kg.toFixed(1)}კგ`
           : "—",
       color: "#34A867",
-    },
-    {
-      Icon: Award,
-      label: "საუკეთესო დღე",
-      value: records?.best_logging_day
-        ? `${records.best_logging_day.entries} ჩანაწერი`
-        : "—",
-      color: "#5B6CE0",
     },
   ];
 

@@ -6,6 +6,7 @@ import type { BrowseTab } from "@/hooks/use-add-screen";
 import { caloriesForFood, macroForFood, servingLabel } from "@/utils/foodMath";
 import { foodImageSource } from "@/utils/image";
 import {
+  ChefHat,
   History,
   LayoutGrid,
   LucideIcon,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react-native";
 import {
   ActivityIndicator,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
@@ -22,6 +24,7 @@ import {
 
 const TABS: { key: BrowseTab; label: string; Icon: LucideIcon }[] = [
   { key: "all", label: "ყველა", Icon: LayoutGrid },
+  { key: "my", label: "ჩემი", Icon: ChefHat },
   { key: "frequent", label: "ხშირი", Icon: History },
   { key: "favorites", label: "საყვარელი", Icon: Star },
   { key: "recent", label: "ბოლო", Icon: Sparkles },
@@ -52,7 +55,7 @@ export default function FoodBrowser({
   const theme = Colors[colorScheme];
 
   return (
-    <View style={{ gap: Spacing.sm }}>
+    <View style={{ gap: Spacing.sm, overflow: "hidden" }}>
       <View style={styles.header}>
         <ThemedText style={styles.title}>
           {hasQuery ? "ძიების შედეგი" : "დაამატე"}
@@ -60,7 +63,14 @@ export default function FoodBrowser({
       </View>
 
       {!hasQuery && (
-        <View style={styles.tabsRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsRow}
+          // Bleed past the parent screen's 20px page padding so chips sit
+          // edge-to-edge and the right side hints at scrollability.
+          style={styles.tabsScroll}
+        >
           {TABS.map(({ key, label, Icon }) => {
             const isActive = browse === key;
             return (
@@ -89,7 +99,7 @@ export default function FoodBrowser({
               </TouchableOpacity>
             );
           })}
-        </View>
+        </ScrollView>
       )}
 
       {isLoading ? (
@@ -140,9 +150,14 @@ const styles = StyleSheet.create({
     fontSize: Type.lg,
     fontWeight: "700",
   },
+  tabsScroll: {
+    marginHorizontal: -Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+  },
   tabsRow: {
     flexDirection: "row",
     gap: Spacing.sm,
+    paddingRight: Spacing.xl,
   },
   tab: {
     flexDirection: "row",

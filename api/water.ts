@@ -10,8 +10,12 @@ export function logWater(amountMl: number, idempotencyKey?: string) {
   );
 }
 
-export function getWaterToday() {
-  return api.get<ApiResponse<{ entries: WaterEntry[]; total_ml: number }>>('/v1/water');
+// Today's totals when no date is passed; specific day's totals when ISO
+// YYYY-MM-DD is passed (backend resolves "today" via X-Timezone).
+export function getWater(date?: string) {
+  return api.get<
+    ApiResponse<{ entries: WaterEntry[]; total_ml: number; date: string }>
+  >('/v1/water', date ? { query: { date } } : undefined);
 }
 
 export function deleteWater(id: string) {

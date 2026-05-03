@@ -196,7 +196,11 @@ export type ArticleCategory = {
 export type WeightEntry = {
   id: string;
   weight_kg: number;
-  recorded_at: string;
+  // ISO YYYY-MM-DD in the user's timezone — use this for date comparisons
+  // (logged_at is a UTC instant and can roll back a day for eastern TZs).
+  log_date: string;
+  // ISO timestamp (UTC).
+  logged_at: string;
   source?: "manual" | "apple_health" | "google_fit";
 };
 

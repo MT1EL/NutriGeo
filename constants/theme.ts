@@ -85,14 +85,6 @@ export const Colors = {
   },
 };
 
-// DARK_V1 — original palette. Keep for one-line revert.
-//   background: "#0B1220",
-//   surface:    "#0F172A",
-//   card:       "#172033",
-//   border:     "#1F2A44",
-//   borderLight:"#172033",  // ← bug: identical to card, tracks invisible
-//   (everything else unchanged from current dark)
-
 export const Spacing = {
   xs: 4,
   sm: 8,

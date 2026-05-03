@@ -1,5 +1,5 @@
-import { getHomeToday } from "@/api/home";
-import { todayISO } from "@/utils/date";
+import { getHomeDay } from "@/api/home";
+import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { aggregateDayMeals } from "@/utils/meals";
 import {
   keepPreviousData,
@@ -11,35 +11,41 @@ import { useEffect, useMemo } from "react";
 const STALE_HOME = 60_000;
 
 export function useHomeData() {
-  const today = todayISO();
+  const { date, isToday } = useActiveDate();
   const queryClient = useQueryClient();
 
+  // One bundled call for both today and past dates. `keepPreviousData`
+  // holds the previous date's snapshot through the swap so the screen
+  // doesn't flash to empty on date change.
   const homeQuery = useQuery({
-    queryKey: ["home", "today"],
-    queryFn: getHomeToday,
+    queryKey: ["home", "day", date],
+    queryFn: () => getHomeDay(isToday ? undefined : date),
     staleTime: STALE_HOME,
     placeholderData: keepPreviousData,
   });
 
-  // Hydrate sibling caches so /add and /meal/[key] (reading ["food-log", today])
-  // and anything reading ["streak"] hit cache instead of refetching. Backend
-  // guarantees food_log shape parity with /v1/food-log.
+  // Hydrate sibling caches so /add and /meal/[key] (reading
+  // ["food-log", date]) and ["streak"] consumers hit cache instead of
+  // refetching. Streak is only meaningful for today.
   useEffect(() => {
     const data = homeQuery.data?.data;
     if (!data) return;
-    queryClient.setQueryData(["food-log", today], { data: data.food_log });
-    queryClient.setQueryData(["streak"], data.streak);
-  }, [homeQuery.data, queryClient, today]);
+    queryClient.setQueryData(["food-log", date], { data: data.food_log });
+    if (isToday) queryClient.setQueryData(["streak"], data.streak);
+  }, [homeQuery.data, queryClient, date, isToday]);
 
-  const data = homeQuery.data?.data;
+  const snapshot = homeQuery.data?.data;
+  const foodLog = snapshot?.food_log ?? [];
+
   const meals = useMemo(
-    () => (data?.food_log ? aggregateDayMeals(data.food_log, today) : undefined),
-    [data, today],
+    () => aggregateDayMeals(foodLog, date),
+    [foodLog, date],
   );
 
   return {
-    snapshot: data,
+    snapshot,
     meals,
+    isToday,
     isLoading: homeQuery.isLoading,
     isError: homeQuery.isError,
   };

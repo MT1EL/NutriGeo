@@ -5,12 +5,15 @@ import MealsCard from "@/components/cards/MealsCard";
 import HomeArticles from "@/components/home/HomeArticles";
 import HomeBodyEmpty from "@/components/home/HomeBodyEmpty";
 import HomeHeader, { HOME_HEADER_OVERLAP } from "@/components/home/HomeHeader";
+import WeightLogPill from "@/components/home/WeightLogPill";
+import DatePickerSheet from "@/components/ui/DatePickerSheet";
 import { Colors, Spacing } from "@/constants/theme";
+import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHomeData } from "@/hooks/use-home-data";
-import { formatTodayKa } from "@/utils/date";
+import { formatTodayKa, todayISO } from "@/utils/date";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -22,14 +25,20 @@ import { TAB_BAR_HEIGHT } from "./_layout";
 
 const STALE_ARTICLES = 5 * 60_000;
 
+function formatLabelForDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return formatTodayKa(new Date(y, (m || 1) - 1, d || 1));
+}
+
 export default function HomeScreen() {
   const { user } = useAuth();
-  // --theme--
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const todayLabel = useMemo(() => formatTodayKa(), []);
+  const { date, setDate, isToday } = useActiveDate();
+  const [pickerOpen, setPickerOpen] = useState(false);
 
-  // --data--
+  const dateLabel = useMemo(() => formatLabelForDate(date), [date]);
+
   const { snapshot, meals, isLoading, isError } = useHomeData();
   const articlesQuery = useQuery({
     queryKey: ["articles", "list"],
@@ -39,7 +48,13 @@ export default function HomeScreen() {
   });
   const articles: Article[] = articlesQuery.data?.data ?? [];
 
-  if (isLoading) {
+  // Cold-start spinner only — once we've ever rendered real data, never
+  // gate the whole screen again. Date changes use placeholderData on the
+  // hook's queries to keep the previous date's content visible until the
+  // new one arrives, instead of fading the screen to black.
+  const hasLoadedRef = useRef(false);
+  if (snapshot) hasLoadedRef.current = true;
+  if (isLoading && !hasLoadedRef.current) {
     return (
       <View style={[styles.center, { backgroundColor: theme.surface }]}>
         <ActivityIndicator color={theme.brand} />
@@ -61,10 +76,12 @@ export default function HomeScreen() {
     >
       <HomeHeader
         userName={user?.profile?.name || ""}
-        todayLabel={todayLabel}
+        todayLabel={dateLabel}
         kcalEaten={kcalEaten}
         kcalGoal={kcalGoal}
         snapshot={snapshot}
+        isToday={isToday}
+        onCalendarPress={() => setPickerOpen(true)}
       />
 
       <View style={styles.container}>
@@ -73,11 +90,21 @@ export default function HomeScreen() {
         ) : (
           <>
             <MacrosCard data={meals} />
+            <WeightLogPill weight={snapshot?.weight ?? null} />
             <MealsCard data={meals} />
             <HomeArticles articles={articles} />
           </>
         )}
       </View>
+
+      <DatePickerSheet
+        visible={pickerOpen}
+        value={date}
+        onChange={setDate}
+        onClose={() => setPickerOpen(false)}
+        // Don't let the user pick the future — we don't pre-log meals.
+        maximumDate={todayISO()}
+      />
     </ScrollView>
   );
 }

@@ -36,6 +36,11 @@ export function getFavoriteFoods() {
   return api.get<ApiResponse<Food[]>>('/v1/foods/favorites');
 }
 
+// User's own custom-created foods (is_custom = true).
+export function getMyFoods() {
+  return api.get<ApiResponse<Food[]>>('/v1/foods/mine');
+}
+
 export function favoriteFood(foodId: string) {
   return api.post<ApiResponse<{ ok: true }>>(`/v1/foods/favorites/${foodId}`);
 }

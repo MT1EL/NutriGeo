@@ -55,6 +55,14 @@ export function ageFromBirthDate(
   return years;
 }
 
+// Build a `logged_at` timestamp that lands on the given local date (used when
+// logging food to a past day). Noon-local converts cleanly to UTC and falls
+// safely inside the right calendar day for any timezone.
+export function loggedAtForDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, (m || 1) - 1, d || 1, 12, 0, 0).toISOString();
+}
+
 // ISO date for "today minus N years" — fabricates a birth date when only an
 // age is known. Approximate: assumes today's month/day, used as backend payload.
 export function birthDateFromAge(ageStr: string): string {

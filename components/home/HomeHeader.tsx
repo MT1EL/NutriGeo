@@ -10,7 +10,12 @@ import {
   Footprints,
   LucideIcon,
 } from "lucide-react-native";
-import { StyleSheet, useColorScheme, View } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export const HOME_HEADER_OVERLAP = 56;
@@ -22,18 +27,15 @@ type StatPill = {
   color: string;
 };
 
-function buildStats(snapshot: HomeToday | undefined): StatPill[] {
+function buildStats(
+  snapshot: HomeToday | undefined,
+  includeStreak: boolean,
+): StatPill[] {
   const streakDays = snapshot?.streak.current ?? 0;
   const waterLiters = ((snapshot?.water.total_ml ?? 0) / 1000).toFixed(1);
   const stepsToday = snapshot?.steps.count ?? 0;
 
-  return [
-    {
-      Icon: Flame,
-      label: "სტრიკი",
-      value: `${streakDays} დღე`,
-      color: "#FF7A45",
-    },
+  const stats: StatPill[] = [
     {
       Icon: Droplet,
       label: "წყალი",
@@ -47,6 +49,16 @@ function buildStats(snapshot: HomeToday | undefined): StatPill[] {
       color: "#7C5CFF",
     },
   ];
+  // Streak is a global "current run" — only meaningful in today view.
+  if (includeStreak) {
+    stats.unshift({
+      Icon: Flame,
+      label: "სტრიკი",
+      value: `${streakDays} დღე`,
+      color: "#FF7A45",
+    });
+  }
+  return stats;
 }
 
 type Props = {
@@ -55,6 +67,8 @@ type Props = {
   kcalEaten: number;
   kcalGoal: number;
   snapshot: HomeToday | undefined;
+  isToday: boolean;
+  onCalendarPress?: () => void;
 };
 
 export default function HomeHeader({
@@ -63,17 +77,19 @@ export default function HomeHeader({
   kcalEaten,
   kcalGoal,
   snapshot,
+  isToday,
+  onCalendarPress,
 }: Props) {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const stats = buildStats(snapshot);
+  const stats = buildStats(snapshot, isToday);
 
   return (
     <GradientView
       colors={[theme.brandDeep, theme.brand]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      borderRadius={Radius.xl}
+      borderBottomRadius={Radius.xl}
       style={styles.headerContainer}
     >
       <SafeAreaView edges={["top"]} style={styles.headerSafe}>
@@ -90,9 +106,14 @@ export default function HomeHeader({
             </ThemedText>
           </View>
           <View style={styles.headerActions}>
-            <View style={styles.iconButton}>
+            <TouchableOpacity
+              onPress={onCalendarPress}
+              activeOpacity={0.7}
+              hitSlop={6}
+              style={styles.iconButton}
+            >
               <Calendar color="#FFFFFF" size={20} />
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -106,28 +127,30 @@ export default function HomeHeader({
           />
         </View>
 
-        <View style={styles.statsStrip}>
-          {stats.map(({ Icon, label, value, color }) => (
-            <View key={label} style={styles.statPill}>
-              <View
-                style={[styles.statIcon, { backgroundColor: `${color}33` }]}
-              >
-                <Icon color={color} size={16} />
-              </View>
-              <View style={{ gap: 2 }}>
-                <ThemedText
-                  style={styles.statLabel}
-                  color="rgba(255,255,255,0.75)"
+        {snapshot && (
+          <View style={styles.statsStrip}>
+            {stats.map(({ Icon, label, value, color }) => (
+              <View key={label} style={styles.statPill}>
+                <View
+                  style={[styles.statIcon, { backgroundColor: `${color}33` }]}
                 >
-                  {label}
-                </ThemedText>
-                <ThemedText style={styles.statValue} color="#FFFFFF">
-                  {value}
-                </ThemedText>
+                  <Icon color={color} size={16} />
+                </View>
+                <View style={{ gap: 2 }}>
+                  <ThemedText
+                    style={styles.statLabel}
+                    color="rgba(255,255,255,0.75)"
+                  >
+                    {label}
+                  </ThemedText>
+                  <ThemedText style={styles.statValue} color="#FFFFFF">
+                    {value}
+                  </ThemedText>
+                </View>
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        )}
       </SafeAreaView>
     </GradientView>
   );
@@ -136,6 +159,7 @@ export default function HomeHeader({
 const styles = StyleSheet.create({
   headerContainer: {
     paddingBottom: HOME_HEADER_OVERLAP + Spacing.xl,
+    backgroundColor: "red",
   },
   headerSafe: {
     paddingHorizontal: Spacing.xl,

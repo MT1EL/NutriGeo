@@ -52,9 +52,6 @@ export default function ProfileHeader({ profile, summary }: Props) {
         <ThemedText style={styles.name} color="#FFFFFF">
           {profile?.display_name}
         </ThemedText>
-        <ThemedText style={styles.email} color="rgba(255,255,255,0.85)">
-          {profile?.activity_level}
-        </ThemedText>
 
         <View style={styles.statsStrip}>
           {stats.map((s) => (
@@ -102,9 +99,6 @@ const styles = StyleSheet.create({
   name: {
     fontSize: Type.xl,
     fontWeight: "700",
-  },
-  email: {
-    fontSize: Type.sm,
   },
   statsStrip: {
     flexDirection: "row",
