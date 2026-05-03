@@ -135,6 +135,7 @@ const styles = StyleSheet.create({
   form: {
     gap: 40,
     marginTop: 48,
+    paddingBottom: 20,
   },
   formTitle: {
     fontSize: 28,

@@ -36,7 +36,7 @@ export function getFavoriteFoods() {
   return api.get<ApiResponse<Food[]>>('/v1/foods/favorites');
 }
 
-// User's own custom-created foods (is_custom = true).
+// User's own custom-created foods (source === "user").
 export function getMyFoods() {
   return api.get<ApiResponse<Food[]>>('/v1/foods/mine');
 }
@@ -63,10 +63,20 @@ export type CreateFoodInput = {
   carbs_g_per_100g: number;
   fat_g_per_100g: number;
   fiber_g_per_100g?: number;
+  // null explicitly clears an existing image; undefined leaves it unchanged.
+  image_url?: string | null;
 };
 
 export function createCustomFood(input: CreateFoodInput) {
   return api.post<ApiResponse<Food>>('/v1/foods', input);
+}
+
+export function updateCustomFood(id: string, input: Partial<CreateFoodInput>) {
+  return api.put<ApiResponse<Food>>(`/v1/foods/${id}`, input);
+}
+
+export function deleteCustomFood(id: string) {
+  return api.delete<ApiResponse<{ ok: true }>>(`/v1/foods/${id}`);
 }
 
 export function recognizeFoodByImage(imageUrl: string) {

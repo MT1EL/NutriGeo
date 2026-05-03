@@ -1,5 +1,6 @@
 import type { FoodLogEntry } from "@/api/types";
 import FoodCard from "@/components/cards/FoodCard";
+import { FoodListSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import type { MealConfig } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
@@ -10,12 +11,7 @@ import {
   macroForFood,
 } from "@/utils/foodMath";
 import { foodImageSource } from "@/utils/image";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { StyleSheet, useColorScheme, View } from "react-native";
 
 type Props = {
   entries: FoodLogEntry[];
@@ -37,9 +33,7 @@ export default function MealEntriesList({
     <View style={{ gap: Spacing.sm }}>
       <ThemedText style={styles.sectionTitle}>ჩაწერილი საკვები</ThemedText>
       {isLoading ? (
-        <View style={styles.loaderRow}>
-          <ActivityIndicator color={theme.brand} />
-        </View>
+        <FoodListSkeleton count={3} />
       ) : entries.length === 0 ? (
         <View
           style={[
@@ -90,10 +84,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Type.lg,
     fontWeight: "700",
-  },
-  loaderRow: {
-    paddingVertical: Spacing.xl,
-    alignItems: "center",
   },
   empty: {
     paddingVertical: Spacing.xl,

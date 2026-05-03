@@ -6,6 +6,7 @@ import DateTimePicker, {
 import { Calendar, Ruler, Weight } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -92,7 +93,10 @@ const PhysicalData = () => {
       title="ფიზიკური მონაცემები"
       subtitle="ეს ინფორმაცია დაგვეხმარება შენთვის სწორი კალორიული მიზნის გამოთვლაში"
     >
-      <View style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
         <Input
           Icon={Ruler}
           placeholder={"175"}
@@ -141,7 +145,7 @@ const PhysicalData = () => {
             </ThemedText>
           )}
         </View>
-      </View>
+      </KeyboardAvoidingView>
 
       {Platform.OS === "android" && pickerOpen && (
         <DateTimePicker

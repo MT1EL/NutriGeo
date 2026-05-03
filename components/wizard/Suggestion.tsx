@@ -9,7 +9,13 @@ import {
   Wheat,
 } from "lucide-react-native";
 import { useEffect, useMemo } from "react";
-import { StyleSheet, useColorScheme, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from "react-native";
 import Input from "../ui/Input";
 import ThemedText from "../ui/ThemedText";
 import WizzardContentLayout from "./layout";
@@ -117,7 +123,10 @@ const Suggestion = () => {
       title="შენი დღიური მიზნები"
       subtitle="გამოთვლილი შენი მონაცემების მიხედვით"
     >
-      <View style={styles.stack}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.stack}
+      >
         <View
           style={[
             styles.hero,
@@ -193,7 +202,7 @@ const Suggestion = () => {
             ))}
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </WizzardContentLayout>
   );
 };

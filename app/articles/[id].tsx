@@ -1,12 +1,12 @@
 import ArticleBlocks from "@/components/article/ArticleBlocks";
 import ArticleHero from "@/components/article/ArticleHero";
 import ArticleRelated from "@/components/article/ArticleRelated";
+import { ArticleDetailSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Spacing, Type } from "@/constants/theme";
 import { useArticleDetail } from "@/hooks/use-article-detail";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-  ActivityIndicator,
   ScrollView,
   Share,
   StyleSheet,
@@ -44,11 +44,9 @@ export default function ArticleDetail() {
 
   if (isLoading) {
     return (
-      <SafeAreaView
-        style={[styles.notFound, { backgroundColor: theme.surface }]}
-      >
-        <ActivityIndicator color={theme.brand} />
-      </SafeAreaView>
+      <View style={{ flex: 1, backgroundColor: theme.surface }}>
+        <ArticleDetailSkeleton />
+      </View>
     );
   }
 

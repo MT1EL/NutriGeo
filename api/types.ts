@@ -110,7 +110,9 @@ export type Food = {
   carbs_g_per_100g: number;
   fat_g_per_100g: number;
   fiber_g_per_100g?: number;
-  is_custom?: boolean;
+  // "user" = created by the current user (editable/deletable). "system" or
+  // anything else = catalog food.
+  source?: "user" | "system" | string;
   image_url?: string;
 };
 

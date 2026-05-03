@@ -4,13 +4,13 @@ import RecipeNutrition from "@/components/recipe/RecipeNutrition";
 import RecipeRelated from "@/components/recipe/RecipeRelated";
 import RecipeStatsBar from "@/components/recipe/RecipeStatsBar";
 import RecipeSteps from "@/components/recipe/RecipeSteps";
+import { RecipeDetailSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useRecipeDetail } from "@/hooks/use-recipe-detail";
 import { router, useLocalSearchParams } from "expo-router";
 import { Leaf } from "lucide-react-native";
 import {
-  ActivityIndicator,
   ScrollView,
   Share,
   StyleSheet,
@@ -41,11 +41,9 @@ export default function RecipeDetail() {
 
   if (isLoading) {
     return (
-      <SafeAreaView
-        style={[styles.notFound, { backgroundColor: theme.surface }]}
-      >
-        <ActivityIndicator color={theme.brand} />
-      </SafeAreaView>
+      <View style={{ flex: 1, backgroundColor: theme.surface }}>
+        <RecipeDetailSkeleton />
+      </View>
     );
   }
 

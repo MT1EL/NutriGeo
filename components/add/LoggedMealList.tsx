@@ -1,5 +1,6 @@
 import type { FoodLogEntry } from "@/api/types";
 import FoodCard from "@/components/cards/FoodCard";
+import { FoodListSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { type MealConfig, MealKey } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
@@ -10,12 +11,7 @@ import {
   macroForFood,
 } from "@/utils/foodMath";
 import { foodImageSource } from "@/utils/image";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { StyleSheet, useColorScheme, View } from "react-native";
 
 type Props = {
   mealLabel: MealKey;
@@ -23,7 +19,8 @@ type Props = {
   isLoading: boolean;
   config: MealConfig;
   onSelect: (entry: FoodLogEntry) => void;
-  onRemove: (entry: FoodLogEntry) => void;
+  onIncrement: (entry: FoodLogEntry) => void;
+  onDecrement: (entry: FoodLogEntry) => void;
 };
 
 export default function LoggedMealList({
@@ -32,7 +29,8 @@ export default function LoggedMealList({
   isLoading,
   config,
   onSelect,
-  onRemove,
+  onIncrement,
+  onDecrement,
 }: Props) {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -47,9 +45,7 @@ export default function LoggedMealList({
       </View>
 
       {isLoading ? (
-        <View style={styles.loaderRow}>
-          <ActivityIndicator color={theme.brand} />
-        </View>
+        <FoodListSkeleton count={2} />
       ) : entries.length === 0 ? (
         <View
           style={[
@@ -84,9 +80,11 @@ export default function LoggedMealList({
                 carbsG={macroForFood(food.carbs_g_per_100g, food, q)}
                 fatG={macroForFood(food.fat_g_per_100g, food, q)}
                 image={foodImageSource(food.image_url)}
-                action="remove"
+                action="stepper"
+                quantity={entry.quantity}
                 onPress={() => onSelect(entry)}
-                onActionPress={() => onRemove(entry)}
+                onIncrement={() => onIncrement(entry)}
+                onDecrement={() => onDecrement(entry)}
               />
             );
           })}
@@ -109,10 +107,6 @@ const styles = StyleSheet.create({
   count: {
     fontSize: Type.xs,
     fontWeight: "600",
-  },
-  loaderRow: {
-    paddingVertical: Spacing.xl,
-    alignItems: "center",
   },
   empty: {
     paddingVertical: Spacing.xl,

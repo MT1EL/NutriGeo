@@ -9,10 +9,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
+  Bookmark,
+  ChefHat,
   Globe,
   Heart,
   LogOut,
   Settings,
+  Star,
   Target,
   User,
 } from "lucide-react-native";
@@ -76,6 +79,38 @@ const ProfilePage = () => {
             tint={colorScheme === "dark" ? "#3A2030" : "#FCEAF1"}
             iconColor="#E85A8C"
             href="/profile/health"
+          />
+        </BaseCard>
+
+        <ThemedText style={styles.sectionTitle}>ბიბლიოთეკა</ThemedText>
+        <BaseCard style={styles.cardList}>
+          <ProfileMenuRow
+            Icon={Bookmark}
+            label="შენახული სტატიები"
+            tint={colorScheme === "dark" ? "#222B4A" : "#EEF0FB"}
+            iconColor="#5B6CE0"
+            href="/profile/library/articles"
+          />
+          <ProfileMenuRow
+            Icon={Heart}
+            label="შენახული რეცეპტები"
+            tint={colorScheme === "dark" ? "#3A2030" : "#FCEAF1"}
+            iconColor="#E85A8C"
+            href="/profile/library/recipes"
+          />
+          <ProfileMenuRow
+            Icon={Star}
+            label="საყვარელი საკვები"
+            tint={colorScheme === "dark" ? "#3A2A0A" : "#FFF4DA"}
+            iconColor="#FFB020"
+            href="/profile/library/favorite-foods"
+          />
+          <ProfileMenuRow
+            Icon={ChefHat}
+            label="ჩემი საკვები"
+            tint={colorScheme === "dark" ? "#1F3A28" : "#E6F6EA"}
+            iconColor="#34A867"
+            href="/profile/library/my-foods"
           />
         </BaseCard>
 

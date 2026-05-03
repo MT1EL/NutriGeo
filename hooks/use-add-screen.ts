@@ -1,4 +1,9 @@
-import { createFoodLog, deleteFoodLog, getFoodLog } from "@/api/foodLog";
+import {
+  createFoodLog,
+  deleteFoodLog,
+  getFoodLog,
+  updateFoodLog,
+} from "@/api/foodLog";
 import {
   getFavoriteFoods,
   getFrequentFoods,
@@ -145,6 +150,39 @@ export function useAddScreen(activeMeal: UiMealKey) {
     },
   });
 
+  const updateQuantityMutation = useMutation({
+    mutationFn: ({ id, quantity }: { id: string; quantity: number }) =>
+      updateFoodLog(id, { quantity }),
+    onMutate: async ({ id, quantity }) => {
+      await queryClient.cancelQueries({ queryKey: ["food-log", today] });
+      const previous = queryClient.getQueryData<ApiResponse<FoodLogEntry[]>>([
+        "food-log",
+        today,
+      ]);
+      queryClient.setQueryData<ApiResponse<FoodLogEntry[]>>(
+        ["food-log", today],
+        (old) => {
+          const prev = old && Array.isArray(old.data) ? old.data : [];
+          return {
+            data: prev.map((e) => (e.id === id ? { ...e, quantity } : e)),
+          };
+        },
+      );
+      return { previous };
+    },
+    onSuccess: () => {
+      invalidateFoodLogQueries(queryClient, today);
+    },
+    onError: (err, _vars, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(["food-log", today], ctx.previous);
+      }
+      const message =
+        err instanceof Error ? err.message : "განახლება ვერ მოხერხდა";
+      toast.error(message, "შეცდომა");
+    },
+  });
+
   const removeMutation = useMutation({
     mutationFn: (entryId: string) => deleteFoodLog(entryId),
     onMutate: async (entryId) => {
@@ -214,9 +252,18 @@ export function useAddScreen(activeMeal: UiMealKey) {
             ? myFoodsQuery
             : recentQuery;
 
-  const browseFoods: Food[] = debouncedQuery
+  const rawBrowseFoods: Food[] = debouncedQuery
     ? (searchQuery.data?.data ?? [])
     : ((browseQuery.data?.data as Food[] | undefined) ?? []);
+
+  const loggedFoodIds = useMemo(
+    () => new Set(loggedForMeal.map((e) => e.food_id)),
+    [loggedForMeal],
+  );
+  const browseFoods: Food[] = useMemo(
+    () => rawBrowseFoods.filter((f) => !loggedFoodIds.has(f.id)),
+    [rawBrowseFoods, loggedFoodIds],
+  );
 
   const browseEmptyText = debouncedQuery
     ? "ამ ძიებაზე საკვები ვერ მოიძებნა"
@@ -245,6 +292,20 @@ export function useAddScreen(activeMeal: UiMealKey) {
     browseFoods,
     browseEmptyText,
     addFood: (food: Food) => addMutation.mutate({ food }),
-    removeEntry: (entryId: string) => removeMutation.mutate(entryId),
+    incrementEntry: (entry: FoodLogEntry) =>
+      updateQuantityMutation.mutate({
+        id: entry.id,
+        quantity: entry.quantity + 1,
+      }),
+    decrementEntry: (entry: FoodLogEntry) => {
+      if (entry.quantity <= 1) {
+        removeMutation.mutate(entry.id);
+      } else {
+        updateQuantityMutation.mutate({
+          id: entry.id,
+          quantity: entry.quantity - 1,
+        });
+      }
+    },
   };
 }

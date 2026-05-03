@@ -2,11 +2,14 @@ import ArticleCover from "@/components/cards/ArticleCover";
 import ArticleCategoryChips from "@/components/articles/ArticleCategoryChips";
 import ArticlesIndexHeader from "@/components/articles/ArticlesIndexHeader";
 import FeaturedArticleCard from "@/components/articles/FeaturedArticleCard";
+import {
+  ArticleListSkeleton,
+  FeaturedArticleSkeleton,
+} from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Spacing, Type } from "@/constants/theme";
 import { useArticlesList } from "@/hooks/use-articles-list";
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   useColorScheme,
@@ -35,9 +38,13 @@ export default function ArticlesIndex() {
         />
 
         {isLoading && articles.length === 0 ? (
-          <View style={styles.loaderRow}>
-            <ActivityIndicator color={theme.brand} />
-          </View>
+          <>
+            <FeaturedArticleSkeleton />
+            <View style={{ gap: Spacing.sm }}>
+              <ThemedText style={styles.sectionTitle}>ყველა სტატია</ThemedText>
+              <ArticleListSkeleton count={3} />
+            </View>
+          </>
         ) : null}
 
         {hero && <FeaturedArticleCard article={hero} />}
@@ -77,10 +84,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Type.lg,
     fontWeight: "700",
-  },
-  loaderRow: {
-    paddingVertical: Spacing.huge,
-    alignItems: "center",
   },
   empty: {
     alignItems: "center",

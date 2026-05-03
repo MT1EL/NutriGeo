@@ -1,5 +1,9 @@
 import { createFoodLog, deleteFoodLog, updateFoodLog } from "@/api/foodLog";
-import { favoriteFood, unfavoriteFood } from "@/api/foods";
+import {
+  deleteCustomFood,
+  favoriteFood,
+  unfavoriteFood,
+} from "@/api/foods";
 import type {
   MealKey as ApiMealKey,
   ApiResponse,
@@ -23,9 +27,11 @@ import { loggedAtForDate } from "@/utils/date";
 import { makeIdempotencyKey } from "@/utils/idempotency";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, Minus, Plus, Trash2, X } from "lucide-react-native";
+import { Heart, MoreVertical, Minus, Plus, Trash2, X } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import {
+  ActionSheetIOS,
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -50,6 +56,7 @@ type Props = {
   entry?: FoodLogEntry | null;
   defaultMealKey: ApiMealKey;
   todayKey: string;
+  onEditFood?: (food: Food) => void;
 };
 
 function apiMealLabel(key: ApiMealKey): string {
@@ -79,6 +86,7 @@ export default function FoodDetailSheet({
   entry,
   defaultMealKey,
   todayKey,
+  onEditFood,
 }: Props) {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -225,6 +233,24 @@ export default function FoodDetailSheet({
     },
   });
 
+  const deleteFoodMutation = useMutation({
+    mutationFn: (id: string) => deleteCustomFood(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["foods", "all"] });
+      queryClient.invalidateQueries({ queryKey: ["foods", "recent"] });
+      queryClient.invalidateQueries({ queryKey: ["foods", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["foods", "search"] });
+      queryClient.invalidateQueries({ queryKey: ["foods", "favorites"] });
+      toast.success("საკვები წაიშალა");
+      onClose();
+    },
+    onError: (err) => {
+      const message =
+        err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
+      toast.error(message, "შეცდომა");
+    },
+  });
+
   const favoriteMutation = useMutation({
     mutationFn: ({ id, next }: { id: string; next: boolean }) =>
       next ? favoriteFood(id) : unfavoriteFood(id),
@@ -309,6 +335,46 @@ export default function FoodDetailSheet({
     favoriteMutation.mutate({ id: food.id, next: !isFavorite });
   };
 
+  const confirmDeleteFood = () => {
+    if (!food) return;
+    Alert.alert(
+      "წაშლა?",
+      `"${food.name}"-ის წაშლა შეუქცევადია.`,
+      [
+        { text: "გაუქმება", style: "cancel" },
+        {
+          text: "წაშლა",
+          style: "destructive",
+          onPress: () => deleteFoodMutation.mutate(food.id),
+        },
+      ],
+    );
+  };
+
+  const openOwnerMenu = () => {
+    if (!food) return;
+    const options = ["გაუქმება", "რედაქტირება", "წაშლა"];
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: 2,
+        },
+        (idx) => {
+          if (idx === 1) onEditFood?.(food);
+          else if (idx === 2) confirmDeleteFood();
+        },
+      );
+    } else {
+      Alert.alert(food.name, undefined, [
+        { text: "გაუქმება", style: "cancel" },
+        { text: "რედაქტირება", onPress: () => onEditFood?.(food) },
+        { text: "წაშლა", style: "destructive", onPress: confirmDeleteFood },
+      ]);
+    }
+  };
+
   const isPending =
     logMutation.isPending ||
     updateMutation.isPending ||
@@ -375,6 +441,20 @@ export default function FoodDetailSheet({
                     fill={isFavorite ? "#FF4D6D" : "transparent"}
                   />
                 </TouchableOpacity>
+                {food.source === "user" && onEditFood && (
+                  <TouchableOpacity
+                    onPress={openOwnerMenu}
+                    style={[
+                      styles.iconBtn,
+                      { backgroundColor: theme.borderLight },
+                    ]}
+                    hitSlop={6}
+                    activeOpacity={0.7}
+                    disabled={deleteFoodMutation.isPending}
+                  >
+                    <MoreVertical color={theme.text} size={18} />
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   onPress={onClose}
                   style={[

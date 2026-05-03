@@ -11,11 +11,20 @@ import { useMealDetail } from "@/hooks/use-meal-detail";
 import { router, useLocalSearchParams } from "expo-router";
 import { Plus } from "lucide-react-native";
 import { useState } from "react";
-import { ScrollView, StyleSheet, useColorScheme, View } from "react-native";
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MealModal() {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+  const insets = useSafeAreaInsets();
+  const topPadding = Platform.OS === "android" ? insets.top : 0;
   const { meal: mealParam } = useLocalSearchParams<{ meal?: string }>();
 
   const mealKey: MealKey = isMealKey(mealParam) ? mealParam : "საუზმე";
@@ -33,7 +42,12 @@ export default function MealModal() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: theme.surface }]}>
+    <View
+      style={[
+        styles.root,
+        { backgroundColor: theme.surface, paddingTop: topPadding },
+      ]}
+    >
       <MealHeader
         mealKey={mealKey}
         config={config}

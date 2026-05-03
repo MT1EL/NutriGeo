@@ -1,7 +1,6 @@
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Image } from "expo-image";
 import { Minus, Plus } from "lucide-react-native";
-import React from "react";
 import {
   ImageSourcePropType,
   StyleSheet,
@@ -21,8 +20,11 @@ type Props = {
   fatG?: number;
   image?: ImageSourcePropType | null;
   onPress?: () => void;
-  action?: "add" | "remove" | "none";
+  action?: "add" | "remove" | "stepper" | "none";
   onActionPress?: () => void;
+  quantity?: number;
+  onIncrement?: () => void;
+  onDecrement?: () => void;
 };
 
 const FoodCard = ({
@@ -36,6 +38,9 @@ const FoodCard = ({
   onPress,
   action = "add",
   onActionPress,
+  quantity,
+  onIncrement,
+  onDecrement,
 }: Props) => {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -64,25 +69,19 @@ const FoodCard = ({
           </View>
         )}
         <View style={{ flex: 1, gap: Spacing.xs + 2 }}>
-          <View style={styles.titleRow}>
-            <ThemedText style={styles.title} numberOfLines={1}>
-              {title}
-            </ThemedText>
-            <View
-              style={[styles.calBadge, { backgroundColor: theme.brandSoft }]}
-            >
-              <ThemedText style={styles.calBadgeText} color={theme.brand}>
-                {calories} კალ
-              </ThemedText>
-            </View>
-          </View>
+          <ThemedText style={styles.title} numberOfLines={1}>
+            {title}
+          </ThemedText>
           <ThemedText type="secondary" style={styles.serving}>
             {serving}
           </ThemedText>
           <View style={styles.macroRow}>
             <View style={styles.macroPill}>
               <View
-                style={[styles.macroDot, { backgroundColor: theme.macroProtein }]}
+                style={[
+                  styles.macroDot,
+                  { backgroundColor: theme.macroProtein },
+                ]}
               />
               <ThemedText style={styles.macroText} type="secondary">
                 ც {proteinG}გ
@@ -106,16 +105,50 @@ const FoodCard = ({
             </View>
           </View>
         </View>
-        {action !== "none" && (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={onActionPress}
-            style={[styles.actionBtn, { backgroundColor: actionBg }]}
-            hitSlop={6}
+        <View style={styles.rightCol}>
+          <View
+            style={[styles.calBadge, { backgroundColor: theme.brandSoft }]}
           >
-            <ActionIcon color={actionFg} size={18} />
-          </TouchableOpacity>
-        )}
+            <ThemedText style={styles.calBadgeText} color={theme.brand}>
+              {calories} კალ
+            </ThemedText>
+          </View>
+          {action === "stepper" ? (
+            <View style={styles.stepper}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={onDecrement}
+                style={[
+                  styles.stepperBtn,
+                  { backgroundColor: theme.error + "1A" },
+                ]}
+                hitSlop={6}
+              >
+                <Minus color={theme.error} size={16} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={onIncrement}
+                style={[
+                  styles.stepperBtn,
+                  { backgroundColor: theme.brandSoft },
+                ]}
+                hitSlop={6}
+              >
+                <Plus color={theme.brand} size={16} />
+              </TouchableOpacity>
+            </View>
+          ) : action !== "none" ? (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onActionPress}
+              style={[styles.actionBtn, { backgroundColor: actionBg }]}
+              hitSlop={6}
+            >
+              <ActionIcon color={actionFg} size={18} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </BaseCard>
     </TouchableOpacity>
   );
@@ -145,10 +178,8 @@ const styles = StyleSheet.create({
     fontSize: Type.xl,
     fontWeight: "700",
   },
-  titleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  rightCol: {
+    alignItems: "flex-end",
     gap: Spacing.sm,
   },
   title: {
@@ -189,6 +220,18 @@ const styles = StyleSheet.create({
   actionBtn: {
     width: 36,
     height: 36,
+    borderRadius: Radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepper: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+  },
+  stepperBtn: {
+    width: 30,
+    height: 30,
     borderRadius: Radius.pill,
     alignItems: "center",
     justifyContent: "center",

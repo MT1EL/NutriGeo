@@ -2,15 +2,23 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { ChefHat, Zap } from "lucide-react-native";
 import { StyleSheet, useColorScheme, View } from "react-native";
+import Skeleton from "../ui/Skeleton";
 
 type Props = {
   total: number;
   quickCount: number;
+  isLoading: boolean;
 };
 
-export default function RecipesStatsBar({ total, quickCount }: Props) {
+export default function RecipesStatsBar({
+  total,
+  quickCount,
+  isLoading,
+}: Props) {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+
+  if (!isLoading && !total) return;
 
   return (
     <View
@@ -21,7 +29,11 @@ export default function RecipesStatsBar({ total, quickCount }: Props) {
     >
       <View style={styles.item}>
         <ChefHat color={theme.brand} size={14} />
-        <ThemedText style={styles.value}>{total}</ThemedText>
+        {total ? (
+          <ThemedText style={styles.value}>{total}</ThemedText>
+        ) : (
+          <Skeleton width={12} height={19} />
+        )}
         <ThemedText type="secondary" style={styles.label}>
           რეცეპტი
         </ThemedText>
@@ -29,7 +41,11 @@ export default function RecipesStatsBar({ total, quickCount }: Props) {
       <View style={[styles.sep, { backgroundColor: theme.borderLight }]} />
       <View style={styles.item}>
         <Zap color="#5B6CE0" size={14} />
-        <ThemedText style={styles.value}>{quickCount}</ThemedText>
+        {quickCount ? (
+          <ThemedText style={styles.value}>{quickCount}</ThemedText>
+        ) : (
+          <Skeleton width={12} height={19} />
+        )}
         <ThemedText type="secondary" style={styles.label}>
           30 წთ-მდე
         </ThemedText>

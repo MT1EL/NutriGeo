@@ -35,6 +35,7 @@ export default function AddScreen() {
   const [sheetFood, setSheetFood] = useState<Food | null>(null);
   const [sheetEntry, setSheetEntry] = useState<FoodLogEntry | null>(null);
   const [createSheetVisible, setCreateSheetVisible] = useState(false);
+  const [editingFood, setEditingFood] = useState<Food | null>(null);
 
   const {
     today,
@@ -51,7 +52,8 @@ export default function AddScreen() {
     browseFoods,
     browseEmptyText,
     addFood,
-    removeEntry,
+    incrementEntry,
+    decrementEntry,
   } = useAddScreen(activeMeal);
 
   const config = MEAL_CONFIGS[activeMeal];
@@ -119,7 +121,8 @@ export default function AddScreen() {
             setSheetFood(entry.food);
             setSheetEntry(entry);
           }}
-          onRemove={(entry) => removeEntry(entry.id)}
+          onIncrement={incrementEntry}
+          onDecrement={decrementEntry}
         />
 
         <FoodBrowser
@@ -154,10 +157,19 @@ export default function AddScreen() {
         entry={sheetEntry}
         defaultMealKey={apiMealKey}
         todayKey={today}
+        onEditFood={(food) => {
+          setSheetFood(null);
+          setSheetEntry(null);
+          setEditingFood(food);
+        }}
       />
       <CustomFoodSheet
-        visible={createSheetVisible}
-        onClose={() => setCreateSheetVisible(false)}
+        visible={createSheetVisible || !!editingFood}
+        editingFood={editingFood}
+        onClose={() => {
+          setCreateSheetVisible(false);
+          setEditingFood(null);
+        }}
       />
     </View>
   );

@@ -1,4 +1,7 @@
+import { saveRecipe, unsaveRecipe } from "@/api/recipes";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useToast } from "@/contexts/ToastContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
@@ -8,7 +11,7 @@ import {
   LucideIcon,
   Users,
 } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ImageSourcePropType,
   StyleSheet,
@@ -54,7 +57,39 @@ const RecipeCard = ({
 }: Props) => {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+  const toast = useToast();
+  const queryClient = useQueryClient();
   const [saved, setSaved] = useState(initiallySaved);
+
+  // Keep local state in sync if the prop changes (e.g., parent re-fetched).
+  useEffect(() => {
+    setSaved(initiallySaved);
+  }, [initiallySaved]);
+
+  const saveMutation = useMutation({
+    mutationFn: ({ next }: { next: boolean }) =>
+      next ? saveRecipe(id!) : unsaveRecipe(id!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recipes", "saved"] });
+      queryClient.invalidateQueries({ queryKey: ["recipes", "list"] });
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: ["recipes", "detail", id] });
+      }
+    },
+    onError: (err, { next }) => {
+      setSaved(!next);
+      const message =
+        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
+      toast.error(message, "შეცდომა");
+    },
+  });
+
+  const handleToggleSave = () => {
+    if (!id) return;
+    const next = !saved;
+    setSaved(next);
+    saveMutation.mutate({ next });
+  };
 
   const stats = [
     { Icon: Clock, label: `${durationMin} წთ.` },
@@ -85,7 +120,8 @@ const RecipeCard = ({
           <TouchableOpacity
             style={styles.saveBtn}
             activeOpacity={0.7}
-            onPress={() => setSaved((s) => !s)}
+            onPress={handleToggleSave}
+            disabled={!id || saveMutation.isPending}
             hitSlop={6}
           >
             <Heart

@@ -1,5 +1,6 @@
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import { SettingsGroup, SettingsRow } from "@/components/ui/SettingsRow";
+import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import {
   Bell,
@@ -12,14 +13,13 @@ import {
   Trophy,
   Users,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import ThemedText from "@/components/ui/ThemedText";
 
 export default function NotificationsScreen() {
   const colorScheme = useColorScheme() || "light";
@@ -74,22 +74,27 @@ export default function NotificationsScreen() {
           )}
         </View>
         <View style={{ flex: 1 }}>
-          <ThemedText style={styles.bannerTitle}>
+          <ThemedText style={styles.bannerTitle} numberOfLines={1}>
             {all ? "ყველა შეტყობინება ჩართულია" : "შეტყობინებები გათიშულია"}
           </ThemedText>
-          <ThemedText type="secondary" style={styles.bannerSub}>
+          <ThemedText
+            type="secondary"
+            style={styles.bannerSub}
+            numberOfLines={1}
+          >
             {all ? "გახდი უფრო თანმიმდევრული" : "ვერ მიიღებ შეხსენებებს"}
           </ThemedText>
         </View>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => (all ? setAllOff() : setAllOn())}
-          style={[
-            styles.bannerBtn,
-            { backgroundColor: theme.card },
-          ]}
+          style={[styles.bannerBtn, { backgroundColor: theme.card }]}
         >
-          <ThemedText style={styles.bannerBtnText} color={theme.brand}>
+          <ThemedText
+            style={styles.bannerBtnText}
+            color={theme.brand}
+            numberOfLines={1}
+          >
             {all ? "გათიშვა" : "ჩართვა"}
           </ThemedText>
         </TouchableOpacity>
@@ -204,6 +209,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
+    minWidth: 76,
+    alignItems: "center",
   },
   bannerBtnText: {
     fontSize: Type.xs,

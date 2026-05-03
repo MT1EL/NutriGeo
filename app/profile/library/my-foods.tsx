@@ -1,0 +1,224 @@
+import { deleteCustomFood, getMyFoods } from "@/api/foods";
+import type { Food } from "@/api/types";
+import FoodCard from "@/components/cards/FoodCard";
+import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
+import CustomFoodSheet from "@/components/sheets/CustomFoodSheet";
+import Button from "@/components/ui/Button";
+import { FoodListSkeleton } from "@/components/ui/Skeletons";
+import SwipeHint from "@/components/ui/SwipeHint";
+import ThemedText from "@/components/ui/ThemedText";
+import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useToast } from "@/contexts/ToastContext";
+import { caloriesForFood, macroForFood, servingLabel } from "@/utils/foodMath";
+import { foodImageSource } from "@/utils/image";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChefHat, Pencil, Trash2 } from "lucide-react-native";
+import { useRef, useState } from "react";
+import {
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
+
+export default function LibraryMyFoodsScreen() {
+  const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["foods", "mine"],
+    queryFn: getMyFoods,
+  });
+
+  const [editingFood, setEditingFood] = useState<Food | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  // Track all open swipe rows so we can close the others when one opens.
+  const swipeRefs = useRef(new Map<string, Swipeable>());
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteCustomFood(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["foods", "all"] });
+      queryClient.invalidateQueries({ queryKey: ["foods", "recent"] });
+      queryClient.invalidateQueries({ queryKey: ["foods", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["foods", "search"] });
+      queryClient.invalidateQueries({ queryKey: ["foods", "favorites"] });
+      toast.success("საკვები წაიშალა");
+    },
+    onError: (err) => {
+      const message = err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
+      toast.error(message, "შეცდომა");
+    },
+  });
+
+  const closeRow = (id: string) => {
+    swipeRefs.current.get(id)?.close();
+  };
+
+  const closeOtherRows = (keepId: string) => {
+    swipeRefs.current.forEach((ref, id) => {
+      if (id !== keepId) ref?.close();
+    });
+  };
+
+  const handleEdit = (food: Food) => {
+    closeRow(food.id);
+    setEditingFood(food);
+  };
+
+  const handleDelete = (food: Food) => {
+    Alert.alert("წაშლა?", `"${food.name}"-ის წაშლა შეუქცევადია.`, [
+      { text: "გაუქმება", style: "cancel", onPress: () => closeRow(food.id) },
+      {
+        text: "წაშლა",
+        style: "destructive",
+        onPress: () => {
+          closeRow(food.id);
+          deleteMutation.mutate(food.id);
+        },
+      },
+    ]);
+  };
+
+  const renderRightActions = (food: Food) => (
+    <View style={styles.actionsRow}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => handleEdit(food)}
+        style={[styles.actionBtn, { backgroundColor: theme.brandSoft }]}
+      >
+        <Pencil color={theme.brand} size={16} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => handleDelete(food)}
+        style={[styles.actionBtn, { backgroundColor: theme.error + "1A" }]}
+      >
+        <Trash2 color={theme.error} size={16} />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const foods = data?.data ?? [];
+
+  return (
+    <SubScreenLayout title="ჩემი საკვები" subtitle={`${foods.length} საკვები`}>
+      {isLoading ? (
+        <FoodListSkeleton count={3} />
+      ) : foods.length === 0 ? (
+        <View style={styles.empty}>
+          <View
+            style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}
+          >
+            <ChefHat color={theme.brand} size={28} />
+          </View>
+          <ThemedText style={styles.emptyTitle}>ცარიელია</ThemedText>
+          <ThemedText type="secondary" style={styles.emptyText}>
+            შექმენი საკუთარი საკვები — ის აქ შეინახება და ხელმისაწვდომი იქნება
+            ჩაწერისას
+          </ThemedText>
+          <View style={styles.emptyAction}>
+            <Button onPress={() => setCreateOpen(true)} variant="secondary">
+              + შექმენი ახალი საკვები
+            </Button>
+          </View>
+        </View>
+      ) : (
+        <View style={styles.list}>
+          <SwipeHint />
+          {foods.map((food) => (
+            <Swipeable
+              key={food.id}
+              ref={(ref) => {
+                if (ref) swipeRefs.current.set(food.id, ref);
+                else swipeRefs.current.delete(food.id);
+              }}
+              renderRightActions={() => renderRightActions(food)}
+              onSwipeableWillOpen={() => closeOtherRows(food.id)}
+              overshootRight={false}
+              friction={2}
+            >
+              <FoodCard
+                title={food.name}
+                calories={caloriesForFood(food)}
+                serving={servingLabel(food)}
+                proteinG={macroForFood(food.protein_g_per_100g, food)}
+                carbsG={macroForFood(food.carbs_g_per_100g, food)}
+                fatG={macroForFood(food.fat_g_per_100g, food)}
+                image={foodImageSource(food.image_url)}
+                action="none"
+              />
+            </Swipeable>
+          ))}
+          <View style={styles.createWrap}>
+            <Button onPress={() => setCreateOpen(true)} variant="secondary">
+              + შექმენი ახალი საკვები
+            </Button>
+          </View>
+        </View>
+      )}
+
+      <CustomFoodSheet
+        visible={createOpen || !!editingFood}
+        editingFood={editingFood}
+        onClose={() => {
+          setCreateOpen(false);
+          setEditingFood(null);
+        }}
+      />
+    </SubScreenLayout>
+  );
+}
+
+const styles = StyleSheet.create({
+  list: {
+    gap: Spacing.md,
+  },
+  createWrap: {
+    marginTop: Spacing.sm,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    paddingLeft: Spacing.sm,
+  },
+  actionBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.pill,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  empty: {
+    alignItems: "center",
+    paddingVertical: Spacing.huge,
+    gap: Spacing.sm,
+  },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: Radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.sm,
+  },
+  emptyTitle: {
+    fontSize: Type.lg,
+    fontWeight: "700",
+  },
+  emptyText: {
+    fontSize: Type.sm,
+    textAlign: "center",
+    paddingHorizontal: Spacing.xl,
+  },
+  emptyAction: {
+    marginTop: Spacing.lg,
+    width: "100%",
+    paddingHorizontal: Spacing.xl,
+  },
+});

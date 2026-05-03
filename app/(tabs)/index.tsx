@@ -7,6 +7,7 @@ import HomeBodyEmpty from "@/components/home/HomeBodyEmpty";
 import HomeHeader, { HOME_HEADER_OVERLAP } from "@/components/home/HomeHeader";
 import WeightLogPill from "@/components/home/WeightLogPill";
 import DatePickerSheet from "@/components/ui/DatePickerSheet";
+import { HomeSkeleton } from "@/components/ui/Skeletons";
 import { Colors, Spacing } from "@/constants/theme";
 import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +16,6 @@ import { formatTodayKa, todayISO } from "@/utils/date";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   useColorScheme,
@@ -56,8 +56,8 @@ export default function HomeScreen() {
   if (snapshot) hasLoadedRef.current = true;
   if (isLoading && !hasLoadedRef.current) {
     return (
-      <View style={[styles.center, { backgroundColor: theme.surface }]}>
-        <ActivityIndicator color={theme.brand} />
+      <View style={{ flex: 1, backgroundColor: theme.surface }}>
+        <HomeSkeleton />
       </View>
     );
   }
@@ -110,11 +110,6 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   container: {
     paddingHorizontal: Spacing.xl,
     marginTop: -HOME_HEADER_OVERLAP,

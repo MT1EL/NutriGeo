@@ -28,6 +28,15 @@ export function useRecipesList() {
       }),
     placeholderData: keepPreviousData,
   });
+
+  // Adopt new `active` synchronously when the cache already has data for it
+  // (isPlaceholderData=false); otherwise keep `dataActive` stale so the screen
+  // renders a skeleton instead of the wrong category's results.
+  const [dataActive, setDataActive] = useState(active);
+  if (!listQuery.isPlaceholderData && dataActive !== active) {
+    setDataActive(active);
+  }
+  const isCategoryChanging = dataActive !== active;
   const featuredQuery = useQuery({
     queryKey: ["recipes", "featured"],
     queryFn: getFeaturedRecipes,
@@ -36,9 +45,10 @@ export function useRecipesList() {
   });
 
   const rawRecipes: Recipe[] = useMemo(() => {
+    if (isCategoryChanging) return [];
     const raw = listQuery.data?.data;
     return Array.isArray(raw) ? raw : [];
-  }, [listQuery.data]);
+  }, [listQuery.data, isCategoryChanging]);
 
   // Client-side fallback filter so search works even if backend ignores ?q=.
   const recipes: Recipe[] = useMemo(() => {
@@ -81,7 +91,7 @@ export function useRecipesList() {
     hero,
     rest,
     quickCount,
-    isLoading: listQuery.isLoading,
+    isLoading: listQuery.isLoading || isCategoryChanging,
     refetch: listQuery.refetch,
   };
 }

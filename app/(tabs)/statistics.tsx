@@ -8,11 +8,11 @@ import StreakCard from "@/components/statistics/StreakCard";
 import SummaryCards from "@/components/statistics/SummaryCards";
 import TopFoodsCard from "@/components/statistics/TopFoodsCard";
 import WeightCard from "@/components/statistics/WeightCard";
+import { StatisticsSkeleton } from "@/components/ui/Skeletons";
 import { Colors, Spacing } from "@/constants/theme";
 import { useStats } from "@/hooks/use-stats";
 import { formatWeightChange } from "@/utils/format";
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   useColorScheme,
@@ -51,12 +51,8 @@ export default function StatisticsPage() {
 
       <View style={styles.body}>
         {stats.isInitialLoading ? (
-          <View style={styles.loaderRow}>
-            <ActivityIndicator color={theme.brand} />
-          </View>
-        ) : null}
-
-        {stats.isTotallyEmpty ? (
+          <StatisticsSkeleton />
+        ) : stats.isTotallyEmpty ? (
           <EmptyState />
         ) : (
           <>
@@ -105,9 +101,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     gap: Spacing.lg,
     marginTop: -Spacing.lg,
-  },
-  loaderRow: {
-    paddingVertical: Spacing.lg,
-    alignItems: "center",
   },
 });

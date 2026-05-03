@@ -2,22 +2,16 @@ import SexSelector from "@/components/personal/SexSelector";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { PersonalFormSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
-import { Colors, Spacing, Type } from "@/constants/theme";
+import { Spacing, Type } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersonalForm } from "@/hooks/use-personal-form";
 import { Calendar, Ruler, User, Weight } from "lucide-react-native";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { StyleSheet, View } from "react-native";
 
 export default function PersonalScreen() {
   const { user } = useAuth();
-  const colorScheme = useColorScheme() || "light";
-  const theme = Colors[colorScheme];
   const { form, isLoading, isSaving } = usePersonalForm();
 
   if (isLoading) {
@@ -26,9 +20,7 @@ export default function PersonalScreen() {
         title="პირადი ინფორმაცია"
         subtitle="შენი პროფილის მონაცემები"
       >
-        <View style={styles.loader}>
-          <ActivityIndicator color={theme.brand} />
-        </View>
+        <PersonalFormSkeleton />
       </SubScreenLayout>
     );
   }
@@ -119,9 +111,5 @@ const styles = StyleSheet.create({
   twoCol: {
     flexDirection: "row",
     gap: Spacing.md,
-  },
-  loader: {
-    paddingVertical: Spacing.xxxl,
-    alignItems: "center",
   },
 });

@@ -40,7 +40,14 @@
         }
       ],
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "მიეცი წვდომა გალერეაზე, რომ ატვირთო საკვების ფოტო.",
+          "cameraPermission": "მიეცი წვდომა კამერაზე, რომ გადაიღო საკვების ფოტო."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

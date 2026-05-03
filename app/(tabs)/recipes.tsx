@@ -3,6 +3,11 @@ import Header from "@/components/headers";
 import FeaturedRecipeHero from "@/components/recipes/FeaturedRecipeHero";
 import RecipeCategoryChips from "@/components/recipes/RecipeCategoryChips";
 import RecipesStatsBar from "@/components/recipes/RecipesStatsBar";
+import Skeleton from "@/components/ui/Skeleton";
+import {
+  RecipeCardSkeleton,
+  RecipeListSkeleton,
+} from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useRecipesList } from "@/hooks/use-recipes-list";
@@ -10,13 +15,7 @@ import { foodImageSource } from "@/utils/image";
 import { difficultyLabel } from "@/utils/recipe";
 import { Search } from "lucide-react-native";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { FlatList, StyleSheet, useColorScheme, View } from "react-native";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 export default function RecipesScreen() {
@@ -35,29 +34,37 @@ export default function RecipesScreen() {
     isLoading,
     refetch,
   } = useRecipesList();
-
   const ListHeader = (
     <View style={{ gap: Spacing.lg }}>
       <RecipeCategoryChips active={active} onChange={setActive} />
-      {recipes.length > 0 && (
-        <RecipesStatsBar total={recipes.length} quickCount={quickCount} />
+      <RecipesStatsBar
+        total={recipes.length}
+        quickCount={quickCount}
+        isLoading={isLoading}
+      />
+      {isLoading && !hero ? (
+        <RecipeCardSkeleton />
+      ) : (
+        hero && <FeaturedRecipeHero recipe={hero} />
       )}
-      {hero && <FeaturedRecipeHero recipe={hero} />}
-      {rest.length > 0 && (
+      {rest.length > 0 ? (
         <View style={styles.sectionHeader}>
           <ThemedText style={styles.sectionTitle}>ყველა რეცეპტი</ThemedText>
           <ThemedText type="secondary" style={styles.sectionCount}>
             {rest.length} ნიმუში
           </ThemedText>
         </View>
-      )}
+      ) : isLoading ? (
+        <View style={styles.sectionHeader}>
+          <Skeleton width={120} height={18} />
+          <Skeleton width={64} height={12} />
+        </View>
+      ) : null}
     </View>
   );
 
   const ListEmpty = isLoading ? (
-    <View style={styles.loaderRow}>
-      <ActivityIndicator color={theme.brand} />
-    </View>
+    <RecipeListSkeleton count={3} />
   ) : (
     <View style={styles.empty}>
       <View style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}>
@@ -162,9 +169,5 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: Type.sm,
-  },
-  loaderRow: {
-    paddingVertical: Spacing.huge,
-    alignItems: "center",
   },
 });

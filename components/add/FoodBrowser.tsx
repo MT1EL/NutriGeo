@@ -1,5 +1,6 @@
 import type { Food } from "@/api/types";
 import FoodCard from "@/components/cards/FoodCard";
+import { FoodListSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import type { BrowseTab } from "@/hooks/use-add-screen";
@@ -14,7 +15,6 @@ import {
   Star,
 } from "lucide-react-native";
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -103,9 +103,7 @@ export default function FoodBrowser({
       )}
 
       {isLoading ? (
-        <View style={styles.loaderRow}>
-          <ActivityIndicator color={theme.brand} />
-        </View>
+        <FoodListSkeleton count={4} />
       ) : foods.length === 0 ? (
         <View
           style={[
@@ -171,10 +169,6 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: Type.sm,
     fontWeight: "600",
-  },
-  loaderRow: {
-    paddingVertical: Spacing.xl,
-    alignItems: "center",
   },
   empty: {
     paddingVertical: Spacing.xl,

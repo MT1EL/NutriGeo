@@ -1,8 +1,18 @@
-import { createCustomFood, type CreateFoodInput } from "@/api/foods";
+import {
+  createCustomFood,
+  updateCustomFood,
+  type CreateFoodInput,
+} from "@/api/foods";
+import type { Food } from "@/api/types";
+import FoodImagePicker, {
+  type PickedImage,
+} from "@/components/ui/FoodImagePicker";
 import Input from "@/components/ui/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import { uploadImage } from "@/utils/uploadImage";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Beef,
@@ -25,11 +35,15 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
+  editingFood?: Food | null;
 };
 
 function toNum(s: string): number | null {
@@ -37,11 +51,23 @@ function toNum(s: string): number | null {
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
-export default function CustomFoodSheet({ visible, onClose }: Props) {
+function numToStr(n: number | undefined | null): string {
+  if (n == null || !Number.isFinite(n)) return "";
+  return String(n);
+}
+
+export default function CustomFoodSheet({
+  visible,
+  onClose,
+  editingFood,
+}: Props) {
+  const isEdit = !!editingFood;
+  const { bottom } = useSafeAreaInsets();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
@@ -52,40 +78,57 @@ export default function CustomFoodSheet({ visible, onClose }: Props) {
   const [carbs, setCarbs] = useState("");
   const [fat, setFat] = useState("");
   const [fiber, setFiber] = useState("");
+  // PickedImage = newly selected (needs upload). string = existing URL on the
+  // food. null = no image (or "remove this food's existing image").
+  const [image, setImage] = useState<PickedImage | string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!visible) return;
-    setName("");
-    setBrand("");
-    setServingLabel("");
-    setServingGrams("");
-    setKcal("");
-    setProtein("");
-    setCarbs("");
-    setFat("");
-    setFiber("");
+    setName(editingFood?.name ?? "");
+    setBrand(editingFood?.brand ?? "");
+    setServingLabel(editingFood?.serving_label ?? "");
+    setServingGrams(numToStr(editingFood?.serving_grams));
+    setKcal(numToStr(editingFood?.kcal_per_100g));
+    setProtein(numToStr(editingFood?.protein_g_per_100g));
+    setCarbs(numToStr(editingFood?.carbs_g_per_100g));
+    setFat(numToStr(editingFood?.fat_g_per_100g));
+    setFiber(numToStr(editingFood?.fiber_g_per_100g));
+    setImage(editingFood?.image_url ?? null);
+    setUploading(false);
     setErrors({});
-  }, [visible]);
+  }, [visible, editingFood]);
+
+  const invalidateFoodCaches = () => {
+    queryClient.invalidateQueries({ queryKey: ["foods", "all"] });
+    queryClient.invalidateQueries({ queryKey: ["foods", "recent"] });
+    queryClient.invalidateQueries({ queryKey: ["foods", "mine"] });
+    queryClient.invalidateQueries({ queryKey: ["foods", "search"] });
+  };
 
   const mutation = useMutation({
-    mutationFn: (input: CreateFoodInput) => createCustomFood(input),
+    mutationFn: (input: CreateFoodInput) =>
+      isEdit && editingFood
+        ? updateCustomFood(editingFood.id, input)
+        : createCustomFood(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["foods", "all"] });
-      queryClient.invalidateQueries({ queryKey: ["foods", "recent"] });
-      queryClient.invalidateQueries({ queryKey: ["foods", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["foods", "search"] });
-      toast.success("საკვები შეიქმნა");
+      invalidateFoodCaches();
+      toast.success(isEdit ? "ცვლილება შენახულია" : "საკვები შეიქმნა");
       onClose();
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "შექმნა ვერ მოხერხდა";
+        err instanceof Error
+          ? err.message
+          : isEdit
+            ? "შენახვა ვერ მოხერხდა"
+            : "შექმნა ვერ მოხერხდა";
       toast.error(message, "შეცდომა");
     },
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const next: Record<string, string> = {};
     const trimmedName = name.trim();
     if (!trimmedName) next.name = "შეიყვანე დასახელება";
@@ -104,6 +147,30 @@ export default function CustomFoodSheet({ visible, onClose }: Props) {
     const servingGramsNum = servingGrams ? toNum(servingGrams) : null;
     const fiberNum = fiber ? toNum(fiber) : null;
 
+    // Image resolution:
+    //   string → existing URL, leave the field unset so backend keeps it
+    //   PickedImage → upload, send the new URL
+    //   null → explicitly clear (only matters for edit; for create, undefined is fine)
+    let imageField: string | null | undefined;
+    if (typeof image === "string") {
+      imageField = undefined;
+    } else if (image) {
+      try {
+        setUploading(true);
+        imageField = await uploadImage("foods", image, user?.id);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "ფოტოს ატვირთვა ვერ მოხერხდა";
+        toast.error(message, "შეცდომა");
+        setUploading(false);
+        return;
+      } finally {
+        setUploading(false);
+      }
+    } else if (isEdit && editingFood?.image_url) {
+      imageField = null;
+    }
+
     mutation.mutate({
       name: trimmedName,
       brand: brand.trim() || undefined,
@@ -114,6 +181,7 @@ export default function CustomFoodSheet({ visible, onClose }: Props) {
       carbs_g_per_100g: carbsNum!,
       fat_g_per_100g: fatNum!,
       fiber_g_per_100g: fiberNum ?? undefined,
+      image_url: imageField,
     });
   };
 
@@ -131,7 +199,10 @@ export default function CustomFoodSheet({ visible, onClose }: Props) {
       >
         <Pressable style={styles.backdrop} onPress={onClose}>
           <Pressable
-            style={[styles.sheetWrap, { backgroundColor: theme.surface }]}
+            style={[
+              styles.sheetWrap,
+              { backgroundColor: theme.surface, paddingBottom: bottom },
+            ]}
             onPress={(e) => e.stopPropagation()}
           >
             <SafeAreaView edges={["bottom"]} style={styles.sheetContent}>
@@ -143,7 +214,9 @@ export default function CustomFoodSheet({ visible, onClose }: Props) {
 
               <View style={styles.headerRow}>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <ThemedText style={styles.title}>ახალი საკვები</ThemedText>
+                  <ThemedText style={styles.title}>
+                    {isEdit ? "საკვების რედაქტირება" : "ახალი საკვები"}
+                  </ThemedText>
                   <ThemedText type="secondary" style={styles.subtitle}>
                     100გ-ზე გადაანგარიშებული მონაცემები
                   </ThemedText>
@@ -162,10 +235,18 @@ export default function CustomFoodSheet({ visible, onClose }: Props) {
               </View>
 
               <ScrollView
+                style={styles.scroll}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.form}
               >
+                <View style={styles.imagePickerWrap}>
+                  <FoodImagePicker
+                    value={image}
+                    onChange={setImage}
+                    uploading={uploading}
+                  />
+                </View>
                 <Input
                   Icon={Utensils}
                   label="დასახელება"
@@ -280,16 +361,15 @@ export default function CustomFoodSheet({ visible, onClose }: Props) {
                   </View>
                 </View>
               </ScrollView>
-
               <TouchableOpacity
                 onPress={handleSave}
                 activeOpacity={0.85}
-                disabled={mutation.isPending}
+                disabled={mutation.isPending || uploading}
                 style={[
                   styles.primaryBtn,
                   {
                     backgroundColor: theme.brand,
-                    opacity: mutation.isPending ? 0.6 : 1,
+                    opacity: mutation.isPending || uploading ? 0.6 : 1,
                   },
                 ]}
               >
@@ -297,7 +377,13 @@ export default function CustomFoodSheet({ visible, onClose }: Props) {
                   style={styles.primaryBtnText}
                   color={theme.textOnBrand}
                 >
-                  {mutation.isPending ? "ინახება..." : "შექმნა"}
+                  {uploading
+                    ? "ფოტო იტვირთება..."
+                    : mutation.isPending
+                      ? "ინახება..."
+                      : isEdit
+                        ? "შენახვა"
+                        : "შექმნა"}
                 </ThemedText>
               </TouchableOpacity>
             </SafeAreaView>
@@ -322,10 +408,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: Radius.xl,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.sm,
-    maxHeight: "92%",
+    height: "92%",
   },
   sheetContent: {
     gap: Spacing.lg,
+    flex: 1,
+  },
+  scroll: {
+    flex: 1,
   },
   handleRow: {
     alignItems: "center",
@@ -358,6 +448,9 @@ const styles = StyleSheet.create({
   form: {
     gap: 0,
     paddingBottom: Spacing.md,
+  },
+  imagePickerWrap: {
+    marginBottom: Spacing.md,
   },
   twoCol: {
     flexDirection: "row",
