@@ -63,5 +63,9 @@ export function useArticlesList() {
     hero,
     rest,
     isLoading: listQuery.isLoading,
+    isError: listQuery.isError,
+    refetch: () => {
+      void listQuery.refetch();
+    },
   };
 }

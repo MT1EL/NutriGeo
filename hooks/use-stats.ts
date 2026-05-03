@@ -70,8 +70,10 @@ export function useStats() {
   const hasAnyWeight = weightSeries.length > 0;
   const hasAnyTopFoods = (overview?.top_foods?.length ?? 0) > 0;
   const isInitialLoading = overviewQuery.isLoading;
+  const isError = overviewQuery.isError;
   const isTotallyEmpty =
     !isInitialLoading &&
+    !isError &&
     !hasAnyCalories &&
     !hasAnyWeight &&
     !hasAnyTopFoods &&
@@ -95,7 +97,12 @@ export function useStats() {
     onTargetDays,
     currentStreak,
     isInitialLoading,
+    isError,
     isTotallyEmpty,
     hasAnyCalories,
+    refetch: () => {
+      void overviewQuery.refetch();
+      void profileQuery.refetch();
+    },
   };
 }

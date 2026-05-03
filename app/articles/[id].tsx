@@ -1,6 +1,7 @@
 import ArticleBlocks from "@/components/article/ArticleBlocks";
 import ArticleHero from "@/components/article/ArticleHero";
 import ArticleRelated from "@/components/article/ArticleRelated";
+import ScreenError from "@/components/ui/ScreenError";
 import { ArticleDetailSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Spacing, Type } from "@/constants/theme";
@@ -26,6 +27,8 @@ export default function ArticleDetail() {
     article,
     related,
     isLoading,
+    isError,
+    refetch,
     saved,
     isToggling,
     toggleBookmark,
@@ -49,6 +52,17 @@ export default function ArticleDetail() {
       <View style={{ flex: 1, backgroundColor: theme.surface }}>
         <ArticleDetailSkeleton />
       </View>
+    );
+  }
+
+  // Distinguish "fetch failed" (retryable) from "row doesn't exist" (terminal).
+  // For 404 we keep the back-to-list affordance; for network failure we offer
+  // a retry button that re-runs the article query.
+  if (isError) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.surface }}>
+        <ScreenError onRetry={refetch} />
+      </SafeAreaView>
     );
   }
 

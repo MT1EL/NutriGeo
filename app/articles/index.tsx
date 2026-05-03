@@ -2,6 +2,7 @@ import ArticleCover from "@/components/cards/ArticleCover";
 import ArticleCategoryChips from "@/components/articles/ArticleCategoryChips";
 import ArticlesIndexHeader from "@/components/articles/ArticlesIndexHeader";
 import FeaturedArticleCard from "@/components/articles/FeaturedArticleCard";
+import ScreenError from "@/components/ui/ScreenError";
 import {
   ArticleListSkeleton,
   FeaturedArticleSkeleton,
@@ -21,8 +22,17 @@ export default function ArticlesIndex() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const { activeCat, setActiveCat, articles, categories, hero, rest, isLoading } =
-    useArticlesList();
+  const {
+    activeCat,
+    setActiveCat,
+    articles,
+    categories,
+    hero,
+    rest,
+    isLoading,
+    isError,
+    refetch,
+  } = useArticlesList();
 
   return (
     <ScrollView
@@ -62,7 +72,11 @@ export default function ArticlesIndex() {
           </View>
         )}
 
-        {!isLoading && articles.length === 0 && !hero && (
+        {!isLoading && isError && articles.length === 0 && (
+          <ScreenError onRetry={refetch} style={styles.errorWrap} />
+        )}
+
+        {!isLoading && !isError && articles.length === 0 && !hero && (
           <View style={styles.empty}>
             <ThemedText style={styles.emptyTitle}>
               {t("articles.notFound")}
@@ -91,6 +105,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: Spacing.huge,
     gap: Spacing.sm,
+  },
+  errorWrap: {
+    paddingVertical: Spacing.huge,
   },
   emptyTitle: {
     fontSize: Type.lg,

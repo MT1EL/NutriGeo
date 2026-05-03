@@ -4,6 +4,7 @@ import RecipeNutrition from "@/components/recipe/RecipeNutrition";
 import RecipeRelated from "@/components/recipe/RecipeRelated";
 import RecipeStatsBar from "@/components/recipe/RecipeStatsBar";
 import RecipeSteps from "@/components/recipe/RecipeSteps";
+import ScreenError from "@/components/ui/ScreenError";
 import { RecipeDetailSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
@@ -26,8 +27,16 @@ export default function RecipeDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const { recipe, related, saved, isLoading, toggleSaved, isToggling } =
-    useRecipeDetail(id);
+  const {
+    recipe,
+    related,
+    saved,
+    isLoading,
+    isError,
+    refetch,
+    toggleSaved,
+    isToggling,
+  } = useRecipeDetail(id);
 
   const handleShare = async () => {
     if (!recipe) return;
@@ -46,6 +55,15 @@ export default function RecipeDetail() {
       <View style={{ flex: 1, backgroundColor: theme.surface }}>
         <RecipeDetailSkeleton />
       </View>
+    );
+  }
+
+  // Distinguish "fetch failed" (retryable) from "row doesn't exist" (terminal).
+  if (isError) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.surface }}>
+        <ScreenError onRetry={refetch} />
+      </SafeAreaView>
     );
   }
 

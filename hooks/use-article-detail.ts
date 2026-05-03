@@ -85,6 +85,10 @@ export function useArticleDetail(id: string | undefined) {
     article,
     related,
     isLoading: articleQuery.isLoading,
+    isError: articleQuery.isError,
+    refetch: () => {
+      void articleQuery.refetch();
+    },
     saved,
     isToggling: bookmarkMutation.isPending,
     toggleBookmark: () => bookmarkMutation.mutate({ next: !saved }),

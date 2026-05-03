@@ -2,6 +2,7 @@ import { getBookmarkedArticles, unbookmarkArticle } from "@/api/articles";
 import type { ApiResponse, Article } from "@/api/types";
 import ArticleCover from "@/components/cards/ArticleCover";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
+import ScreenError from "@/components/ui/ScreenError";
 import { ArticleListSkeleton } from "@/components/ui/Skeletons";
 import SwipeHint from "@/components/ui/SwipeHint";
 import ThemedText from "@/components/ui/ThemedText";
@@ -26,7 +27,7 @@ export default function LibraryArticlesScreen() {
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["bookmarks", "articles"],
     queryFn: getBookmarkedArticles,
   });
@@ -89,6 +90,8 @@ export default function LibraryArticlesScreen() {
     >
       {isLoading ? (
         <ArticleListSkeleton count={4} />
+      ) : isError && articles.length === 0 ? (
+        <ScreenError onRetry={() => void refetch()} style={styles.errorWrap} />
       ) : articles.length === 0 ? (
         <View style={styles.empty}>
           <View style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}>
@@ -161,5 +164,8 @@ const styles = StyleSheet.create({
     fontSize: Type.sm,
     textAlign: "center",
     paddingHorizontal: Spacing.xl,
+  },
+  errorWrap: {
+    paddingVertical: Spacing.huge,
   },
 });

@@ -4,6 +4,7 @@ import FoodCard from "@/components/cards/FoodCard";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import CustomFoodSheet from "@/components/sheets/CustomFoodSheet";
 import Button from "@/components/ui/Button";
+import ScreenError from "@/components/ui/ScreenError";
 import { FoodListSkeleton } from "@/components/ui/Skeletons";
 import SwipeHint from "@/components/ui/SwipeHint";
 import ThemedText from "@/components/ui/ThemedText";
@@ -31,7 +32,7 @@ export default function LibraryMyFoodsScreen() {
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["foods", "mine"],
     queryFn: getMyFoods,
   });
@@ -118,6 +119,8 @@ export default function LibraryMyFoodsScreen() {
     >
       {isLoading ? (
         <FoodListSkeleton count={3} />
+      ) : isError && foods.length === 0 ? (
+        <ScreenError onRetry={() => void refetch()} style={styles.errorWrap} />
       ) : foods.length === 0 ? (
         <View style={styles.empty}>
           <View
@@ -228,5 +231,8 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
     width: "100%",
     paddingHorizontal: Spacing.xl,
+  },
+  errorWrap: {
+    paddingVertical: Spacing.huge,
   },
 });

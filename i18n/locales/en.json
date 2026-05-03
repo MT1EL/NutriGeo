@@ -96,7 +96,12 @@
     "swipeLeftToDelete": "Swipe left to delete",
     "swipeLeft": "Swipe card left",
     "userNotFound": "User not found",
-    "wait": "Please wait..."
+    "wait": "Please wait...",
+    "retry": "Try again",
+    "loadFailed": "Couldn't load",
+    "loadFailedHint": "Check your connection and try again.",
+    "notFound": "Not found",
+    "notFoundHint": "This content might have been removed."
   },
 
   "validation": {

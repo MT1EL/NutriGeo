@@ -45,6 +45,10 @@ export function useRecipeDetail(id: string | undefined) {
     related,
     saved,
     isLoading: recipeQuery.isLoading,
+    isError: recipeQuery.isError,
+    refetch: () => {
+      void recipeQuery.refetch();
+    },
     toggleSaved: () => saveMutation.mutate({ next: !saved }),
     isToggling: saveMutation.isPending,
   };

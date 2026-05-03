@@ -8,6 +8,7 @@ import StreakCard from "@/components/statistics/StreakCard";
 import SummaryCards from "@/components/statistics/SummaryCards";
 import TopFoodsCard from "@/components/statistics/TopFoodsCard";
 import WeightCard from "@/components/statistics/WeightCard";
+import ScreenError from "@/components/ui/ScreenError";
 import { StatisticsSkeleton } from "@/components/ui/Skeletons";
 import { Colors, Spacing } from "@/constants/theme";
 import { useStats } from "@/hooks/use-stats";
@@ -54,6 +55,8 @@ export default function StatisticsPage() {
       <View style={styles.body}>
         {stats.isInitialLoading ? (
           <StatisticsSkeleton />
+        ) : stats.isError ? (
+          <ScreenError onRetry={stats.refetch} style={styles.errorWrap} />
         ) : stats.isTotallyEmpty ? (
           <EmptyState />
         ) : (
@@ -103,5 +106,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     gap: Spacing.lg,
     marginTop: -Spacing.lg,
+  },
+  errorWrap: {
+    paddingVertical: Spacing.huge,
   },
 });

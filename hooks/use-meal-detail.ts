@@ -81,6 +81,10 @@ export function useMealDetail(mealKey: MealKey) {
     today,
     apiMealKey,
     isLoading: foodLogQuery.isLoading,
+    isError: foodLogQuery.isError,
+    refetch: () => {
+      void foodLogQuery.refetch();
+    },
     loggedForMeal,
     summary,
     removeEntry: (entryId: string) => removeMutation.mutate(entryId),

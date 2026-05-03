@@ -3,6 +3,7 @@ import type { ApiResponse, Food } from "@/api/types";
 import FoodCard from "@/components/cards/FoodCard";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import FoodDetailSheet from "@/components/sheets/FoodDetailSheet";
+import ScreenError from "@/components/ui/ScreenError";
 import { FoodListSkeleton } from "@/components/ui/Skeletons";
 import SwipeHint from "@/components/ui/SwipeHint";
 import ThemedText from "@/components/ui/ThemedText";
@@ -30,7 +31,7 @@ export default function LibraryFavoriteFoodsScreen() {
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["foods", "favorites"],
     queryFn: getFavoriteFoods,
   });
@@ -94,6 +95,8 @@ export default function LibraryFavoriteFoodsScreen() {
     >
       {isLoading ? (
         <FoodListSkeleton count={4} />
+      ) : isError && foods.length === 0 ? (
+        <ScreenError onRetry={() => void refetch()} style={styles.errorWrap} />
       ) : foods.length === 0 ? (
         <View style={styles.empty}>
           <View style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}>
@@ -185,5 +188,8 @@ const styles = StyleSheet.create({
     fontSize: Type.sm,
     textAlign: "center",
     paddingHorizontal: Spacing.xl,
+  },
+  errorWrap: {
+    paddingVertical: Spacing.huge,
   },
 });

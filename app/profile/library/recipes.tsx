@@ -1,6 +1,7 @@
 import { getSavedRecipes } from "@/api/recipes";
 import RecipeCard from "@/components/cards/RecipeCard";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
+import ScreenError from "@/components/ui/ScreenError";
 import { RecipeListSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
@@ -16,7 +17,7 @@ export default function LibraryRecipesScreen() {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["recipes", "saved"],
     queryFn: getSavedRecipes,
   });
@@ -30,6 +31,8 @@ export default function LibraryRecipesScreen() {
     >
       {isLoading ? (
         <RecipeListSkeleton count={3} />
+      ) : isError && recipes.length === 0 ? (
+        <ScreenError onRetry={() => void refetch()} style={styles.errorWrap} />
       ) : recipes.length === 0 ? (
         <View style={styles.empty}>
           <View style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}>
@@ -95,5 +98,8 @@ const styles = StyleSheet.create({
     fontSize: Type.sm,
     textAlign: "center",
     paddingHorizontal: Spacing.xl,
+  },
+  errorWrap: {
+    paddingVertical: Spacing.huge,
   },
 });

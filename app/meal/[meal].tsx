@@ -4,6 +4,7 @@ import MealHeader from "@/components/meal/MealHeader";
 import MealSummaryCard from "@/components/meal/MealSummaryCard";
 import FoodDetailSheet from "@/components/sheets/FoodDetailSheet";
 import Button from "@/components/ui/Button";
+import ScreenError from "@/components/ui/ScreenError";
 import ThemedText from "@/components/ui/ThemedText";
 import { isMealKey, MEAL_CONFIGS, MealKey } from "@/constants/meals";
 import { Colors, Spacing, Type } from "@/constants/theme";
@@ -31,8 +32,16 @@ export default function MealModal() {
 
   const mealKey: MealKey = isMealKey(mealParam) ? mealParam : "საუზმე";
   const config = MEAL_CONFIGS[mealKey];
-  const { today, apiMealKey, isLoading, loggedForMeal, summary, removeEntry } =
-    useMealDetail(mealKey);
+  const {
+    today,
+    apiMealKey,
+    isLoading,
+    isError,
+    refetch,
+    loggedForMeal,
+    summary,
+    removeEntry,
+  } = useMealDetail(mealKey);
 
   const [sheetEntry, setSheetEntry] = useState<FoodLogEntry | null>(null);
 
@@ -61,13 +70,21 @@ export default function MealModal() {
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}
       >
-        <MealSummaryCard summary={summary} config={config} />
-        <MealEntriesList
-          entries={loggedForMeal}
-          isLoading={isLoading}
-          config={config}
-          onRemove={removeEntry}
-        />
+        {isError && loggedForMeal.length === 0 ? (
+          // Without this branch a network failure renders identically to "no
+          // foods logged" — confusing for the user. Show retry instead.
+          <ScreenError onRetry={refetch} style={styles.errorWrap} />
+        ) : (
+          <>
+            <MealSummaryCard summary={summary} config={config} />
+            <MealEntriesList
+              entries={loggedForMeal}
+              isLoading={isLoading}
+              config={config}
+              onRemove={removeEntry}
+            />
+          </>
+        )}
       </ScrollView>
 
       <View
@@ -126,5 +143,8 @@ const styles = StyleSheet.create({
   btnText: {
     fontSize: Type.lg,
     fontWeight: "700",
+  },
+  errorWrap: {
+    paddingVertical: Spacing.huge,
   },
 });
