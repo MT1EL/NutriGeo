@@ -3,6 +3,7 @@ import type { ApiResponse, FoodLogEntry } from "@/api/types";
 import { MEAL_KEY_TO_API, MealKey } from "@/constants/meals";
 import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
+import i18n from "@/i18n";
 import { caloriesForFood, entryServings, macroForFood } from "@/utils/foodMath";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -64,15 +65,15 @@ export function useMealDetail(mealKey: MealKey) {
     },
     onSuccess: () => {
       invalidateFoodLogQueries(queryClient, today);
-      toast.success("საკვები წაიშალა");
+      toast.success(i18n.t("add.deleted"));
     },
     onError: (err, _id, ctx) => {
       if (ctx?.previous) {
         queryClient.setQueryData(["food-log", today], ctx.previous);
       }
       const message =
-        err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("add.deleteFailed");
+      toast.error(message, i18n.t("common.error"));
     },
   });
 

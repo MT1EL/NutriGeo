@@ -15,9 +15,11 @@ import {
   Star,
 } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Linking, StyleSheet, useColorScheme, View } from "react-native";
 
 export default function AboutScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const appVersion = Constants.expoConfig?.version ?? "—";
@@ -25,7 +27,7 @@ export default function AboutScreen() {
 
   return (
     <SubScreenLayout
-      title="აპლიკაციის შესახებ"
+      title={t("about.subtitle")}
       subtitle={`NutriGeo · v${appVersion}`}
     >
       <BaseCard style={styles.heroCard}>
@@ -37,67 +39,64 @@ export default function AboutScreen() {
         <View style={{ alignItems: "center", gap: 4 }}>
           <ThemedText style={styles.appName}>NutriGeo</ThemedText>
           <ThemedText type="secondary" style={styles.tagline}>
-            შენი ნუტრიციის გზამკვლევი
+            {t("about.tagline")}
           </ThemedText>
         </View>
         <View
-          style={[
-            styles.versionPill,
-            { backgroundColor: theme.borderLight },
-          ]}
+          style={[styles.versionPill, { backgroundColor: theme.borderLight }]}
         >
           <ThemedText style={styles.versionText} type="secondary">
-            ვერსია {appVersion}
+            {t("about.version")} {appVersion}
             {nativeBuild ? ` · build ${nativeBuild}` : ""}
           </ThemedText>
         </View>
       </BaseCard>
 
-      <SettingsGroup title="სამართლებრივი">
+      <SettingsGroup title={t("about.legal")}>
         <SettingsRow
           Icon={Shield}
           iconColor={theme.brand}
           iconTint={theme.brandSoft}
-          label="კონფიდენციალურობა"
+          label={t("privacy.title")}
           onPress={() => router.push("/profile/privacy")}
         />
         <SettingsRow
           Icon={FileText}
           iconColor="#5B6CE0"
           iconTint={colorScheme === "dark" ? "#222B4A" : "#EEF0FB"}
-          label="წესები და პირობები"
+          label={t("terms.title")}
           onPress={() => router.push("/profile/terms")}
         />
       </SettingsGroup>
 
-      <SettingsGroup title="ჩართეთ">
+      <SettingsGroup title={t("about.engage")}>
         <SettingsRow
           Icon={Star}
           iconColor="#FFB020"
           iconTint={colorScheme === "dark" ? "#3A2A0A" : "#FFF4DA"}
-          label="შეაფასე App Store-ში"
+          label={t("about.rateInStore")}
           onPress={() => Linking.openURL("https://apps.apple.com/")}
         />
         <SettingsRow
           Icon={Mail}
           iconColor="#34A867"
           iconTint={colorScheme === "dark" ? "#1F3A28" : "#E6F6EA"}
-          label="დაგვიკავშირდი"
+          label={t("about.contact")}
           hint="hello@nutrigeo.ge"
           onPress={() => Linking.openURL("mailto:hello@nutrigeo.ge")}
         />
         <SettingsRow
           Icon={Code}
-          label="ღია წყარო"
+          label={t("about.openSource")}
           hint="github.com/nutrigeo"
           onPress={() => Linking.openURL("https://github.com/")}
         />
       </SettingsGroup>
 
-      <SettingsGroup title="ჩვენ შესახებ">
+      <SettingsGroup title={t("about.title")}>
         <SettingsRow
           Icon={ExternalLink}
-          label="ვებგვერდი"
+          label={t("about.website")}
           hint="nutrigeo.ge"
           onPress={() => Linking.openURL("https://nutrigeo.ge/")}
         />
@@ -106,15 +105,15 @@ export default function AboutScreen() {
       <View style={styles.creditsWrap}>
         <View style={styles.creditsLine}>
           <ThemedText type="secondary" style={styles.credits}>
-            შექმნილია სიყვარულით
+            {t("about.madeWith")}
           </ThemedText>
           <Heart color="#FF6B9D" size={12} fill="#FF6B9D" />
           <ThemedText type="secondary" style={styles.credits}>
-            თბილისში 🇬🇪
+            {t("about.tbilisi")}
           </ThemedText>
         </View>
         <ThemedText type="secondary" style={styles.copyright}>
-          © 2026 NutriGeo. ყველა უფლება დაცულია.
+          {t("about.rights")}
         </ThemedText>
       </View>
     </SubScreenLayout>

@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -61,6 +62,7 @@ export default function CustomFoodSheet({
   onClose,
   editingFood,
 }: Props) {
+  const { t } = useTranslation();
   const isEdit = !!editingFood;
   const { bottom } = useSafeAreaInsets();
   const colorScheme = useColorScheme() || "light";
@@ -114,7 +116,7 @@ export default function CustomFoodSheet({
         : createCustomFood(input),
     onSuccess: () => {
       invalidateFoodCaches();
-      toast.success(isEdit ? "ცვლილება შენახულია" : "საკვები შეიქმნა");
+      toast.success(isEdit ? t("food.saved") : t("food.created"));
       onClose();
     },
     onError: (err) => {
@@ -122,24 +124,24 @@ export default function CustomFoodSheet({
         err instanceof Error
           ? err.message
           : isEdit
-            ? "შენახვა ვერ მოხერხდა"
-            : "შექმნა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+            ? t("food.saveFailed")
+            : t("food.createFailed");
+      toast.error(message, t("common.error"));
     },
   });
 
   const handleSave = async () => {
     const next: Record<string, string> = {};
     const trimmedName = name.trim();
-    if (!trimmedName) next.name = "შეიყვანე დასახელება";
+    if (!trimmedName) next.name = t("validation.enterName");
     const kcalNum = toNum(kcal);
-    if (kcalNum == null) next.kcal = "შეიყვანე კალორია";
+    if (kcalNum == null) next.kcal = t("wizard.suggestion.enterKcalGoal");
     const proteinNum = toNum(protein);
-    if (proteinNum == null) next.protein = "შეიყვანე ცილა";
+    if (proteinNum == null) next.protein = t("wizard.suggestion.enterProtein");
     const carbsNum = toNum(carbs);
-    if (carbsNum == null) next.carbs = "შეიყვანე ნახშირწყალი";
+    if (carbsNum == null) next.carbs = t("wizard.suggestion.enterCarbs");
     const fatNum = toNum(fat);
-    if (fatNum == null) next.fat = "შეიყვანე ცხიმი";
+    if (fatNum == null) next.fat = t("wizard.suggestion.enterFat");
 
     setErrors(next);
     if (Object.keys(next).length > 0) return;
@@ -160,8 +162,8 @@ export default function CustomFoodSheet({
         imageField = await uploadImage("foods", image, { prefix: user?.id });
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "ფოტოს ატვირთვა ვერ მოხერხდა";
-        toast.error(message, "შეცდომა");
+          err instanceof Error ? err.message : t("food.photoUploadFailed");
+        toast.error(message, t("common.error"));
         setUploading(false);
         return;
       } finally {
@@ -215,10 +217,10 @@ export default function CustomFoodSheet({
               <View style={styles.headerRow}>
                 <View style={{ flex: 1, gap: 2 }}>
                   <ThemedText style={styles.title}>
-                    {isEdit ? "საკვების რედაქტირება" : "ახალი საკვები"}
+                    {isEdit ? t("food.edit") : t("food.create")}
                   </ThemedText>
                   <ThemedText type="secondary" style={styles.subtitle}>
-                    100გ-ზე გადაანგარიშებული მონაცემები
+                    {t("food.per100gHint")}
                   </ThemedText>
                 </View>
                 <TouchableOpacity
@@ -249,8 +251,8 @@ export default function CustomFoodSheet({
                 </View>
                 <Input
                   Icon={Utensils}
-                  label="დასახელება"
-                  placeholder="მაგ. ხორცის სალათი"
+                  label={t("food.name")}
+                  placeholder={t("food.namePlaceholder")}
                   value={name}
                   onChangeText={(t) => {
                     setName(t);
@@ -260,8 +262,8 @@ export default function CustomFoodSheet({
                 />
                 <Input
                   Icon={Tag}
-                  label="ბრენდი (არასავალდებულო)"
-                  placeholder="მაგ. Carrefour"
+                  label={t("food.brand")}
+                  placeholder={t("food.brandPlaceholder")}
                   value={brand}
                   onChangeText={setBrand}
                 />
@@ -269,8 +271,8 @@ export default function CustomFoodSheet({
                   <View style={{ flex: 1 }}>
                     <Input
                       Icon={Utensils}
-                      label="პორცია"
-                      placeholder="მაგ. ჭიქა"
+                      label={t("food.serving")}
+                      placeholder={t("food.servingPlaceholder")}
                       value={servingLabel}
                       onChangeText={setServingLabel}
                     />
@@ -278,7 +280,7 @@ export default function CustomFoodSheet({
                   <View style={{ flex: 1 }}>
                     <Input
                       Icon={Utensils}
-                      label="გრამი"
+                      label={t("food.grams")}
                       placeholder="100"
                       value={servingGrams}
                       onChangeText={setServingGrams}
@@ -288,12 +290,12 @@ export default function CustomFoodSheet({
                 </View>
 
                 <ThemedText style={styles.sectionLabel} type="secondary">
-                  100გ-ზე
+                  {t("food.per100g")}
                 </ThemedText>
 
                 <Input
                   Icon={Flame}
-                  label="კალორია"
+                  label={t("food.kcalLabel")}
                   placeholder="0"
                   value={kcal}
                   onChangeText={(t) => {
@@ -307,7 +309,7 @@ export default function CustomFoodSheet({
                   <View style={{ flex: 1 }}>
                     <Input
                       Icon={Beef}
-                      label="ცილა (გ)"
+                      label={t("food.proteinG")}
                       placeholder="0"
                       value={protein}
                       onChangeText={(t) => {
@@ -322,7 +324,7 @@ export default function CustomFoodSheet({
                   <View style={{ flex: 1 }}>
                     <Input
                       Icon={Wheat}
-                      label="ნახშ. (გ)"
+                      label={t("food.carbsG")}
                       placeholder="0"
                       value={carbs}
                       onChangeText={(t) => {
@@ -338,7 +340,7 @@ export default function CustomFoodSheet({
                   <View style={{ flex: 1 }}>
                     <Input
                       Icon={Droplet}
-                      label="ცხიმი (გ)"
+                      label={t("food.fatG")}
                       placeholder="0"
                       value={fat}
                       onChangeText={(t) => {
@@ -352,7 +354,7 @@ export default function CustomFoodSheet({
                   <View style={{ flex: 1 }}>
                     <Input
                       Icon={Wheat}
-                      label="ბოჭკ. (გ)"
+                      label={t("food.fiberG")}
                       placeholder="0"
                       value={fiber}
                       onChangeText={setFiber}
@@ -378,12 +380,12 @@ export default function CustomFoodSheet({
                   color={theme.textOnBrand}
                 >
                   {uploading
-                    ? "ფოტო იტვირთება..."
+                    ? t("food.uploadingPhoto")
                     : mutation.isPending
-                      ? "ინახება..."
+                      ? t("common.saving")
                       : isEdit
-                        ? "შენახვა"
-                        : "შექმნა"}
+                        ? t("common.save")
+                        : t("food.create2")}
                 </ThemedText>
               </TouchableOpacity>
             </SafeAreaView>

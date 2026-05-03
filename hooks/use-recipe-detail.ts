@@ -1,5 +1,6 @@
 import { getRecipeById, saveRecipe, unsaveRecipe } from "@/api/recipes";
 import { useToast } from "@/contexts/ToastContext";
+import i18n from "@/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -30,8 +31,8 @@ export function useRecipeDetail(id: string | undefined) {
     onError: (err, { next }) => {
       setSavedOverride(!next);
       const message =
-        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("common.saveFailed");
+      toast.error(message, i18n.t("common.error"));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recipes", "detail", id] });

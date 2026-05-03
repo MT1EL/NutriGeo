@@ -2,10 +2,11 @@ import type { FoodLogEntry } from "@/api/types";
 import FoodCard from "@/components/cards/FoodCard";
 import { FoodListSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
-import { type MealConfig, MealKey } from "@/constants/meals";
+import { type MealConfig, MEAL_KEY_TO_I18N, MealKey } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { entryDisplay, entryDisplayServing } from "@/utils/foodMath";
 import { foodImageSource } from "@/utils/image";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 type Props = {
@@ -29,15 +30,18 @@ export default function LoggedMealList({
   onDecrement,
   onRemove,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
   return (
     <View style={{ gap: Spacing.sm }}>
       <View style={styles.header}>
-        <ThemedText style={styles.title}>ჩაწერილი — {mealLabel}</ThemedText>
+        <ThemedText style={styles.title}>
+          {t("add.logged", { meal: t(MEAL_KEY_TO_I18N[mealLabel]) })}
+        </ThemedText>
         <ThemedText style={styles.count} type="secondary">
-          {entries.length} საკვები
+          {t("add.loggedCount", { count: entries.length })}
         </ThemedText>
       </View>
 
@@ -56,10 +60,10 @@ export default function LoggedMealList({
             <config.Icon color={theme.brand} size={22} />
           </View>
           <ThemedText style={styles.emptyTitle}>
-            ჯერ არაფერი ჩაგიწერია
+            {t("add.nothingLogged")}
           </ThemedText>
           <ThemedText type="secondary" style={styles.emptyText}>
-            დაამატე საკვები ქვემოთ ხშირი სიიდან
+            {t("add.addFromFrequent")}
           </ThemedText>
         </View>
       ) : (

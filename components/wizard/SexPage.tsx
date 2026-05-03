@@ -2,6 +2,7 @@ import { Colors } from "@/constants/theme";
 import { useWizard } from "@/contexts/WizardContext";
 import { Image } from "expo-image";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -12,13 +13,14 @@ import ThemedText from "../ui/ThemedText";
 import WizzardContentLayout from "./layout";
 
 const SexPage = () => {
+  const { t } = useTranslation();
   const { data, setField } = useWizard();
   const colorScheme = useColorScheme() || "light";
   const options: ("female" | "male")[] = ["female", "male"];
   return (
     <WizzardContentLayout
-      title="სქესი"
-      subtitle="ეს ინფორმაცია დაგვეხმარება შენთვის სწორი კალორიული მიზნის გამოთვლაში"
+      title={t("common.sex")}
+      subtitle={t("wizard.physical.subtitle")}
     >
       <View style={styles.cardContainer}>
         {options.map((item) => (
@@ -44,7 +46,7 @@ const SexPage = () => {
               style={styles.illustration}
             />
             <ThemedText style={styles.cardLabel}>
-              {item === "female" ? "მდედრობითი" : "მამრობითი"}
+              {item === "female" ? t("common.female") : t("common.male")}
             </ThemedText>
           </TouchableOpacity>
         ))}

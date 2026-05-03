@@ -10,19 +10,11 @@ import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Check, Lock, ShieldCheck, X } from "lucide-react-native";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
-const RULES = [
-  { key: "len", label: "მინ. 8 სიმბოლო", test: (s: string) => s.length >= 8 },
-  { key: "num", label: "ერთი ციფრი მაინც", test: (s: string) => /\d/.test(s) },
-  {
-    key: "case",
-    label: "ერთი დიდი ასო მაინც",
-    test: (s: string) => /[A-Z]/.test(s),
-  },
-];
-
 export default function ChangePasswordScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
@@ -31,8 +23,27 @@ export default function ChangePasswordScreen() {
   const [confirm, setConfirm] = useState("");
   const [serverError, setServerError] = useState<string | null>(null);
 
+  const RULES = [
+    {
+      key: "len",
+      label: t("validation.min8Chars"),
+      test: (s: string) => s.length >= 8,
+    },
+    {
+      key: "num",
+      label: t("validation.minOneDigit"),
+      test: (s: string) => /\d/.test(s),
+    },
+    {
+      key: "case",
+      label: t("validation.minOneUppercase"),
+      test: (s: string) => /[A-Z]/.test(s),
+    },
+  ];
+
   const checks = useMemo(
     () => RULES.map((r) => ({ ...r, ok: r.test(next) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [next],
   );
   const allRulesOk = checks.every((c) => c.ok);
@@ -51,23 +62,23 @@ export default function ChangePasswordScreen() {
       setNext("");
       setConfirm("");
       setServerError(null);
-      toast.success("პაროლი წარმატებით შეიცვალა");
+      toast.success(t("changePassword.success"));
       router.back();
     },
     onError: (err) => {
       if (err instanceof HttpError) {
         if (err.status === 401 || err.status === 403) {
-          setServerError("მიმდინარე პაროლი არასწორია");
+          setServerError(t("changePassword.currentWrong"));
           return;
         }
         if (err.status === 422) {
-          setServerError("ახალი პაროლი არ აკმაყოფილებს მოთხოვნებს");
+          setServerError(t("changePassword.newDoesNotMatchRules"));
           return;
         }
       }
       const message =
-        err instanceof Error ? err.message : "პაროლის შეცვლა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : t("changePassword.failed");
+      toast.error(message, t("common.error"));
     },
   });
 
@@ -80,7 +91,10 @@ export default function ChangePasswordScreen() {
   };
 
   return (
-    <SubScreenLayout title="პაროლის შეცვლა" subtitle="გააძლიერე უსაფრთხოება">
+    <SubScreenLayout
+      title={t("changePassword.title")}
+      subtitle={t("changePassword.subtitle")}
+    >
       <View style={styles.heroIconWrap}>
         <View style={[styles.heroIcon, { backgroundColor: theme.brandSoft }]}>
           <ShieldCheck color={theme.brand} size={28} />
@@ -90,7 +104,7 @@ export default function ChangePasswordScreen() {
       <View>
         <Input
           Icon={Lock}
-          label="მიმდინარე პაროლი"
+          label={t("changePassword.current")}
           placeholder="••••••••"
           secure
           value={current}
@@ -102,7 +116,7 @@ export default function ChangePasswordScreen() {
         />
         <Input
           Icon={Lock}
-          label="ახალი პაროლი"
+          label={t("changePassword.new")}
           placeholder="••••••••"
           secure
           value={next}
@@ -110,14 +124,14 @@ export default function ChangePasswordScreen() {
         />
         <Input
           Icon={Lock}
-          label="ახალი პაროლი (გამეორება)"
+          label={t("changePassword.confirm")}
           placeholder="••••••••"
           secure
           value={confirm}
           onChangeText={setConfirm}
           errorText={
             confirm.length > 0 && confirm !== next
-              ? "პაროლი არ ემთხვევა"
+              ? t("validation.passwordsDoNotMatch")
               : undefined
           }
         />
@@ -130,7 +144,7 @@ export default function ChangePasswordScreen() {
         ]}
       >
         <ThemedText style={styles.rulesTitle} type="secondary">
-          მოთხოვნები
+          {t("changePassword.rules")}
         </ThemedText>
         {checks.map((c) => (
           <View key={c.key} style={styles.ruleRow}>
@@ -161,7 +175,9 @@ export default function ChangePasswordScreen() {
       </View>
 
       <Button onPress={handleSave} disabled={!canSave}>
-        {mutation.isPending ? "ინახება..." : "პაროლის შენახვა"}
+        {mutation.isPending
+          ? t("changePassword.saving")
+          : t("changePassword.save")}
       </Button>
     </SubScreenLayout>
   );

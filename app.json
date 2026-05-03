@@ -53,7 +53,8 @@
         {
           "cameraPermission": "მიეცი წვდომა კამერაზე ბარკოდის სკანირებისთვის."
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

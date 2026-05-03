@@ -1,15 +1,15 @@
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { ArrowLeft } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 type Props = {
   text?: string;
 };
 
-export default function SwipeHint({
-  text = "გადასწიე ბარათი მარცხნივ",
-}: Props) {
+export default function SwipeHint({ text }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -17,7 +17,7 @@ export default function SwipeHint({
     <View style={[styles.row, { backgroundColor: theme.borderLight }]}>
       <ArrowLeft color={theme.textSecondary} size={14} />
       <ThemedText type="secondary" style={styles.text}>
-        {text}
+        {text ?? t("common.swipeLeft")}
       </ThemedText>
     </View>
   );

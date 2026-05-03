@@ -3,6 +3,7 @@ import BaseCard from "@/components/cards/BaseCard";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Beef, Droplet, Flame, Wheat } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 type Props = {
@@ -10,27 +11,28 @@ type Props = {
 };
 
 export default function RecipeNutrition({ recipe }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
   const macroTotal = recipe.protein_g + recipe.carbs_g + recipe.fat_g || 1;
   const macros = [
     {
-      label: "ცილა",
+      label: t("macros.protein"),
       g: recipe.protein_g,
       pct: Math.round((recipe.protein_g / macroTotal) * 100),
       color: theme.macroProtein,
       Icon: Beef,
     },
     {
-      label: "ნახშირწყ.",
+      label: t("macros.carbsShort"),
       g: recipe.carbs_g,
       pct: Math.round((recipe.carbs_g / macroTotal) * 100),
       color: theme.macroCarbs,
       Icon: Wheat,
     },
     {
-      label: "ცხიმი",
+      label: t("macros.fat"),
       g: recipe.fat_g,
       pct: Math.round((recipe.fat_g / macroTotal) * 100),
       color: theme.macroFat,
@@ -47,16 +49,16 @@ export default function RecipeNutrition({ recipe }: Props) {
           </View>
           <View style={{ gap: 2, flex: 1 }}>
             <ThemedText style={styles.cardTitle} numberOfLines={1}>
-              კვებითი ღირებულება
+              {t("recipes.nutrition")}
             </ThemedText>
             <ThemedText type="secondary" style={styles.cardCaption}>
-              1 პორციაში
+              {t("recipes.perServing")}
             </ThemedText>
           </View>
         </View>
         <View style={[styles.calBadge, { backgroundColor: theme.brandSoft }]}>
           <ThemedText style={styles.calBadgeText} color={theme.brand}>
-            {recipe.kcal} კალ
+            {recipe.kcal} {t("macros.kcalShort")}
           </ThemedText>
         </View>
       </View>
@@ -83,7 +85,7 @@ export default function RecipeNutrition({ recipe }: Props) {
               </ThemedText>
             </View>
             <ThemedText style={styles.macroValue} color={color}>
-              {g}გ
+              {g}{t("macros.g")}
             </ThemedText>
           </View>
         ))}

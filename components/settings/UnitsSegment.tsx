@@ -2,6 +2,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import type { Units } from "@/hooks/use-settings";
 import { Ruler } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -9,9 +10,9 @@ import {
   View,
 } from "react-native";
 
-const OPTIONS: { key: Units; label: string }[] = [
-  { key: "metric", label: "მეტრული (კგ, სმ)" },
-  { key: "imperial", label: "იმპერ. (lb, ft)" },
+const OPTIONS: { key: Units; labelKey: string }[] = [
+  { key: "metric", labelKey: "settings.unitsMetric" },
+  { key: "imperial", labelKey: "settings.unitsImperial" },
 ];
 
 type Props = {
@@ -21,13 +22,14 @@ type Props = {
 };
 
 export default function UnitsSegment({ value, onChange, disabled }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
   return (
     <View style={{ gap: Spacing.sm }}>
       <ThemedText style={styles.groupLabel} type="secondary">
-        ერთეულები
+        {t("settings.units")}
       </ThemedText>
       <View style={[styles.segment, { backgroundColor: theme.borderLight }]}>
         {OPTIONS.map((opt) => {
@@ -58,7 +60,7 @@ export default function UnitsSegment({ value, onChange, disabled }: Props) {
                 style={styles.text}
                 color={isActive ? theme.text : theme.textSecondary}
               >
-                {opt.label}
+                {t(opt.labelKey)}
               </ThemedText>
             </TouchableOpacity>
           );

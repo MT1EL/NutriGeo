@@ -2,6 +2,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { router } from "expo-router";
 import { Activity, Plus } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -10,6 +11,7 @@ import {
 } from "react-native";
 
 export default function EmptyState() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -23,10 +25,9 @@ export default function EmptyState() {
       <View style={[styles.icon, { backgroundColor: theme.brandSoft }]}>
         <Activity color={theme.brand} size={32} />
       </View>
-      <ThemedText style={styles.title}>ჯერ მონაცემი არ გაქვს</ThemedText>
+      <ThemedText style={styles.title}>{t("statistics.emptyTitle")}</ThemedText>
       <ThemedText type="secondary" style={styles.body}>
-        დაიწყე კვების ჩაწერა და აქ დაინახავ კალორიის, წონის და
-        მაკრო-ნუტრიენტების დინამიკას.
+        {t("statistics.emptyBody")}
       </ThemedText>
       <TouchableOpacity
         activeOpacity={0.85}
@@ -35,7 +36,7 @@ export default function EmptyState() {
       >
         <Plus color={theme.textOnBrand} size={18} />
         <ThemedText style={styles.ctaText} color={theme.textOnBrand}>
-          დაიწყე ჩაწერა
+          {t("statistics.startLogging")}
         </ThemedText>
       </TouchableOpacity>
     </View>

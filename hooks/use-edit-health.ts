@@ -2,6 +2,7 @@ import type { Diet } from "@/api";
 import { HealthInput, updateHealth } from "@/api/profile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import i18n from "@/i18n";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -31,12 +32,12 @@ export function useEditHealth() {
       queryClient.setQueryData(["Profile"], res);
       await queryClient.invalidateQueries({ queryKey: ["Profile"] });
       await refreshUser();
-      toast.success("ჯანმრთელობის მონაცემები შენახულია");
+      toast.success(i18n.t("profile.healthSaved"));
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("common.saveFailed");
+      toast.error(message, i18n.t("common.error"));
     },
   });
 

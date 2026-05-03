@@ -16,6 +16,7 @@ import type { ApiResponse, Food, FoodLogEntry, MealKey } from "@/api/types";
 import { MEAL_KEY_TO_API, MealKey as UiMealKey } from "@/constants/meals";
 import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
+import i18n from "@/i18n";
 import { loggedAtForDate } from "@/utils/date";
 import { entryDisplay } from "@/utils/foodMath";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
@@ -138,15 +139,15 @@ export function useAddScreen(activeMeal: UiMealKey) {
         },
       );
       invalidateFoodLogQueries(queryClient, today);
-      toast.success("საკვები დაემატა");
+      toast.success(i18n.t("add.added"));
     },
     onError: (err, _vars, ctx) => {
       if (ctx?.previous) {
         queryClient.setQueryData(["food-log", today], ctx.previous);
       }
       const message =
-        err instanceof Error ? err.message : "დამატება ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("add.addFailed");
+      toast.error(message, i18n.t("common.error"));
     },
   });
 
@@ -178,8 +179,8 @@ export function useAddScreen(activeMeal: UiMealKey) {
         queryClient.setQueryData(["food-log", today], ctx.previous);
       }
       const message =
-        err instanceof Error ? err.message : "განახლება ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("add.updateFailed");
+      toast.error(message, i18n.t("common.error"));
     },
   });
 
@@ -202,15 +203,15 @@ export function useAddScreen(activeMeal: UiMealKey) {
     },
     onSuccess: () => {
       invalidateFoodLogQueries(queryClient, today);
-      toast.success("საკვები წაიშალა");
+      toast.success(i18n.t("add.deleted"));
     },
     onError: (err, _id, ctx) => {
       if (ctx?.previous) {
         queryClient.setQueryData(["food-log", today], ctx.previous);
       }
       const message =
-        err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("add.deleteFailed");
+      toast.error(message, i18n.t("common.error"));
     },
   });
 
@@ -263,16 +264,16 @@ export function useAddScreen(activeMeal: UiMealKey) {
   );
 
   const browseEmptyText = debouncedQuery
-    ? "ამ ძიებაზე საკვები ვერ მოიძებნა"
+    ? i18n.t("add.emptySearch")
     : browse === "favorites"
-      ? "საყვარელი საკვები ჯერ არ გაქვს"
+      ? i18n.t("add.emptyFavorites")
       : browse === "recent"
-        ? "ბოლო ჩანაწერები არ არის"
+        ? i18n.t("add.emptyRecent")
         : browse === "frequent"
-          ? "ხშირი საკვები ჯერ არ არის"
+          ? i18n.t("add.emptyFrequent")
           : browse === "my"
-            ? "შენი საკვები ჯერ არ არის — შექმენი ქვემოთ"
-            : "კატალოგი ცარიელია";
+            ? i18n.t("add.emptyMy")
+            : i18n.t("add.emptyAll");
 
   return {
     today,

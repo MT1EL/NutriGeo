@@ -1,5 +1,5 @@
-import SexSelector from "@/components/personal/SexSelector";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
+import SexSelector from "@/components/personal/SexSelector";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { PersonalFormSkeleton } from "@/components/ui/Skeletons";
@@ -8,17 +8,19 @@ import { Spacing, Type } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersonalForm } from "@/hooks/use-personal-form";
 import { Calendar, Ruler, User, Weight } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
 export default function PersonalScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { form, isLoading, isSaving } = usePersonalForm();
 
   if (isLoading) {
     return (
       <SubScreenLayout
-        title="პირადი ინფორმაცია"
-        subtitle="შენი პროფილის მონაცემები"
+        title={t("profile.personalScreen.title")}
+        subtitle={t("profile.personalScreen.subtitle")}
       >
         <PersonalFormSkeleton />
       </SubScreenLayout>
@@ -27,8 +29,8 @@ export default function PersonalScreen() {
 
   return (
     <SubScreenLayout
-      title="პირადი ინფორმაცია"
-      subtitle="შენი პროფილის მონაცემები"
+      title={t("profile.personalScreen.title")}
+      subtitle={t("profile.personalScreen.subtitle")}
     >
       <SexSelector
         value={form.values.biological_sex}
@@ -37,18 +39,18 @@ export default function PersonalScreen() {
 
       <View style={{ gap: Spacing.md }}>
         <ThemedText style={styles.groupTitle} type="secondary">
-          ძირითადი მონაცემები
+          {t("profile.personalScreen.basics")}
         </ThemedText>
         <View>
           <Input
             Icon={User}
-            label="სახელი"
+            label={t("profile.personalScreen.name")}
             value={form.values.name}
             onChangeText={(text) => form.setFieldValue("name", text)}
           />
           <Input
             Icon={Calendar}
-            label="ასაკი"
+            label={t("profile.personalScreen.age")}
             value={form.values.age}
             onChangeText={(text) => form.setFieldValue("age", text)}
             keyboardType="number-pad"
@@ -58,7 +60,7 @@ export default function PersonalScreen() {
           <View style={{ flex: 1 }}>
             <Input
               Icon={Ruler}
-              label="სიმაღლე (სმ)"
+              label={t("profile.personalScreen.heightCm")}
               value={form.values.height_cm}
               onChangeText={(text) => form.setFieldValue("height_cm", text)}
               keyboardType="number-pad"
@@ -67,7 +69,7 @@ export default function PersonalScreen() {
           <View style={{ flex: 1 }}>
             <Input
               Icon={Weight}
-              label="წონა (კგ)"
+              label={t("profile.personalScreen.weightKg")}
               value={form.values.weight_kg}
               onChangeText={(text) => form.setFieldValue("weight_kg", text)}
               keyboardType="decimal-pad"
@@ -78,11 +80,11 @@ export default function PersonalScreen() {
 
       <View style={{ gap: Spacing.md }}>
         <ThemedText style={styles.groupTitle} type="secondary">
-          საკონტაქტო
+          {t("profile.personalScreen.contact")}
         </ThemedText>
         <Input
           Icon={User}
-          label="ელფოსტა"
+          label={t("profile.personalScreen.email")}
           defaultValue={user?.email}
           keyboardType="email-address"
           disabled
@@ -93,7 +95,7 @@ export default function PersonalScreen() {
         onPress={() => form.handleSubmit()}
         disabled={isSaving || !form.dirty}
       >
-        {isSaving ? "ინახება..." : "შენახვა"}
+        {isSaving ? t("profile.personalScreen.saving") : t("profile.personalScreen.save")}
       </Button>
     </SubScreenLayout>
   );

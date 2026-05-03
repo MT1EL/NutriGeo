@@ -1,6 +1,7 @@
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Image } from "expo-image";
 import { Minus, Plus } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   ImageSourcePropType,
   StyleSheet,
@@ -28,12 +29,12 @@ type Props = {
 };
 
 const FoodCard = ({
-  title = "ჩიზქეიქი",
-  calories = 321,
-  serving = "1 ნაჭერი (80გ)",
-  proteinG = 6,
-  carbsG = 32,
-  fatG = 18,
+  title = "",
+  calories = 0,
+  serving = "",
+  proteinG = 0,
+  carbsG = 0,
+  fatG = 0,
   image,
   onPress,
   action = "add",
@@ -42,6 +43,7 @@ const FoodCard = ({
   onIncrement,
   onDecrement,
 }: Props) => {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -84,7 +86,7 @@ const FoodCard = ({
                 ]}
               />
               <ThemedText style={styles.macroText} type="secondary">
-                ც {proteinG}გ
+                {t("macros.proteinAbbr")} {proteinG}{t("macros.g")}
               </ThemedText>
             </View>
             <View style={styles.macroPill}>
@@ -92,7 +94,7 @@ const FoodCard = ({
                 style={[styles.macroDot, { backgroundColor: theme.macroCarbs }]}
               />
               <ThemedText style={styles.macroText} type="secondary">
-                ნ {carbsG}გ
+                {t("macros.carbsAbbr")} {carbsG}{t("macros.g")}
               </ThemedText>
             </View>
             <View style={styles.macroPill}>
@@ -100,7 +102,7 @@ const FoodCard = ({
                 style={[styles.macroDot, { backgroundColor: theme.macroFat }]}
               />
               <ThemedText style={styles.macroText} type="secondary">
-                ცხ {fatG}გ
+                {t("macros.fatAbbr")} {fatG}{t("macros.g")}
               </ThemedText>
             </View>
           </View>
@@ -110,7 +112,7 @@ const FoodCard = ({
             style={[styles.calBadge, { backgroundColor: theme.brandSoft }]}
           >
             <ThemedText style={styles.calBadgeText} color={theme.brand}>
-              {calories} კალ
+              {calories} {t("macros.kcalShort")}
             </ThemedText>
           </View>
           {action === "stepper" ? (

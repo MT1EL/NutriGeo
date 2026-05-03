@@ -29,6 +29,7 @@ import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Heart, MoreVertical, Minus, Plus, Trash2, X } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActionSheetIOS,
   Alert,
@@ -59,19 +60,6 @@ type Props = {
   onEditFood?: (food: Food) => void;
 };
 
-function apiMealLabel(key: ApiMealKey): string {
-  switch (key) {
-    case "breakfast":
-      return "საუზმე";
-    case "lunch":
-      return "სადილი";
-    case "snack":
-      return "სნექი";
-    case "dinner":
-      return "ვახშამი";
-  }
-}
-
 const ALL_API_MEAL_KEYS: ApiMealKey[] = [
   "breakfast",
   "lunch",
@@ -88,6 +76,8 @@ export default function FoodDetailSheet({
   todayKey,
   onEditFood,
 }: Props) {
+  const { t } = useTranslation();
+  const apiMealLabel = (key: ApiMealKey): string => t(`meal.${key}`);
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
@@ -186,13 +176,13 @@ export default function FoodDetailSheet({
       ),
     onSuccess: () => {
       invalidateFoodLogQueries(queryClient, todayKey);
-      toast.success("საკვები დაემატა");
+      toast.success(t("add.added"));
       onClose();
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "დამატება ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : t("add.addFailed");
+      toast.error(message, t("common.error"));
     },
   });
 
@@ -210,13 +200,13 @@ export default function FoodDetailSheet({
       }),
     onSuccess: () => {
       invalidateFoodLogQueries(queryClient, todayKey);
-      toast.success("ცვლილება შენახულია");
+      toast.success(t("food.saved"));
       onClose();
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : t("food.saveFailed");
+      toast.error(message, t("common.error"));
     },
   });
 
@@ -224,12 +214,12 @@ export default function FoodDetailSheet({
     mutationFn: (id: string) => deleteFoodLog(id),
     onSuccess: () => {
       invalidateFoodLogQueries(queryClient, todayKey);
-      toast.success("საკვები წაიშალა");
+      toast.success(t("add.deleted"));
       onClose();
     },
     onError: (err) => {
-      const message = err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+      const message = err instanceof Error ? err.message : t("food.deleteFailed");
+      toast.error(message, t("common.error"));
     },
   });
 
@@ -241,13 +231,13 @@ export default function FoodDetailSheet({
       queryClient.invalidateQueries({ queryKey: ["foods", "mine"] });
       queryClient.invalidateQueries({ queryKey: ["foods", "search"] });
       queryClient.invalidateQueries({ queryKey: ["foods", "favorites"] });
-      toast.success("საკვები წაიშალა");
+      toast.success(t("food.deleted"));
       onClose();
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : t("food.deleteFailed");
+      toast.error(message, t("common.error"));
     },
   });
 
@@ -259,8 +249,8 @@ export default function FoodDetailSheet({
     },
     onError: (err, { next }) => {
       setFavoriteOverride(!next);
-      const message = err instanceof Error ? err.message : "ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+      const message = err instanceof Error ? err.message : t("common.errorGeneric");
+      toast.error(message, t("common.error"));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["foods", "favorites"] });
@@ -338,12 +328,12 @@ export default function FoodDetailSheet({
   const confirmDeleteFood = () => {
     if (!food) return;
     Alert.alert(
-      "წაშლა?",
-      `"${food.name}"-ის წაშლა შეუქცევადია.`,
+      t("food.deleteConfirm"),
+      t("food.deleteIrreversible", { name: food.name }),
       [
-        { text: "გაუქმება", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "წაშლა",
+          text: t("common.delete"),
           style: "destructive",
           onPress: () => deleteFoodMutation.mutate(food.id),
         },
@@ -353,7 +343,7 @@ export default function FoodDetailSheet({
 
   const openOwnerMenu = () => {
     if (!food) return;
-    const options = ["გაუქმება", "რედაქტირება", "წაშლა"];
+    const options = [t("common.cancel"), t("common.edit"), t("common.delete")];
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         {
@@ -368,9 +358,9 @@ export default function FoodDetailSheet({
       );
     } else {
       Alert.alert(food.name, undefined, [
-        { text: "გაუქმება", style: "cancel" },
-        { text: "რედაქტირება", onPress: () => onEditFood?.(food) },
-        { text: "წაშლა", style: "destructive", onPress: confirmDeleteFood },
+        { text: t("common.cancel"), style: "cancel" },
+        { text: t("common.edit"), onPress: () => onEditFood?.(food) },
+        { text: t("common.delete"), style: "destructive", onPress: confirmDeleteFood },
       ]);
     }
   };
@@ -381,9 +371,9 @@ export default function FoodDetailSheet({
     deleteMutation.isPending;
 
   const macros = [
-    { label: "ცილა", value: proteinG, color: theme.macroProtein },
-    { label: "ნახშირწ.", value: carbsG, color: theme.macroCarbs },
-    { label: "ცხიმი", value: fatG, color: theme.macroFat },
+    { label: t("macros.protein"), value: proteinG, color: theme.macroProtein },
+    { label: t("macros.carbsShort"), value: carbsG, color: theme.macroCarbs },
+    { label: t("macros.fat"), value: fatG, color: theme.macroFat },
   ];
 
   return (
@@ -421,7 +411,7 @@ export default function FoodDetailSheet({
                     </ThemedText>
                   ) : (
                     <ThemedText type="secondary" style={styles.brand}>
-                      1 პორცია = {servingLabel(food)}
+                      1 {t("food.serving")} = {servingLabel(food)}
                     </ThemedText>
                   )}
                 </View>
@@ -495,7 +485,7 @@ export default function FoodDetailSheet({
                         style={styles.segmentText}
                         color={active ? theme.text : theme.textSecondary}
                       >
-                        {u === "servings" ? "პორცია" : "გრამი"}
+                        {u === "servings" ? t("food.serving") : t("food.grams")}
                       </ThemedText>
                     </TouchableOpacity>
                   );
@@ -525,7 +515,7 @@ export default function FoodDetailSheet({
                     returnKeyType="done"
                   />
                   <ThemedText style={styles.amountUnit} type="secondary">
-                    {unit === "servings" ? "პორცია" : "გრამი"}
+                    {unit === "servings" ? t("food.serving") : t("food.grams")}
                   </ThemedText>
                 </View>
 
@@ -541,8 +531,8 @@ export default function FoodDetailSheet({
 
               <ThemedText type="secondary" style={styles.equivText}>
                 {unit === "servings"
-                  ? `≈ ${totalGrams}გ`
-                  : `≈ ${formatServings(quantityServings)} პორცია`}
+                  ? `≈ ${totalGrams}${t("macros.g")}`
+                  : `≈ ${formatServings(quantityServings)} ${t("food.serving")}`}
               </ThemedText>
 
               {/* Nutrition */}
@@ -559,16 +549,16 @@ export default function FoodDetailSheet({
                   <View>
                     <ThemedText style={styles.kcalValue}>{kcal}</ThemedText>
                     <ThemedText style={styles.kcalLabel} type="secondary">
-                      კალორია
+                      {t("macros.kcal")}
                     </ThemedText>
                   </View>
                   {fiberG !== null && (
                     <View style={{ alignItems: "flex-end" }}>
                       <ThemedText style={styles.fiberValue}>
-                        {fiberG}გ
+                        {fiberG}{t("macros.g")}
                       </ThemedText>
                       <ThemedText style={styles.kcalLabel} type="secondary">
-                        ბოჭკოვანი
+                        {t("macros.fiber")}
                       </ThemedText>
                     </View>
                   )}
@@ -586,7 +576,7 @@ export default function FoodDetailSheet({
                         style={[styles.macroDot, { backgroundColor: m.color }]}
                       />
                       <ThemedText style={styles.macroLabel} color={m.color}>
-                        {m.label} {m.value}გ
+                        {m.label} {m.value}{t("macros.g")}
                       </ThemedText>
                     </View>
                   ))}
@@ -596,7 +586,7 @@ export default function FoodDetailSheet({
               {/* Meal selector */}
               <View style={{ gap: Spacing.sm }}>
                 <ThemedText style={styles.groupLabel} type="secondary">
-                  კვებაში
+                  {t("quickAdd.inMeal")}
                 </ThemedText>
                 <View style={styles.mealRow}>
                   {ALL_API_MEAL_KEYS.map((m) => {
@@ -659,11 +649,11 @@ export default function FoodDetailSheet({
                   >
                     {isEdit
                       ? isPending
-                        ? "ინახება..."
-                        : "შენახვა"
+                        ? t("common.saving")
+                        : t("common.save")
                       : isPending
-                        ? "ემატება..."
-                        : "დაამატე"}
+                        ? t("common.adding")
+                        : t("add.addFood")}
                   </ThemedText>
                 </TouchableOpacity>
               </View>

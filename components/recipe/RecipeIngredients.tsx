@@ -3,6 +3,7 @@ import BaseCard from "@/components/cards/BaseCard";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export default function RecipeIngredients({ ingredients }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const [checked, setChecked] = useState<Set<number>>(new Set());
@@ -36,9 +38,12 @@ export default function RecipeIngredients({ ingredients }: Props) {
     <BaseCard>
       <View style={styles.cardHeader}>
         <View style={{ gap: 2 }}>
-          <ThemedText style={styles.cardTitle}>ინგრედიენტები</ThemedText>
+          <ThemedText style={styles.cardTitle}>{t("recipes.ingredients")}</ThemedText>
           <ThemedText type="secondary" style={styles.cardCaption}>
-            {ingredients.length} კომპონენტი · {checked.size} მონიშნულია
+            {t("recipes.ingredientsCount", {
+              count: ingredients.length,
+              checked: checked.size,
+            })}
           </ThemedText>
         </View>
       </View>

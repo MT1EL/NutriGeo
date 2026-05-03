@@ -13,6 +13,7 @@ import Input from "../ui/Input";
 import ThemedText from "../ui/ThemedText";
 
 type button = {
+  key: string;
   label: string;
   Icon: React.ComponentType<{ color: string; size: number }>;
 };
@@ -33,7 +34,7 @@ const Header = ({
   title,
   hasGoBack = false,
   hasInput = true,
-  inputPlaceholder = "მოძებნე რეცეპტი...",
+  inputPlaceholder,
   buttons,
   activeButton,
   onButtonPress,
@@ -72,9 +73,9 @@ const Header = ({
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ gap: Spacing.sm }}
-              keyExtractor={(item) => item.label}
+              keyExtractor={(item) => item.key}
               renderItem={({ item }) => {
-                const isActive = activeButton === item.label;
+                const isActive = activeButton === item.key;
                 return (
                   <TouchableOpacity
                     style={[

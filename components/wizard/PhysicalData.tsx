@@ -5,6 +5,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { Calendar, Ruler, Weight } from "lucide-react-native";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -43,6 +44,7 @@ function formatBirthDate(iso: string): string {
 }
 
 const PhysicalData = () => {
+  const { t } = useTranslation();
   const { data, setField } = useWizard();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -90,8 +92,8 @@ const PhysicalData = () => {
 
   return (
     <WizzardContentLayout
-      title="ფიზიკური მონაცემები"
-      subtitle="ეს ინფორმაცია დაგვეხმარება შენთვის სწორი კალორიული მიზნის გამოთვლაში"
+      title={t("wizard.physical.title")}
+      subtitle={t("wizard.physical.subtitle")}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -100,23 +102,23 @@ const PhysicalData = () => {
         <Input
           Icon={Ruler}
           placeholder={"175"}
-          label="სიმაღლე (სმ)"
+          label={t("wizard.physical.heightCm")}
           keyboardType="numeric"
           value={data.height_cm}
-          onChangeText={(t) => setField("height_cm", t)}
+          onChangeText={(text) => setField("height_cm", text)}
         />
         <Input
           Icon={Weight}
           placeholder={"66.5"}
-          label="წონა (კგ)"
+          label={t("wizard.physical.weightKg")}
           keyboardType="decimal-pad"
           value={data.weight_kg}
-          onChangeText={(t) => setField("weight_kg", t)}
+          onChangeText={(text) => setField("weight_kg", text)}
         />
 
         <View style={{ gap: Spacing.xs }}>
           <ThemedText style={styles.fieldLabel} type="secondary">
-            დაბადების თარიღი
+            {t("wizard.physical.birthDate")}
           </ThemedText>
           <TouchableOpacity
             activeOpacity={0.8}
@@ -141,7 +143,7 @@ const PhysicalData = () => {
           </TouchableOpacity>
           {age != null && (
             <ThemedText type="secondary" style={styles.ageHint}>
-              ასაკი: {age}
+              {t("wizard.physical.ageLabel")} {age}
             </ThemedText>
           )}
         </View>
@@ -193,7 +195,7 @@ const PhysicalData = () => {
                   style={styles.modalDoneText}
                   color={theme.textOnBrand}
                 >
-                  მზადაა
+                  {t("common.done")}
                 </ThemedText>
               </TouchableOpacity>
             </Pressable>

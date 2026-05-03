@@ -6,6 +6,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Spacing, Type } from "@/constants/theme";
 import { useArticleDetail } from "@/hooks/use-article-detail";
 import { router, useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   Share,
@@ -17,6 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ArticleDetail() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -55,10 +57,10 @@ export default function ArticleDetail() {
       <SafeAreaView
         style={[styles.notFound, { backgroundColor: theme.surface }]}
       >
-        <ThemedText style={styles.notFoundText}>სტატია ვერ მოიძებნა</ThemedText>
+        <ThemedText style={styles.notFoundText}>{t("articles.notFoundDetail")}</ThemedText>
         <TouchableOpacity onPress={() => router.back()}>
           <ThemedText color={theme.brand} style={styles.notFoundLink}>
-            უკან დაბრუნება
+            {t("recipes.backLink")}
           </ThemedText>
         </TouchableOpacity>
       </SafeAreaView>

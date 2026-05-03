@@ -4,8 +4,11 @@ import WeightGoalCard from "@/components/goals/WeightGoalCard";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import Button from "@/components/ui/Button";
 import { useEditGoals } from "@/hooks/use-edit-goals";
+import { useTranslation } from "react-i18next";
 
 export default function GoalsScreen() {
+  const { t } = useTranslation();
+
   const {
     goals,
     pace,
@@ -19,7 +22,10 @@ export default function GoalsScreen() {
   } = useEditGoals();
 
   return (
-    <SubScreenLayout title="მიზნები" subtitle="წონა, კალორია, მაკრო">
+    <SubScreenLayout
+      title={t("profile.goals")}
+      subtitle={t("profile.goalsHint")}
+    >
       <WeightGoalCard
         targetWeight={targetWeight}
         onTargetWeightChange={setTargetWeight}
@@ -29,7 +35,7 @@ export default function GoalsScreen() {
       <CalorieGoalCard value={calorieTarget} onChange={setCalorieTarget} />
       <MacroBalanceReadOnlyCard goals={goals} calorieTarget={calorieTarget} />
       <Button onPress={handleSave} disabled={isSaving || !goals}>
-        {isSaving ? "ინახება..." : "შენახვა"}
+        {isSaving ? t("common.saving") : t("common.save")}
       </Button>
     </SubScreenLayout>
   );

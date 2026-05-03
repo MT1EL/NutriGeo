@@ -1,6 +1,7 @@
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { ScanBarcode, Zap } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -17,6 +18,7 @@ export default function QuickActionsRow({
   onScanBarcode,
   onQuickAdd,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -24,8 +26,8 @@ export default function QuickActionsRow({
     {
       key: "barcode",
       Icon: ScanBarcode,
-      label: "ბარკოდი",
-      hint: "შეფუთულ პროდუქტებს",
+      label: t("add.barcode"),
+      hint: t("add.barcodeHint"),
       color: "#5B6CE0",
       tint: colorScheme === "dark" ? "#222B4A" : "#EEF0FB",
       onPress: onScanBarcode,
@@ -33,8 +35,8 @@ export default function QuickActionsRow({
     {
       key: "quick",
       Icon: Zap,
-      label: "სწრაფი ჩაწერა",
-      hint: "უბრალოდ კალორია",
+      label: t("add.quickAdd"),
+      hint: t("add.quickAddHint"),
       color: "#E8A02C",
       tint: colorScheme === "dark" ? "#3A2E10" : "#FEF6E4",
       onPress: onQuickAdd,
@@ -43,7 +45,7 @@ export default function QuickActionsRow({
 
   return (
     <View style={{ gap: Spacing.sm }}>
-      <ThemedText style={styles.sectionTitle}>სწრაფი ჩაწერა</ThemedText>
+      <ThemedText style={styles.sectionTitle}>{t("add.quickActions")}</ThemedText>
       <View style={styles.row}>
         {tiles.map(({ key, Icon, label, hint, color, tint, onPress }) => (
           <TouchableOpacity

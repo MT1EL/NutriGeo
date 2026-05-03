@@ -28,6 +28,7 @@ import {
   User,
 } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -38,6 +39,7 @@ import {
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 const ProfilePage = () => {
+  const { t } = useTranslation();
   const { signOut, refreshUser, user } = useAuth();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -58,7 +60,7 @@ const ProfilePage = () => {
 
   const avatarMutation = useMutation({
     mutationFn: async (image: PickedImage) => {
-      if (!user?.id) throw new Error("მომხმარებელი ვერ მოიძებნა");
+      if (!user?.id) throw new Error(t("common.userNotFound"));
       const ext = image.mimeType?.includes("png")
         ? "png"
         : image.mimeType?.includes("webp")
@@ -71,13 +73,13 @@ const ProfilePage = () => {
     onSuccess: async (publicUrl) => {
       await queryClient.invalidateQueries({ queryKey: ["Profile"] });
       await refreshUser();
-      toast.success("ფოტო განახლდა");
+      toast.success(t("food.photoUpdated"));
     },
     onError: (err) => {
       console.warn("[avatar] upload failed", err);
       const message =
-        err instanceof Error ? err.message : "ფოტოს ატვირთვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : t("food.photoUploadFailed");
+      toast.error(message, t("common.error"));
     },
     onSettled: () => setUploadingAvatar(false),
   });
@@ -94,8 +96,8 @@ const ProfilePage = () => {
     } catch (err) {
       setUploadingAvatar(false);
       console.warn("[avatar] picker failed", err);
-      const message = err instanceof Error ? err.message : "ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+      const message = err instanceof Error ? err.message : t("common.errorGeneric");
+      toast.error(message, t("common.error"));
     }
   };
 
@@ -116,86 +118,86 @@ const ProfilePage = () => {
         />
 
         <View style={styles.body}>
-          <ThemedText style={styles.sectionTitle}>ანგარიში</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{t("profile.account")}</ThemedText>
           <BaseCard style={styles.cardList}>
             <ProfileMenuRow
               Icon={User}
-              label="პირადი ინფორმაცია"
-              hint="სახელი, ასაკი, სქესი"
+              label={t("profile.personal")}
+              hint={t("profile.personalHint")}
               tint={colorScheme === "dark" ? "#22335A" : "#EAF2FE"}
               iconColor={theme.brand}
               href="/profile/personal"
             />
             <ProfileMenuRow
               Icon={Target}
-              label="მიზნები"
-              hint="წონა, კალორია, მაკრო"
+              label={t("profile.goals")}
+              hint={t("profile.goalsHint")}
               tint={colorScheme === "dark" ? "#1F3A28" : "#E6F6EA"}
               iconColor="#34A867"
               href="/profile/goals"
             />
             <ProfileMenuRow
               Icon={Heart}
-              label="ჯანმრთელობა"
-              hint="ალერგია, შეზღუდვა"
+              label={t("profile.health")}
+              hint={t("profile.healthHint")}
               tint={colorScheme === "dark" ? "#3A2030" : "#FCEAF1"}
               iconColor="#E85A8C"
               href="/profile/health"
             />
           </BaseCard>
 
-          <ThemedText style={styles.sectionTitle}>ბიბლიოთეკა</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{t("profile.library")}</ThemedText>
           <BaseCard style={styles.cardList}>
             <ProfileMenuRow
               Icon={Bookmark}
-              label="შენახული სტატიები"
+              label={t("profile.savedArticles")}
               tint={colorScheme === "dark" ? "#222B4A" : "#EEF0FB"}
               iconColor="#5B6CE0"
               href="/profile/library/articles"
             />
             <ProfileMenuRow
               Icon={Heart}
-              label="შენახული რეცეპტები"
+              label={t("profile.savedRecipes")}
               tint={colorScheme === "dark" ? "#3A2030" : "#FCEAF1"}
               iconColor="#E85A8C"
               href="/profile/library/recipes"
             />
             <ProfileMenuRow
               Icon={Star}
-              label="საყვარელი საკვები"
+              label={t("profile.favoriteFoods")}
               tint={colorScheme === "dark" ? "#3A2A0A" : "#FFF4DA"}
               iconColor="#FFB020"
               href="/profile/library/favorite-foods"
             />
             <ProfileMenuRow
               Icon={ChefHat}
-              label="ჩემი საკვები"
+              label={t("profile.myFoods")}
               tint={colorScheme === "dark" ? "#1F3A28" : "#E6F6EA"}
               iconColor="#34A867"
               href="/profile/library/my-foods"
             />
           </BaseCard>
 
-          <ThemedText style={styles.sectionTitle}>აპლიკაცია</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{t("profile.appSection")}</ThemedText>
           <BaseCard style={styles.cardList}>
             <ProfileMenuRow
               Icon={Bell}
-              label="შეტყობინებები"
+              label={t("profile.notifications")}
               tint={colorScheme === "dark" ? "#3A2E10" : "#FEF6E4"}
               iconColor="#E8A02C"
               href="/profile/notifications"
             />
             <ProfileMenuRow
               Icon={Globe}
-              label="ენა"
-              hint="ქართული"
+              label={t("profile.language")}
+              hint={t("profile.languageGeorgian")}
               tint={colorScheme === "dark" ? "#222B4A" : "#EEF0FB"}
               iconColor="#5B6CE0"
               href="/profile/language"
             />
             <ProfileMenuRow
               Icon={Settings}
-              label="პარამეტრები"
+              label={t("profile.settings")}
               tint={theme.borderLight}
               iconColor={theme.text}
               href="/profile/settings"
@@ -209,7 +211,7 @@ const ProfilePage = () => {
           >
             <LogOut color={theme.error} size={18} />
             <ThemedText style={styles.logoutText} color={theme.error}>
-              გასვლა
+              {t("profile.logout")}
             </ThemedText>
           </TouchableOpacity>
         </View>
@@ -219,7 +221,7 @@ const ProfilePage = () => {
         onClose={() => setAvatarSheetOpen(false)}
         onPickCamera={() => launchPicker("camera")}
         onPickLibrary={() => launchPicker("library")}
-        title="ფოტოს განახლება"
+        title={t("food.photoUpdateTitle")}
       />
     </>
   );

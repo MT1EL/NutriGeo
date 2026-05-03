@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatTodayKa } from "@/utils/date";
 import { ChevronRight, Plus, Scale } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -28,6 +29,7 @@ type Props = {
 // "today's body" data. Tap to log; if there's already a value for the
 // active date, the pill displays it.
 export default function WeightLogPill({ weight }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const { user } = useAuth();
@@ -66,16 +68,16 @@ export default function WeightLogPill({ weight }: Props) {
           {hasLogged ? (
             <>
               <ThemedText type="secondary" style={styles.label}>
-                წონა
+                {t("home.weightShort")}
               </ThemedText>
               <ThemedText style={styles.value}>
-                {weight!.weight_kg.toFixed(1)} კგ
+                {t("home.weightKg", { kg: weight!.weight_kg.toFixed(1) })}
               </ThemedText>
             </>
           ) : (
             <>
               <ThemedText style={styles.cta} color={theme.brand}>
-                {isToday ? "ჩაწერე დღევანდელი წონა" : "ჩაწერე ამ დღის წონა"}
+                {isToday ? t("home.logTodayWeight") : t("home.logDayWeight")}
               </ThemedText>
               <ThemedText type="secondary" style={styles.label}>
                 {dateLabelFor(date)}

@@ -14,6 +14,7 @@ import { foodImageSource } from "@/utils/image";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChefHat, Pencil, Trash2 } from "lucide-react-native";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   StyleSheet,
@@ -24,6 +25,7 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 
 export default function LibraryMyFoodsScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
@@ -47,11 +49,11 @@ export default function LibraryMyFoodsScreen() {
       queryClient.invalidateQueries({ queryKey: ["foods", "mine"] });
       queryClient.invalidateQueries({ queryKey: ["foods", "search"] });
       queryClient.invalidateQueries({ queryKey: ["foods", "favorites"] });
-      toast.success("საკვები წაიშალა");
+      toast.success(t("food.deleted"));
     },
     onError: (err) => {
-      const message = err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+      const message = err instanceof Error ? err.message : t("food.deleteFailed");
+      toast.error(message, t("common.error"));
     },
   });
 
@@ -71,17 +73,21 @@ export default function LibraryMyFoodsScreen() {
   };
 
   const handleDelete = (food: Food) => {
-    Alert.alert("წაშლა?", `"${food.name}"-ის წაშლა შეუქცევადია.`, [
-      { text: "გაუქმება", style: "cancel", onPress: () => closeRow(food.id) },
+    Alert.alert(
+      t("food.deleteConfirm"),
+      t("food.deleteIrreversible", { name: food.name }),
+      [
+      { text: t("common.cancel"), style: "cancel", onPress: () => closeRow(food.id) },
       {
-        text: "წაშლა",
+        text: t("common.delete"),
         style: "destructive",
         onPress: () => {
           closeRow(food.id);
           deleteMutation.mutate(food.id);
         },
       },
-    ]);
+    ],
+    );
   };
 
   const renderRightActions = (food: Food) => (
@@ -106,7 +112,10 @@ export default function LibraryMyFoodsScreen() {
   const foods = data?.data ?? [];
 
   return (
-    <SubScreenLayout title="ჩემი საკვები" subtitle={`${foods.length} საკვები`}>
+    <SubScreenLayout
+      title={t("library.myFoodsTitle")}
+      subtitle={t("library.foodsCount", { count: foods.length })}
+    >
       {isLoading ? (
         <FoodListSkeleton count={3} />
       ) : foods.length === 0 ? (
@@ -116,14 +125,13 @@ export default function LibraryMyFoodsScreen() {
           >
             <ChefHat color={theme.brand} size={28} />
           </View>
-          <ThemedText style={styles.emptyTitle}>ცარიელია</ThemedText>
+          <ThemedText style={styles.emptyTitle}>{t("library.empty")}</ThemedText>
           <ThemedText type="secondary" style={styles.emptyText}>
-            შექმენი საკუთარი საკვები — ის აქ შეინახება და ხელმისაწვდომი იქნება
-            ჩაწერისას
+            {t("library.myFoodsEmptyHint")}
           </ThemedText>
           <View style={styles.emptyAction}>
             <Button onPress={() => setCreateOpen(true)} variant="secondary">
-              + შექმენი ახალი საკვები
+              {t("library.createNew")}
             </Button>
           </View>
         </View>
@@ -156,7 +164,7 @@ export default function LibraryMyFoodsScreen() {
           ))}
           <View style={styles.createWrap}>
             <Button onPress={() => setCreateOpen(true)} variant="secondary">
-              + შექმენი ახალი საკვები
+              {t("library.createNew")}
             </Button>
           </View>
         </View>

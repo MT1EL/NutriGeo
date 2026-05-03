@@ -1,8 +1,12 @@
+import type { Language } from "@/api/types";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useSettings } from "@/hooks/use-settings";
+import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { Check } from "lucide-react-native";
-import React, { useState } from "react";
+import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -10,55 +14,57 @@ import {
   View,
 } from "react-native";
 
-const LANGUAGES = [
-  { code: "ka", name: "ქართული", english: "Georgian", flag: "🇬🇪" },
-  { code: "en", name: "English", english: "English", flag: "🇬🇧" },
-  { code: "ru", name: "Русский", english: "Russian", flag: "🇷🇺" },
-  { code: "tr", name: "Türkçe", english: "Turkish", flag: "🇹🇷" },
-];
+const FLAGS: Record<string, string> = {
+  ka: "🇬🇪",
+  en: "🇬🇧",
+};
 
 export default function LanguageScreen() {
+  const { t, i18n } = useTranslation();
+  const { setLanguage } = useSettings();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const [active, setActive] = useState("ka");
+  const active = i18n.language?.split("-")[0];
+
+  const onPick = (code: Language) => {
+    if (code === active) return;
+    // Switch the UI immediately (i18n listener also persists to SecureStore),
+    // then sync to the server so the choice follows the account across devices.
+    void i18n.changeLanguage(code);
+    setLanguage(code);
+  };
 
   return (
-    <SubScreenLayout title="ენა" subtitle="აპლიკაციის ინტერფეისი">
+    <SubScreenLayout title={t("language.title")} subtitle={t("language.subtitle")}>
       <View
         style={[
           styles.list,
           { backgroundColor: theme.card, borderColor: theme.borderLight },
         ]}
       >
-        {LANGUAGES.map((lang, i) => {
-          const isActive = active === lang.code;
+        {SUPPORTED_LANGUAGES.map((code, i) => {
+          const isActive = active === code;
           return (
-            <View key={lang.code}>
+            <View key={code}>
               {i > 0 && (
                 <View
-                  style={[
-                    styles.sep,
-                    { backgroundColor: theme.borderLight },
-                  ]}
+                  style={[styles.sep, { backgroundColor: theme.borderLight }]}
                 />
               )}
               <TouchableOpacity
-                onPress={() => setActive(lang.code)}
+                onPress={() => onPick(code as Language)}
                 activeOpacity={0.6}
                 style={styles.row}
               >
                 <View
-                  style={[
-                    styles.flag,
-                    { backgroundColor: theme.borderLight },
-                  ]}
+                  style={[styles.flag, { backgroundColor: theme.borderLight }]}
                 >
-                  <ThemedText style={styles.flagText}>{lang.flag}</ThemedText>
+                  <ThemedText style={styles.flagText}>{FLAGS[code]}</ThemedText>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={styles.name}>{lang.name}</ThemedText>
+                  <ThemedText style={styles.name}>{t(`language.${code}`)}</ThemedText>
                   <ThemedText style={styles.english} type="secondary">
-                    {lang.english}
+                    {t(`language.${code}English`)}
                   </ThemedText>
                 </View>
                 <View
@@ -79,7 +85,7 @@ export default function LanguageScreen() {
       </View>
 
       <ThemedText style={styles.hint} type="secondary">
-        ცვლილება შეინახება და გამოყენებული იქნება შემდეგი გახსნისას.
+        {t("language.saved")}
       </ThemedText>
     </SubScreenLayout>
   );

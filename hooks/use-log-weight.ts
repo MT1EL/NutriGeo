@@ -1,6 +1,7 @@
 import { logWeight } from "@/api/weight";
 import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
+import i18n from "@/i18n";
 import { loggedAtForDate } from "@/utils/date";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -25,12 +26,12 @@ export function useLogWeight() {
       queryClient.invalidateQueries({ queryKey: ["Profile"] });
       queryClient.invalidateQueries({ queryKey: ["home", "day"] });
       queryClient.invalidateQueries({ queryKey: ["weight"] });
-      toast.success("წონა შენახულია");
+      toast.success(i18n.t("weight.saved"));
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("common.saveFailed");
+      toast.error(message, i18n.t("common.error"));
     },
   });
 }

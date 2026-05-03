@@ -12,9 +12,10 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useRecipesList } from "@/hooks/use-recipes-list";
 import { recipeImageSource } from "@/utils/image";
-import { difficultyLabel } from "@/utils/recipe";
+import { difficultyLabelKey } from "@/utils/recipe";
 import { Search } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -26,6 +27,7 @@ import {
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 export default function RecipesScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
@@ -56,9 +58,9 @@ export default function RecipesScreen() {
       )}
       {rest.length > 0 ? (
         <View style={styles.sectionHeader}>
-          <ThemedText style={styles.sectionTitle}>ყველა რეცეპტი</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{t("recipes.all")}</ThemedText>
           <ThemedText type="secondary" style={styles.sectionCount}>
-            {rest.length} ნიმუში
+            {t("recipes.samples", { count: rest.length })}
           </ThemedText>
         </View>
       ) : isLoading ? (
@@ -77,9 +79,9 @@ export default function RecipesScreen() {
       <View style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}>
         <Search color={theme.brand} size={28} />
       </View>
-      <ThemedText style={styles.emptyTitle}>ვერ ვიპოვე რეცეპტი</ThemedText>
+      <ThemedText style={styles.emptyTitle}>{t("recipes.notFound")}</ThemedText>
       <ThemedText type="secondary" style={styles.emptyText}>
-        სცადე სხვა კატეგორია
+        {t("recipes.tryDifferentCategory")}
       </ThemedText>
     </View>
   );
@@ -91,8 +93,8 @@ export default function RecipesScreen() {
       keyboardVerticalOffset={-TAB_BAR_HEIGHT}
     >
       <Header
-        title="რეცეპტები"
-        inputPlaceholder="მოძებნე რეცეპტი..."
+        title={t("recipes.title")}
+        inputPlaceholder={t("recipes.search")}
         searchValue={searchInput}
         onSearchChange={setSearchInput}
       />
@@ -107,7 +109,10 @@ export default function RecipesScreen() {
             calories={item.kcal}
             durationMin={item.duration_min}
             servings={item.servings}
-            difficulty={difficultyLabel(item.difficulty)}
+            difficulty={(() => {
+              const key = difficultyLabelKey(item.difficulty);
+              return key ? t(key) : "—";
+            })()}
             image={recipeImageSource(item.cover_url)}
             tag={
               item.dietary_tags?.[0]

@@ -2,6 +2,7 @@ import { GradientView } from "@/components/ui/GradientView";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import type { UiRange } from "@/hooks/use-stats";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -9,12 +10,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const RANGES: { key: UiRange; label: string }[] = [
-  { key: "week", label: "კვირა" },
-  { key: "month", label: "თვე" },
-  { key: "quarter", label: "3 თვე" },
-];
 
 type Props = {
   range: UiRange;
@@ -29,8 +24,15 @@ export default function StatisticsHeader({
   weightLabel,
   streakDays,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+
+  const RANGES: { key: UiRange; label: string }[] = [
+    { key: "week", label: t("statistics.rangeWeekShort") },
+    { key: "month", label: t("statistics.rangeMonthShort") },
+    { key: "quarter", label: t("statistics.rangeQuarterShort") },
+  ];
 
   return (
     <GradientView
@@ -43,13 +45,13 @@ export default function StatisticsHeader({
       <SafeAreaView edges={["top"]} style={styles.headerSafe}>
         <View style={{ gap: 4 }}>
           <ThemedText style={styles.headerTitle} color="#FFFFFF">
-            შენი მოგზაურობა
+            {t("statistics.yourJourney")}
           </ThemedText>
           <ThemedText
             style={styles.headerSubtitle}
             color="rgba(255,255,255,0.85)"
           >
-            {weightLabel} · {streakDays} დღიანი სტრიკი
+            {weightLabel} · {t("statistics.dayStreak", { count: streakDays })}
           </ThemedText>
         </View>
 

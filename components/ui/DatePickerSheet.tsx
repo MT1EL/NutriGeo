@@ -4,6 +4,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Modal,
   Platform,
@@ -45,6 +46,7 @@ export default function DatePickerSheet({
   minimumDate,
   maximumDate,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -105,7 +107,7 @@ export default function DatePickerSheet({
             activeOpacity={0.85}
           >
             <ThemedText style={styles.doneText} color={theme.textOnBrand}>
-              მზადაა
+              {t("common.done")}
             </ThemedText>
           </TouchableOpacity>
         </Pressable>

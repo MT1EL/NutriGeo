@@ -4,6 +4,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { PACE_OPTIONS, type Pace } from "@/hooks/use-edit-goals";
 import { Target, TrendingDown } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -24,6 +25,7 @@ export default function WeightGoalCard({
   pace,
   onPaceChange,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -35,9 +37,9 @@ export default function WeightGoalCard({
             <TrendingDown color="#34A867" size={18} />
           </View>
           <View style={{ gap: 2 }}>
-            <ThemedText style={styles.cardTitle}>წონის მიზანი</ThemedText>
+            <ThemedText style={styles.cardTitle}>{t("goals2.weightGoal")}</ThemedText>
             <ThemedText type="secondary" style={styles.cardCaption}>
-              მიმდინარე ტემპით 6 კვირა
+              {t("goals2.currentTempWeeks")}
             </ThemedText>
           </View>
         </View>
@@ -45,7 +47,7 @@ export default function WeightGoalCard({
 
       <Input
         Icon={Target}
-        label="სამიზნე წონა (კგ)"
+        label={t("wizard.goalDetails.targetWeight")}
         value={targetWeight}
         onChangeText={onTargetWeightChange}
         keyboardType="decimal-pad"
@@ -53,7 +55,7 @@ export default function WeightGoalCard({
 
       <View style={{ gap: Spacing.sm }}>
         <ThemedText style={styles.subLabel} type="secondary">
-          კვირეული ტემპი
+          {t("goals2.weeklyTempLabel")}
         </ThemedText>
         <View style={styles.paceRow}>
           {PACE_OPTIONS.map((opt) => {
@@ -75,10 +77,10 @@ export default function WeightGoalCard({
                   style={styles.paceLabel}
                   color={isActive ? theme.brand : theme.text}
                 >
-                  {opt.label}
+                  {t(opt.labelKey)}
                 </ThemedText>
                 <ThemedText style={styles.paceDesc} type="secondary">
-                  {opt.desc}
+                  {t("wizard.goalDetails.kgPerWeek", { kg: opt.weeklyKg })}
                 </ThemedText>
               </TouchableOpacity>
             );

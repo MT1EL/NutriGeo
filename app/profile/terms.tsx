@@ -1,51 +1,28 @@
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import ThemedText from "@/components/ui/ThemedText";
-import { LEGAL_EFFECTIVE_FROM } from "@/constants/legal";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { FileText } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
-const SECTIONS: { h: string; p: string }[] = [
-  {
-    h: "1. სერვისის გამოყენება",
-    p: "NutriGeo უზრუნველყოფს კვების ჩაწერისა და კალორიის ანგარიშის ხელსაწყოს. სერვისი არის საინფორმაციო და არ ცვლის სამედიცინო კონსულტაციას.",
-  },
-  {
-    h: "2. ანგარიში",
-    p: "ანგარიშის შესაქმნელად საჭიროა იყო 13 წლის ან მეტი. პასუხისმგებელი ხარ შენი ანგარიშის უსაფრთხოებაზე და ყველა აქტივობაზე.",
-  },
-  {
-    h: "3. დასაშვები გამოყენება",
-    p: "აკრძალულია სერვისის გამოყენება უკანონო მიზნებისთვის, სხვა მომხმარებლების შემავიწროებლად, ან NutriGeo-ს ინფრასტრუქტურის დაზიანებისთვის.",
-  },
-  {
-    h: "4. შინაარსი",
-    p: "შენს მიერ შექმნილი შინაარსი (კვების ჩანაწერები, საკვები) შენი საკუთრებაა. ჩვენ გვაქვს ლიცენზია მათი დამუშავებისთვის სერვისის გასაწევად.",
-  },
-  {
-    h: "5. შეცვლა და შეწყვეტა",
-    p: "შეგვიძლია სერვისის ფუნქციები შევცვალოთ ან შეწყვიტოთ ნებისმიერ დროს. შეგატყობინებთ მნიშვნელოვანი ცვლილების შესახებ.",
-  },
-  {
-    h: "6. პასუხისმგებლობის შეზღუდვა",
-    p: "სერვისი მოწოდებულია 'როგორც არის' საფუძველზე. NutriGeo არ აგებს პასუხს ჯანმრთელობის შედეგებზე, რომლებიც სერვისის გამოყენებიდან გამომდინარეობს.",
-  },
-  {
-    h: "7. გამოყენებული კანონი",
-    p: "ეს ხელშეკრულება რეგულირდება საქართველოს კანონმდებლობით. დავა განიხილება თბილისის სასამართლოში.",
-  },
-];
-
 export default function TermsScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
+  const SECTIONS: { h: string; p: string }[] = [
+    { h: t("terms.section1Title"), p: t("terms.section1Body") },
+    { h: t("terms.section2Title"), p: t("terms.section2Body") },
+    { h: t("terms.section3Title"), p: t("terms.section3Body") },
+    { h: t("terms.section4Title"), p: t("terms.section4Body") },
+    { h: t("terms.section5Title"), p: t("terms.section5Body") },
+    { h: t("terms.section6Title"), p: t("terms.section6Body") },
+    { h: t("terms.section7Title"), p: t("terms.section7Body") },
+  ];
+
   return (
-    <SubScreenLayout
-      title="წესები და პირობები"
-      subtitle="სერვისის გამოყენების ხელშეკრულება"
-    >
+    <SubScreenLayout title={t("terms.title")} subtitle={t("terms.subtitle")}>
       <View style={styles.heroIconWrap}>
         <View style={[styles.heroIcon, { backgroundColor: theme.brandSoft }]}>
           <FileText color={theme.brand} size={28} />
@@ -53,8 +30,7 @@ export default function TermsScreen() {
       </View>
 
       <ThemedText style={styles.intro} type="secondary">
-        NutriGeo-ს გამოყენებით ეთანხმები ამ წესებსა და პირობებს. გთხოვთ
-        ყურადღებით წაიკითხო.
+        {t("terms.intro")}
       </ThemedText>
 
       <View style={{ gap: Spacing.lg }}>
@@ -69,7 +45,7 @@ export default function TermsScreen() {
       </View>
 
       <ThemedText style={styles.footer} type="secondary">
-        ძალაშია {LEGAL_EFFECTIVE_FROM}
+        {t("terms.effectiveFrom", { date: t("legal.effectiveFromDate") })}
       </ThemedText>
     </SubScreenLayout>
   );

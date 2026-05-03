@@ -4,23 +4,26 @@ import { useToast } from "@/contexts/ToastContext";
 import { router } from "expo-router";
 import { useFormik } from "formik";
 import { Eye, Lock } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 type FormValues = { newPassword: string; confirmPassword: string };
 
-function validate(values: FormValues) {
-  const errors: Partial<Record<keyof FormValues, string>> = {};
-  if (!values.newPassword) errors.newPassword = "შეიყვანე ახალი პაროლი";
-  else if (values.newPassword.length < 8)
-    errors.newPassword = "პაროლი მინიმუმ 8 სიმბოლო";
-  if (!values.confirmPassword)
-    errors.confirmPassword = "გაიმეორე ახალი პაროლი";
-  else if (values.confirmPassword !== values.newPassword)
-    errors.confirmPassword = "პაროლები არ ემთხვევა";
-  return errors;
-}
-
 function ResetPasswordScreen() {
+  const { t } = useTranslation();
   const toast = useToast();
+
+  const validate = (values: FormValues) => {
+    const errors: Partial<Record<keyof FormValues, string>> = {};
+    if (!values.newPassword)
+      errors.newPassword = t("auth.reset.newPassword");
+    else if (values.newPassword.length < 8)
+      errors.newPassword = t("validation.passwordMin");
+    if (!values.confirmPassword)
+      errors.confirmPassword = t("auth.reset.repeatNew");
+    else if (values.confirmPassword !== values.newPassword)
+      errors.confirmPassword = t("validation.passwordsDoNotMatch");
+    return errors;
+  };
 
   const form = useFormik<FormValues>({
     initialValues: { newPassword: "", confirmPassword: "" },
@@ -28,12 +31,12 @@ function ResetPasswordScreen() {
     onSubmit: async (values, helpers) => {
       try {
         await resetPassword(values.newPassword);
-        toast.success("პაროლი წარმატებით შეიცვალა", "მზადაა");
+        toast.success(t("auth.reset.success"), t("common.done"));
         router.replace("/Login");
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "პაროლის შეცვლა ვერ მოხერხდა";
-        toast.error(message, "შეცდომა");
+          err instanceof Error ? err.message : t("changePassword.failed");
+        toast.error(message, t("common.error"));
       } finally {
         helpers.setSubmitting(false);
       }
@@ -46,7 +49,7 @@ function ResetPasswordScreen() {
   const inputs = [
     {
       Icon: Lock,
-      placeholder: "ახალი პაროლი",
+      placeholder: t("changePassword.new"),
       value: form.values.newPassword,
       onChangeText: form.handleChange("newPassword"),
       errorText: errorOf("newPassword"),
@@ -54,7 +57,7 @@ function ResetPasswordScreen() {
     },
     {
       Icon: Eye,
-      placeholder: "გაიმეორე ახალი პაროლი",
+      placeholder: t("auth.reset.repeatNew"),
       value: form.values.confirmPassword,
       onChangeText: form.handleChange("confirmPassword"),
       errorText: errorOf("confirmPassword"),
@@ -66,9 +69,9 @@ function ResetPasswordScreen() {
     <AuthLayout
       illustrationSource={require("@/assets/illustrations/forgot-password.png")}
       illustrationSize="medium"
-      title="ახალი პაროლი"
-      subtitle="შეიყვანე ახალი პაროლი ანგარიშისთვის"
-      label={form.isSubmitting ? "გთხოვთ მოიცადოთ..." : "შენახვა"}
+      title={t("changePassword.new")}
+      subtitle={t("auth.reset.subtitle")}
+      label={form.isSubmitting ? t("common.loading") : t("common.save")}
       inputs={inputs}
       onPress={() => {
         if (form.isSubmitting) return;

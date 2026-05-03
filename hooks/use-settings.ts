@@ -5,8 +5,10 @@ import {
   updateSettings,
   type SettingsInput,
 } from "@/api/profile";
+import type { Language } from "@/api/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import i18n from "@/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const PROFILE_QUERY_KEY = ["Profile"] as const;
@@ -26,6 +28,7 @@ export function useSettings() {
   const profile = profileQuery.data?.data;
   const units = (profile?.units as Units) ?? "metric";
   const themeMode = (profile?.theme as ThemeMode) ?? "system";
+  const language = (profile?.language as Language) ?? "ka";
 
   const settingsMutation = useMutation({
     mutationFn: (input: Partial<SettingsInput>) => {
@@ -54,8 +57,8 @@ export function useSettings() {
         queryClient.setQueryData(PROFILE_QUERY_KEY, ctx.previous);
       }
       const message =
-        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("common.saveFailed");
+      toast.error(message, i18n.t("common.error"));
     },
     onSuccess: async (res) => {
       queryClient.setQueryData(PROFILE_QUERY_KEY, res);
@@ -66,37 +69,43 @@ export function useSettings() {
   const exportMutation = useMutation({
     mutationFn: () => requestExport("csv"),
     onSuccess: () => {
-      toast.success("ექსპორტი დაიწყო", "ელფოსტა მიიღებ რამდენიმე წუთში");
+      toast.success(
+        i18n.t("settings.exportStarted"),
+        i18n.t("settings.exportEmailHint"),
+      );
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "ექსპორტი ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("settings.exportFailed");
+      toast.error(message, i18n.t("common.error"));
     },
   });
 
   const deleteAccountMutation = useMutation({
     mutationFn: () => deleteMe(),
     onSuccess: async () => {
-      toast.success("ანგარიში წაშლილია");
+      toast.success(i18n.t("settings.accountDeleted"));
       await signOut();
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "წაშლა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("settings.deleteFailed");
+      toast.error(message, i18n.t("common.error"));
     },
   });
 
   return {
     units,
     themeMode,
+    language,
     isSavingSettings: settingsMutation.isPending,
     isExporting: exportMutation.isPending,
     setUnits: (next: Units) =>
       next !== units && settingsMutation.mutate({ units: next }),
     setThemeMode: (next: ThemeMode) =>
       next !== themeMode && settingsMutation.mutate({ theme: next }),
+    setLanguage: (next: Language) =>
+      next !== language && settingsMutation.mutate({ language: next }),
     requestExport: () => exportMutation.mutate(),
     deleteAccount: () => deleteAccountMutation.mutate(),
   };

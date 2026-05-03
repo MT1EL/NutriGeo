@@ -1,7 +1,8 @@
 import { Sex } from "@/api";
 import { getProfile, updatePersonal, type PersonalInput } from "@/api/profile";
-import { useToast } from "@/contexts/ToastContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
+import i18n from "@/i18n";
 import { ageFromBirthDate, birthDateFromAge } from "@/utils/date";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFormik } from "formik";
@@ -34,12 +35,12 @@ export function usePersonalForm() {
       queryClient.setQueryData(PROFILE_QUERY_KEY, res);
       await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
       await refreshUser();
-      toast.success("პირადი მონაცემები შენახულია");
+      toast.success(i18n.t("profile.personalScreen.saved"));
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("common.saveFailed");
+      toast.error(message, i18n.t("common.error"));
     },
   });
 
@@ -68,7 +69,7 @@ export function usePersonalForm() {
 
   useEffect(() => {
     if (profileQuery.isError) {
-      toast.error("პროფილის ჩატვირთვა ვერ მოხერხდა");
+      toast.error(i18n.t("profile.personalScreen.loadFailed"));
     }
   }, [profileQuery.isError, toast]);
 

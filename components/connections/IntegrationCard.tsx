@@ -4,6 +4,7 @@ import type { Integration } from "@/constants/integrations";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import type { ConnectionState } from "@/hooks/use-connections";
 import { Check, ChevronDown, ChevronUp, RefreshCw } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   StyleSheet,
@@ -30,6 +31,7 @@ export default function IntegrationCard({
   onToggleType,
   onToggleExpand,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const tint = colorScheme === "dark" ? i.tintDark : i.tint;
@@ -52,12 +54,12 @@ export default function IntegrationCard({
                 style={[styles.dot, { backgroundColor: theme.success }]}
               />
               <ThemedText style={styles.statusText} type="secondary">
-                დაკავშირებულია · ახლახან
+                {t("connections.connectedRecent")}
               </ThemedText>
             </View>
           ) : (
             <ThemedText style={styles.statusText} type="secondary">
-              {i.description}
+              {t(i.descriptionKey)}
             </ThemedText>
           )}
         </View>
@@ -76,11 +78,14 @@ export default function IntegrationCard({
         >
           <View style={styles.typesHeader}>
             <ThemedText style={styles.typesTitle} type="secondary">
-              სინქრონიზებული მონაცემი
+              {t("connections.syncedData")}
             </ThemedText>
             <TouchableOpacity
               onPress={() =>
-                Alert.alert("სინქრონიზაცია", `${i.name} განახლდა ახლახან.`)
+                Alert.alert(
+                  t("connections.sync"),
+                  t("connections.syncedRecently", { name: i.name }),
+                )
               }
               activeOpacity={0.6}
               hitSlop={6}
@@ -88,7 +93,7 @@ export default function IntegrationCard({
             >
               <RefreshCw color={theme.brand} size={12} />
               <ThemedText style={styles.syncText} color={theme.brand}>
-                სინქრონი
+                {t("connections.syncBtn")}
               </ThemedText>
             </TouchableOpacity>
           </View>
@@ -124,7 +129,7 @@ export default function IntegrationCard({
                     style={styles.typeText}
                     color={isOn ? theme.text : theme.textSecondary}
                   >
-                    {d.label}
+                    {t(d.labelKey)}
                   </ThemedText>
                 </TouchableOpacity>
               );

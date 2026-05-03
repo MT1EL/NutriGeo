@@ -5,6 +5,7 @@ import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import type { UiRange } from "@/hooks/use-stats";
 import { Beef, Droplet, Wheat } from "lucide-react-native";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import CardEmpty from "./CardEmpty";
 
@@ -21,6 +22,7 @@ export default function MacroBalanceCard({
   macrosSeries,
   loggedDays,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -49,20 +51,24 @@ export default function MacroBalanceCard({
 
   const hasTrendData = loggedDays >= MIN_DAYS_FOR_TREND;
   const caption =
-    range === "week" ? "7 დღის" : range === "month" ? "30 დღის" : "90 დღის";
+    range === "week"
+      ? t("statistics.weekDays")
+      : range === "month"
+        ? t("statistics.monthDays")
+        : t("statistics.quarterDays");
 
   const rows = [
-    { Icon: Beef, label: "ცილა", pct: macroPcts.protein, color: theme.macroProtein },
-    { Icon: Wheat, label: "ნახშირწყალი", pct: macroPcts.carbs, color: theme.macroCarbs },
-    { Icon: Droplet, label: "ცხიმი", pct: macroPcts.fat, color: theme.macroFat },
+    { Icon: Beef, label: t("macros.protein"), pct: macroPcts.protein, color: theme.macroProtein },
+    { Icon: Wheat, label: t("macros.carbs"), pct: macroPcts.carbs, color: theme.macroCarbs },
+    { Icon: Droplet, label: t("macros.fat"), pct: macroPcts.fat, color: theme.macroFat },
   ];
 
   return (
     <BaseCard>
       <View style={styles.cardHeader}>
-        <ThemedText style={styles.cardTitle}>მაკრო ბალანსი</ThemedText>
+        <ThemedText style={styles.cardTitle}>{t("statistics.macroBalance2")}</ThemedText>
         <ThemedText type="secondary" style={styles.cardCaption}>
-          {caption} საშუალო
+          {t("statistics.average", { caption })}
         </ThemedText>
       </View>
       {hasTrendData ? (
@@ -94,8 +100,8 @@ export default function MacroBalanceCard({
       ) : (
         <CardEmpty
           Icon={Beef}
-          title="ჯერ საკმარისი მონაცემი არ არის"
-          hint={`დააფიქსირე ${MIN_DAYS_FOR_TREND} დღის კვება რომ ნახო შენი მაკრო ბალანსი.`}
+          title={t("statistics.notEnoughData")}
+          hint={t("statistics.logXDaysHint", { count: MIN_DAYS_FOR_TREND })}
           color={theme.macroProtein}
           tint={colorScheme === "dark" ? "#3A1A1A" : "#FCEAEA"}
         />

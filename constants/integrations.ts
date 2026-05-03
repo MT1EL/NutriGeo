@@ -10,8 +10,10 @@ import {
 
 export type DataType = {
   key: string;
-  label: string;
+  labelKey: string;
 };
+
+export type IntegrationCategory = "health" | "fitness" | "nutrition";
 
 export type Integration = {
   id: string;
@@ -20,9 +22,9 @@ export type Integration = {
   color: string;
   tint: string;
   tintDark: string;
-  description: string;
+  descriptionKey: string;
   dataTypes: DataType[];
-  category: "ჯანმრთელობა" | "ფიტნესი" | "კვება";
+  category: IntegrationCategory;
   defaultConnected?: boolean;
 };
 
@@ -34,16 +36,16 @@ export const INTEGRATIONS: Integration[] = [
     color: "#FF3B5C",
     tint: "#FFE4E9",
     tintDark: "#3A1018",
-    description: "iOS-ის სტანდარტული ჯანმრთელობის აპი",
-    category: "ჯანმრთელობა",
+    descriptionKey: "integrations.descriptions.appleHealth",
+    category: "health",
     defaultConnected: true,
     dataTypes: [
-      { key: "steps", label: "ნაბიჯები" },
-      { key: "weight", label: "წონა" },
-      { key: "workouts", label: "ვარჯიში" },
-      { key: "heart-rate", label: "გულისცემა" },
-      { key: "sleep", label: "ძილი" },
-      { key: "active-energy", label: "აქტიური კალორია" },
+      { key: "steps", labelKey: "integrations.dataTypes.steps" },
+      { key: "weight", labelKey: "integrations.dataTypes.weight" },
+      { key: "workouts", labelKey: "integrations.dataTypes.workouts" },
+      { key: "heart-rate", labelKey: "integrations.dataTypes.heartRate" },
+      { key: "sleep", labelKey: "integrations.dataTypes.sleep" },
+      { key: "active-energy", labelKey: "integrations.dataTypes.activeEnergy" },
     ],
   },
   {
@@ -53,13 +55,13 @@ export const INTEGRATIONS: Integration[] = [
     color: "#34A867",
     tint: "#E6F6EA",
     tintDark: "#1F3A28",
-    description: "Android-ის ჯანმრთელობის პლატფორმა",
-    category: "ჯანმრთელობა",
+    descriptionKey: "integrations.descriptions.googleFit",
+    category: "health",
     dataTypes: [
-      { key: "steps", label: "ნაბიჯები" },
-      { key: "weight", label: "წონა" },
-      { key: "workouts", label: "ვარჯიში" },
-      { key: "heart-rate", label: "გულისცემა" },
+      { key: "steps", labelKey: "integrations.dataTypes.steps" },
+      { key: "weight", labelKey: "integrations.dataTypes.weight" },
+      { key: "workouts", labelKey: "integrations.dataTypes.workouts" },
+      { key: "heart-rate", labelKey: "integrations.dataTypes.heartRate" },
     ],
   },
   {
@@ -69,13 +71,13 @@ export const INTEGRATIONS: Integration[] = [
     color: "#1D6BE8",
     tint: "#E1ECFD",
     tintDark: "#102240",
-    description: "Garmin საათები და ფიტნეს მოწყობილობები",
-    category: "ფიტნესი",
+    descriptionKey: "integrations.descriptions.garmin",
+    category: "fitness",
     dataTypes: [
-      { key: "workouts", label: "ვარჯიში" },
-      { key: "heart-rate", label: "გულისცემა" },
-      { key: "vo2", label: "VO2 max" },
-      { key: "recovery", label: "აღდგენა" },
+      { key: "workouts", labelKey: "integrations.dataTypes.workouts" },
+      { key: "heart-rate", labelKey: "integrations.dataTypes.heartRate" },
+      { key: "vo2", labelKey: "integrations.dataTypes.vo2" },
+      { key: "recovery", labelKey: "integrations.dataTypes.recovery" },
     ],
   },
   {
@@ -85,12 +87,12 @@ export const INTEGRATIONS: Integration[] = [
     color: "#00B0B9",
     tint: "#DDF5F5",
     tintDark: "#0B2C2E",
-    description: "Fitbit მოწყობილობები და აპი",
-    category: "ფიტნესი",
+    descriptionKey: "integrations.descriptions.fitbit",
+    category: "fitness",
     dataTypes: [
-      { key: "steps", label: "ნაბიჯები" },
-      { key: "sleep", label: "ძილი" },
-      { key: "heart-rate", label: "გულისცემა" },
+      { key: "steps", labelKey: "integrations.dataTypes.steps" },
+      { key: "sleep", labelKey: "integrations.dataTypes.sleep" },
+      { key: "heart-rate", labelKey: "integrations.dataTypes.heartRate" },
     ],
   },
   {
@@ -100,12 +102,12 @@ export const INTEGRATIONS: Integration[] = [
     color: "#FC4C02",
     tint: "#FEE3D7",
     tintDark: "#3A1408",
-    description: "სირბილი, ველოსიპედი, აქტივობები",
-    category: "ფიტნესი",
+    descriptionKey: "integrations.descriptions.strava",
+    category: "fitness",
     dataTypes: [
-      { key: "workouts", label: "აქტივობები" },
-      { key: "distance", label: "მანძილი" },
-      { key: "elevation", label: "სიმაღლე" },
+      { key: "workouts", labelKey: "integrations.dataTypes.activities" },
+      { key: "distance", labelKey: "integrations.dataTypes.distance" },
+      { key: "elevation", labelKey: "integrations.dataTypes.elevation" },
     ],
   },
   {
@@ -115,17 +117,16 @@ export const INTEGRATIONS: Integration[] = [
     color: "#0072C6",
     tint: "#DCEFFB",
     tintDark: "#0A1F3A",
-    description: "ცნობილი კვების ბაზა",
-    category: "კვება",
+    descriptionKey: "integrations.descriptions.myfitnesspal",
+    category: "nutrition",
     dataTypes: [
-      { key: "foods", label: "საკვები ბაზა" },
-      { key: "barcode", label: "ბარკოდი" },
+      { key: "foods", labelKey: "integrations.dataTypes.foods" },
+      { key: "barcode", labelKey: "integrations.dataTypes.barcode" },
     ],
   },
 ];
 
 export const APPLE_HEALTH_CONNECTED = true;
-export const LAST_SYNC_LABEL = "ახლახან";
 
 export const getIntegration = (id: string) =>
   INTEGRATIONS.find((i) => i.id === id);

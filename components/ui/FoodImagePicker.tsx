@@ -10,6 +10,7 @@ import {
 import { Image } from "expo-image";
 import { Camera, Image as ImageIcon } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -27,6 +28,7 @@ type Props = {
 };
 
 export default function FoodImagePicker({ value, onChange, uploading }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
@@ -42,8 +44,8 @@ export default function FoodImagePicker({ value, onChange, uploading }: Props) {
           : await pickFromLibrary({ aspect: [1, 1] });
       if (picked) onChange(picked);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+      const message = err instanceof Error ? err.message : t("common.errorGeneric");
+      toast.error(message, t("common.error"));
     }
   };
 
@@ -87,9 +89,9 @@ export default function FoodImagePicker({ value, onChange, uploading }: Props) {
             >
               <ImageIcon color={theme.brand} size={20} />
             </View>
-            <ThemedText style={styles.emptyTitle}>დაამატე ფოტო</ThemedText>
+            <ThemedText style={styles.emptyTitle}>{t("food.addPhoto")}</ThemedText>
             <ThemedText type="secondary" style={styles.emptyHint}>
-              კამერა ან გალერეა
+              {t("food.cameraOrGallery")}
             </ThemedText>
           </View>
         )}

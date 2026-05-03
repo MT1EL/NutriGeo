@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -22,6 +23,7 @@ import {
 } from "react-native";
 
 export default function NotificationsScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const [all, setAll] = useState(true);
@@ -52,7 +54,10 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <SubScreenLayout title="შეტყობინებები" subtitle="რა და როდის გინდა მიიღო">
+    <SubScreenLayout
+      title={t("notifications.title")}
+      subtitle={t("notifications.subtitle")}
+    >
       <View
         style={[
           styles.banner,
@@ -75,14 +80,14 @@ export default function NotificationsScreen() {
         </View>
         <View style={{ flex: 1 }}>
           <ThemedText style={styles.bannerTitle} numberOfLines={1}>
-            {all ? "ყველა შეტყობინება ჩართულია" : "შეტყობინებები გათიშულია"}
+            {all ? t("notifications.allOn") : t("notifications.allOff")}
           </ThemedText>
           <ThemedText
             type="secondary"
             style={styles.bannerSub}
             numberOfLines={1}
           >
-            {all ? "გახდი უფრო თანმიმდევრული" : "ვერ მიიღებ შეხსენებებს"}
+            {all ? t("notifications.morePersistent") : t("notifications.noReminders")}
           </ThemedText>
         </View>
         <TouchableOpacity
@@ -95,18 +100,18 @@ export default function NotificationsScreen() {
             color={theme.brand}
             numberOfLines={1}
           >
-            {all ? "გათიშვა" : "ჩართვა"}
+            {all ? t("notifications.off") : t("notifications.on")}
           </ThemedText>
         </TouchableOpacity>
       </View>
 
-      <SettingsGroup title="ყოველდღიური">
+      <SettingsGroup title={t("notifications.groupDaily")}>
         <SettingsRow
           Icon={Coffee}
           iconColor="#E8A02C"
           iconTint={colorScheme === "dark" ? "#3A2E10" : "#FEF6E4"}
-          label="კვების შეხსენება"
-          hint="საუზმე, სადილი, ვახშამი"
+          label={t("notifications.mealReminder")}
+          hint={t("notifications.mealReminderHint")}
           rightAccessory="switch"
           switchOn={meal && all}
           onSwitchChange={setMeal}
@@ -115,8 +120,8 @@ export default function NotificationsScreen() {
           Icon={Droplet}
           iconColor="#3FA9F5"
           iconTint={colorScheme === "dark" ? "#102A3A" : "#E5F3FE"}
-          label="წყლის შეხსენება"
-          hint="ყოველ 2 საათში"
+          label={t("notifications.waterReminder")}
+          hint={t("notifications.waterReminderHint")}
           rightAccessory="switch"
           switchOn={water && all}
           onSwitchChange={setWater}
@@ -125,21 +130,21 @@ export default function NotificationsScreen() {
           Icon={Flame}
           iconColor="#FF7A45"
           iconTint={colorScheme === "dark" ? "#3A2010" : "#FEEDE2"}
-          label="სტრიკის შენარჩუნება"
-          hint="საღამოს მოგაგონებთ"
+          label={t("notifications.streakKeeper")}
+          hint={t("notifications.streakKeeperHint")}
           rightAccessory="switch"
           switchOn={streak && all}
           onSwitchChange={setStreak}
         />
       </SettingsGroup>
 
-      <SettingsGroup title="შემაჯამებელი">
+      <SettingsGroup title={t("notifications.groupSummary")}>
         <SettingsRow
           Icon={Calendar}
           iconColor="#5B6CE0"
           iconTint={colorScheme === "dark" ? "#222B4A" : "#EEF0FB"}
-          label="კვირის ანგარიში"
-          hint="ყოველ კვირას, 09:00"
+          label={t("notifications.weeklyReport")}
+          hint={t("notifications.weeklyReportHint")}
           rightAccessory="switch"
           switchOn={weekly && all}
           onSwitchChange={setWeekly}
@@ -148,21 +153,21 @@ export default function NotificationsScreen() {
           Icon={Trophy}
           iconColor="#FFB020"
           iconTint={colorScheme === "dark" ? "#3A2A0A" : "#FFF4DA"}
-          label="მიღწევები"
-          hint="ახალი რეკორდი ან ნიშანი"
+          label={t("notifications.achievements")}
+          hint={t("notifications.achievementsHint")}
           rightAccessory="switch"
           switchOn={motivational && all}
           onSwitchChange={setMotivational}
         />
       </SettingsGroup>
 
-      <SettingsGroup title="დამატებითი">
+      <SettingsGroup title={t("notifications.groupExtra")}>
         <SettingsRow
           Icon={Sparkles}
           iconColor="#7C5CFF"
           iconTint={colorScheme === "dark" ? "#2A1F4A" : "#F0EBFE"}
-          label="მოტივაცია"
-          hint="დილის ციტატები"
+          label={t("notifications.motivation")}
+          hint={t("notifications.motivationHint")}
           rightAccessory="switch"
           switchOn={motivational && all}
           onSwitchChange={setMotivational}
@@ -171,8 +176,8 @@ export default function NotificationsScreen() {
           Icon={Users}
           iconColor="#E85A8C"
           iconTint={colorScheme === "dark" ? "#3A2030" : "#FCEAF1"}
-          label="სოციალური"
-          hint="მეგობრების აქტიურობა"
+          label={t("notifications.social")}
+          hint={t("notifications.socialHint")}
           rightAccessory="switch"
           switchOn={social && all}
           onSwitchChange={setSocial}

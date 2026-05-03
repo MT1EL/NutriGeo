@@ -10,6 +10,7 @@ import {
   Footprints,
   LucideIcon,
 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -30,6 +31,8 @@ type StatPill = {
 function buildStats(
   snapshot: HomeToday | undefined,
   includeStreak: boolean,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any,
 ): StatPill[] {
   const streakDays = snapshot?.streak.current ?? 0;
   const waterLiters = ((snapshot?.water.total_ml ?? 0) / 1000).toFixed(1);
@@ -38,13 +41,13 @@ function buildStats(
   const stats: StatPill[] = [
     {
       Icon: Droplet,
-      label: "წყალი",
-      value: `${waterLiters} ლ`,
+      label: t("home.water"),
+      value: `${waterLiters} ${t("home.liters")}`,
       color: "#3FA9F5",
     },
     {
       Icon: Footprints,
-      label: "ნაბიჯი",
+      label: t("home.step"),
       value: stepsToday.toLocaleString(),
       color: "#7C5CFF",
     },
@@ -53,8 +56,8 @@ function buildStats(
   if (includeStreak) {
     stats.unshift({
       Icon: Flame,
-      label: "სტრიკი",
-      value: `${streakDays} დღე`,
+      label: t("home.streak"),
+      value: `${streakDays} ${t("home.days")}`,
       color: "#FF7A45",
     });
   }
@@ -80,9 +83,10 @@ export default function HomeHeader({
   isToday,
   onCalendarPress,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const stats = buildStats(snapshot, isToday);
+  const stats = buildStats(snapshot, isToday, t);
 
   return (
     <GradientView
@@ -96,7 +100,7 @@ export default function HomeHeader({
         <View style={styles.header}>
           <View style={{ gap: 4 }}>
             <ThemedText style={styles.greeting} color="#FFFFFF">
-              გამარჯობა,
+              {t("home.hello")}
             </ThemedText>
             <ThemedText style={styles.name} color="#FFFFFF">
               {userName}
@@ -124,6 +128,7 @@ export default function HomeHeader({
             progress={kcalEaten}
             goal={kcalGoal}
             color={theme.accent}
+            label={t("home.kcalLeft")}
           />
         </View>
 

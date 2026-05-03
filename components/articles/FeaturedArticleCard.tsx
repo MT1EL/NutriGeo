@@ -9,6 +9,7 @@ import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Clock } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -21,12 +22,13 @@ type Props = {
 };
 
 export default function FeaturedArticleCard({ article }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
   return (
     <View style={{ gap: Spacing.sm }}>
-      <ThemedText style={styles.sectionTitle}>რჩეული</ThemedText>
+      <ThemedText style={styles.sectionTitle}>{t("articles.featured")}</ThemedText>
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={() => router.push(`/articles/${article.id}`)}
@@ -65,7 +67,7 @@ export default function FeaturedArticleCard({ article }: Props) {
             <View style={styles.metaRow}>
               <Clock color={theme.textSecondary} size={12} />
               <ThemedText style={styles.metaText} type="secondary">
-                {article.read_min ?? 0} წთ. წაკითხვა
+                {t("articles.minRead", { count: article.read_min ?? 0 })}
               </ThemedText>
             </View>
           </View>

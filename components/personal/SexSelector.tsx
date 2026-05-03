@@ -2,6 +2,7 @@ import type { Sex } from "@/api";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Mars, Venus } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -10,8 +11,8 @@ import {
 } from "react-native";
 
 const OPTIONS: { key: Sex; label: string; Icon: typeof Mars }[] = [
-  { key: "male", label: "კაცი", Icon: Mars },
-  { key: "female", label: "ქალი", Icon: Venus },
+  { key: "male", label: "male", Icon: Mars },
+  { key: "female", label: "female", Icon: Venus },
 ];
 
 type Props = {
@@ -20,13 +21,14 @@ type Props = {
 };
 
 export default function SexSelector({ value, onChange }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
   return (
     <View style={{ gap: Spacing.sm }}>
       <ThemedText style={styles.groupTitle} type="secondary">
-        სქესი
+        {t("common.sex")}
       </ThemedText>
       <View style={styles.row}>
         {OPTIONS.map(({ key, label, Icon }) => {
@@ -61,7 +63,7 @@ export default function SexSelector({ value, onChange }: Props) {
                 style={styles.label}
                 color={isActive ? theme.brand : theme.text}
               >
-                {label}
+                {t(`common.${label}`)}
               </ThemedText>
             </TouchableOpacity>
           );

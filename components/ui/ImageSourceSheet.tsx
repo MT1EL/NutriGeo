@@ -2,6 +2,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Camera, Image as ImageIcon, Trash2 } from "lucide-react-native";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Modal,
   Platform,
@@ -28,9 +29,11 @@ export default function ImageSourceSheet({
   onPickCamera,
   onPickLibrary,
   onRemove,
-  title = "ფოტოს არჩევა",
+  title,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
+  const resolvedTitle = title ?? t("food.photoPickTitle");
   const theme = Colors[colorScheme];
   const { bottom } = useSafeAreaInsets();
 
@@ -83,7 +86,7 @@ export default function ImageSourceSheet({
           onPress={(e) => e.stopPropagation()}
         >
           <View style={[styles.handle, { backgroundColor: theme.border }]} />
-          <ThemedText style={styles.title}>{title}</ThemedText>
+          <ThemedText style={styles.title}>{resolvedTitle}</ThemedText>
 
           <View style={styles.row}>
             <TouchableOpacity
@@ -99,7 +102,7 @@ export default function ImageSourceSheet({
               >
                 <Camera color={theme.brand} size={22} />
               </View>
-              <ThemedText style={styles.tileLabel}>კამერა</ThemedText>
+              <ThemedText style={styles.tileLabel}>{t("imagePicker.camera")}</ThemedText>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -115,7 +118,7 @@ export default function ImageSourceSheet({
               >
                 <ImageIcon color={theme.brand} size={22} />
               </View>
-              <ThemedText style={styles.tileLabel}>გალერეა</ThemedText>
+              <ThemedText style={styles.tileLabel}>{t("imagePicker.gallery")}</ThemedText>
             </TouchableOpacity>
           </View>
 
@@ -130,7 +133,7 @@ export default function ImageSourceSheet({
             >
               <Trash2 color={theme.error} size={18} />
               <ThemedText style={styles.removeLabel} color={theme.error}>
-                წაშლა
+                {t("imagePicker.remove")}
               </ThemedText>
             </TouchableOpacity>
           )}
@@ -141,7 +144,7 @@ export default function ImageSourceSheet({
             style={styles.cancel}
           >
             <ThemedText type="secondary" style={styles.cancelLabel}>
-              გაუქმება
+              {t("common.cancel")}
             </ThemedText>
           </TouchableOpacity>
         </Pressable>

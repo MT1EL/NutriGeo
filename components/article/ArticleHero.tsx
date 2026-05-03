@@ -9,6 +9,7 @@ import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Bookmark, ChevronLeft, Clock, Share2 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -34,6 +35,7 @@ export default function ArticleHero({
   onToggleSaved,
   onShare,
 }: Props) {
+  const { t } = useTranslation();
   const color = categoryColor(article);
   const { width } = useWindowDimensions();
 
@@ -114,7 +116,7 @@ export default function ArticleHero({
               style={styles.metaText}
               color="rgba(255,255,255,0.85)"
             >
-              {article.read_min ?? 0} წთ. წაკითხვა · {article.author.name}
+              {t("articles.minRead", { count: article.read_min ?? 0 })} · {article.author.name}
             </ThemedText>
           </View>
         </View>

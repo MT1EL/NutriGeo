@@ -1,6 +1,7 @@
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { LucideIcon } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import ThemedText from "../ui/ThemedText";
 
@@ -18,10 +19,12 @@ export const MacroBar = ({
   consumed,
   goal,
   color,
-  unit = "გ",
+  unit,
   Icon,
 }: Props) => {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
+  const resolvedUnit = unit ?? t("macros.g");
   const theme = Colors[colorScheme];
   const progress = Math.min(consumed / goal, 1);
 
@@ -37,7 +40,7 @@ export const MacroBar = ({
           <ThemedText style={styles.macroValueGoal} type="secondary">
             {" "}
             / {goal}
-            {unit}
+            {resolvedUnit}
           </ThemedText>
         </ThemedText>
       </View>

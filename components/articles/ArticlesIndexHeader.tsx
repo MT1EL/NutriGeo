@@ -3,6 +3,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -12,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ArticlesIndexHeader() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -34,7 +36,7 @@ export default function ArticlesIndexHeader() {
             <ChevronLeft color="#FFFFFF" size={22} />
           </TouchableOpacity>
           <ThemedText style={styles.headerTitle} color="#FFFFFF">
-            სტატიები
+            {t("articles.title")}
           </ThemedText>
           <View style={styles.iconBtn} />
         </View>
@@ -42,7 +44,7 @@ export default function ArticlesIndexHeader() {
           style={styles.headerSubtitle}
           color="rgba(255,255,255,0.85)"
         >
-          ნუტრიციის გზამკვლევი ყოველდღიური არჩევანისთვის
+          {t("articles.subtitle")}
         </ThemedText>
       </SafeAreaView>
     </GradientView>

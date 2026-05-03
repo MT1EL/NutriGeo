@@ -12,6 +12,7 @@ import {
   Phone,
 } from "lucide-react-native";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   LayoutAnimation,
   Linking,
@@ -27,75 +28,67 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FAQ = [
-  {
-    q: "როგორ ჩავწერო კვება?",
-    a: "გადადი 'დამატება' ტაბზე, აირჩიე კვება (საუზმე, სადილი, სნექი ან ვახშამი) და ხშირი საკვების სიიდან აირჩიე — დააჭირე + ნიშანს.",
-  },
-  {
-    q: "როგორ შევცვალო კალორიის მიზანი?",
-    a: "პროფილი → მიზნები → დღიური მიზანი (კალ). შენი მონაცემების მიხედვით ავტომატურად ხდება გათვლა.",
-  },
-  {
-    q: "რას ნიშნავს 'სტრიკი'?",
-    a: "ეს არის თანმიმდევრული დღეების რაოდენობა, როდესაც კვება ჩაიწერე. რაც მეტი სტრიკი, მით მეტი დისციპლინა.",
-  },
-  {
-    q: "შემიძლია მაკრო ბალანსის შეცვლა?",
-    a: "კი. პროფილი → მიზნები → მაკრო ბალანსი. შეგიძლია შეცვალო ცილის, ნახშირწყლისა და ცხიმის პროცენტული თანაფარდობა.",
-  },
-  {
-    q: "მონაცემები კონფიდენციალურია?",
-    a: "კი. ჩვენ ვერასოდეს გავაზიარებთ შენს პერსონალურ მონაცემებს მესამე მხარესთან. ნახე კონფიდენციალურობის პოლიტიკა.",
-  },
-  {
-    q: "როგორ წავშალო ანგარიში?",
-    a: "პარამეტრები → ანგარიშის წაშლა. ეს მოქმედება უკან არ ბრუნდება — ყველა მონაცემი წაიშლება.",
-  },
-];
-
-const CONTACTS: {
-  Icon: LucideIcon;
-  label: string;
-  hint: string;
-  color: string;
-  tint: string;
-  tintDark: string;
-  action: () => void;
-}[] = [
-  {
-    Icon: Mail,
-    label: "ელფოსტა",
-    hint: "hello@nutrigeo.ge",
-    color: "#34A867",
-    tint: "#E6F6EA",
-    tintDark: "#1F3A28",
-    action: () => Linking.openURL("mailto:hello@nutrigeo.ge"),
-  },
-  {
-    Icon: MessageCircle,
-    label: "ჩატი",
-    hint: "მოპასუხე 24სთ-ში",
-    color: "#5B6CE0",
-    tint: "#EEF0FB",
-    tintDark: "#222B4A",
-    action: () => Linking.openURL("https://nutrigeo.ge/chat"),
-  },
-  {
-    Icon: Phone,
-    label: "ცხელი ხაზი",
-    hint: "+995 32 2 00 00 00",
-    color: "#FF7A45",
-    tint: "#FEEDE2",
-    tintDark: "#3A2010",
-    action: () => Linking.openURL("tel:+995322000000"),
-  },
-];
-
 export default function HelpScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const [openIdx, setOpenIdx] = useState<number | null>(0);
+
+  const FAQ = [
+    { q: t("help.questions.logMeal"), a: t("help.questions.logMealAnswer") },
+    {
+      q: t("help.questions.changeKcal"),
+      a: t("help.questions.changeKcalAnswer"),
+    },
+    { q: t("help.questions.streak"), a: t("help.questions.streakAnswer") },
+    {
+      q: t("help.questions.macroBalance"),
+      a: t("help.questions.macroBalanceAnswer"),
+    },
+    { q: t("help.questions.private"), a: t("help.questions.privateAnswer") },
+    {
+      q: t("help.questions.deleteAccount"),
+      a: t("help.questions.deleteAccountAnswer"),
+    },
+  ];
+
+  const CONTACTS: {
+    Icon: LucideIcon;
+    label: string;
+    hint: string;
+    color: string;
+    tint: string;
+    tintDark: string;
+    action: () => void;
+  }[] = [
+    {
+      Icon: Mail,
+      label: t("help.email"),
+      hint: "hello@nutrigeo.ge",
+      color: "#34A867",
+      tint: "#E6F6EA",
+      tintDark: "#1F3A28",
+      action: () => Linking.openURL("mailto:hello@nutrigeo.ge"),
+    },
+    {
+      Icon: MessageCircle,
+      label: t("help.chat"),
+      hint: t("help.chatHint"),
+      color: "#5B6CE0",
+      tint: "#EEF0FB",
+      tintDark: "#222B4A",
+      action: () => Linking.openURL("https://nutrigeo.ge/chat"),
+    },
+    {
+      Icon: Phone,
+      label: t("help.hotline"),
+      hint: "+995 32 2 00 00 00",
+      color: "#FF7A45",
+      tint: "#FEEDE2",
+      tintDark: "#3A2010",
+      action: () => Linking.openURL("tel:+995322000000"),
+    },
+  ];
 
   const toggle = (i: number) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -103,7 +96,7 @@ export default function HelpScreen() {
   };
 
   return (
-    <SubScreenLayout title="დახმარების ცენტრი" subtitle="ხშირად დასმული კითხვები">
+    <SubScreenLayout title={t("help.title")} subtitle={t("help.subtitle")}>
       <View style={styles.heroIconWrap}>
         <View style={[styles.heroIcon, { backgroundColor: theme.brandSoft }]}>
           <HelpCircle color={theme.brand} size={28} />
@@ -129,10 +122,7 @@ export default function HelpScreen() {
               </TouchableOpacity>
               {isOpen && (
                 <View
-                  style={[
-                    styles.faqA,
-                    { borderTopColor: theme.borderLight },
-                  ]}
+                  style={[styles.faqA, { borderTopColor: theme.borderLight }]}
                 >
                   <ThemedText style={styles.faqAText} type="secondary">
                     {item.a}
@@ -146,7 +136,7 @@ export default function HelpScreen() {
 
       <View style={{ gap: Spacing.sm }}>
         <ThemedText style={styles.sectionTitle} type="secondary">
-          ვერ იპოვე პასუხი?
+          {t("help.noAnswer")}
         </ThemedText>
         <View style={{ gap: Spacing.sm }}>
           {CONTACTS.map(({ Icon, label, hint, color, tint, tintDark, action }) => (

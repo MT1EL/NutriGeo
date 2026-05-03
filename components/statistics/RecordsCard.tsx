@@ -3,6 +3,7 @@ import BaseCard from "@/components/cards/BaseCard";
 import ThemedText from "@/components/ui/ThemedText";
 import { Radius, Spacing, Type } from "@/constants/theme";
 import { Trophy, TrendingDown } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
 type Props = {
@@ -10,19 +11,22 @@ type Props = {
 };
 
 export default function RecordsCard({ records }: Props) {
+  const { t } = useTranslation();
   const rows = [
     {
       Icon: Trophy,
-      label: "ყველაზე გრძელი სტრიკი",
-      value: records ? `${records.longest_streak} დღე` : "—",
+      label: t("statistics.longestStreakLabel"),
+      value: records
+        ? t("statistics.daysCount", { count: records.longest_streak })
+        : "—",
       color: "#FFB020",
     },
     {
       Icon: TrendingDown,
-      label: "ყველაზე დაბალი წონა",
+      label: t("statistics.lowestWeightLabel"),
       value:
         records?.lowest_weight_kg != null
-          ? `${records.lowest_weight_kg.toFixed(1)}კგ`
+          ? `${records.lowest_weight_kg.toFixed(1)}${t("statistics.kgUnit")}`
           : "—",
       color: "#34A867",
     },
@@ -31,7 +35,7 @@ export default function RecordsCard({ records }: Props) {
   return (
     <BaseCard>
       <View style={styles.cardHeader}>
-        <ThemedText style={styles.cardTitle}>რეკორდები</ThemedText>
+        <ThemedText style={styles.cardTitle}>{t("statistics.records")}</ThemedText>
       </View>
       <View style={{ gap: Spacing.sm }}>
         {rows.map(({ Icon, label, value, color }) => (

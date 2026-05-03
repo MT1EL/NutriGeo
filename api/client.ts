@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { API_CONFIG } from './config';
 import { clearTokens, getTokens, setTokens } from './tokenStore';
 import type { ApiError, ApiResponse } from './types';
@@ -113,8 +114,10 @@ async function doFetch<T>(path: string, options: RequestOptions, retry = true): 
     signal,
   } = options;
 
+  const lang = i18n.language?.split('-')[0] || 'ka';
   const finalHeaders: Record<string, string> = {
     'X-Timezone': timezone ?? API_CONFIG.defaultTimezone,
+    'Accept-Language': lang,
     ...headers,
   };
 

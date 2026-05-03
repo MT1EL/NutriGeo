@@ -2,6 +2,7 @@ import BaseCard from "@/components/cards/BaseCard";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useWizard } from "@/contexts/WizardContext";
 import { Scale, Target, TrendingDown } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -12,28 +13,42 @@ import Input from "../ui/Input";
 import ThemedText from "../ui/ThemedText";
 import WizzardContentLayout from "./layout";
 
-const PACE_OPTIONS = [
-  { value: "0.25", label: "ნელი", desc: "0.25 კგ/კვ" },
-  { value: "0.5", label: "საშუალო", desc: "0.5 კგ/კვ" },
-  { value: "0.75", label: "სწრაფი", desc: "0.75 კგ/კვ" },
-];
-
-function formatEta(weeks: number): string {
-  if (weeks < 1) return "1 კვირაზე ნაკლებში";
-  if (weeks <= 8) return `${Math.round(weeks)} კვირაში`;
-  return `~${Math.round(weeks / 4.345)} თვეში`;
-}
-
 const GoalDetails = () => {
+  const { t } = useTranslation();
   const { data, setField } = useWizard();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
+  const PACE_OPTIONS = [
+    {
+      value: "0.25",
+      label: t("wizard.goalDetails.slow"),
+      desc: t("wizard.goalDetails.kgPerWeek", { kg: "0.25" }),
+    },
+    {
+      value: "0.5",
+      label: t("wizard.goalDetails.medium"),
+      desc: t("wizard.goalDetails.kgPerWeek", { kg: "0.5" }),
+    },
+    {
+      value: "0.75",
+      label: t("wizard.goalDetails.fast"),
+      desc: t("wizard.goalDetails.kgPerWeek", { kg: "0.75" }),
+    },
+  ];
+
+  function formatEta(weeks: number): string {
+    if (weeks < 1) return t("wizard.suggestion.lessThanWeek");
+    if (weeks <= 8)
+      return `${Math.round(weeks)} ${t("wizard.suggestion.weeks")}`;
+    return `~${Math.round(weeks / 4.345)} ${t("wizard.suggestion.monthsApprox")}`;
+  }
+
   if (data.goal_type === "maintain") {
     return (
       <WizzardContentLayout
-        title="მიზნის დეტალები"
-        subtitle="წონის შენარჩუნებისას დამატებითი მონაცემი არ გვჭირდება"
+        title={t("wizard.goalDetails.title")}
+        subtitle={t("wizard.goalDetails.maintainNoExtra")}
       >
         <BaseCard>
           <View style={styles.maintainRow}>
@@ -41,7 +56,7 @@ const GoalDetails = () => {
               <Scale color="#3B82F6" size={18} />
             </View>
             <ThemedText style={styles.maintainText} type="secondary">
-              დააჭირე „შემდეგი" გასაგრძელებლად
+              {t("wizard.goalDetails.tapNext")}
             </ThemedText>
           </View>
         </BaseCard>
@@ -54,25 +69,27 @@ const GoalDetails = () => {
   let targetError: string | undefined;
   if (data.target_weight_kg && targetNum > 0 && currentNum > 0) {
     if (data.goal_type === "lose" && targetNum >= currentNum) {
-      targetError = `უნდა იყოს ${currentNum} კგ-ზე ნაკლები`;
+      targetError = t("wizard.goalDetails.mustBeLessThan", { kg: currentNum });
     } else if (data.goal_type === "gain" && targetNum <= currentNum) {
-      targetError = `უნდა იყოს ${currentNum} კგ-ზე მეტი`;
+      targetError = t("wizard.goalDetails.mustBeMoreThan", { kg: currentNum });
     }
   }
 
-  let etaCaption = "აირჩიე სამიზნე წონა და ტემპი";
+  let etaCaption = t("wizard.goalDetails.targetWeightAndPace");
   if (targetNum > 0 && currentNum > 0 && !targetError) {
     const pace = Number(data.weekly_pace_kg) || 0.5;
     const delta = Math.abs(targetNum - currentNum);
     if (delta >= 0.1) {
-      etaCaption = `მიმდინარე ტემპით ${formatEta(delta / pace)}`;
+      etaCaption = t("wizard.goalDetails.currentPace", {
+        eta: formatEta(delta / pace),
+      });
     }
   }
 
   return (
     <WizzardContentLayout
-      title="მიზნის დეტალები"
-      subtitle="სამიზნე წონა და ტემპი"
+      title={t("wizard.goalDetails.title")}
+      subtitle={t("wizard.goalDetails.targetWeightAndPace")}
     >
       <BaseCard>
         <View style={styles.cardHeader}>
@@ -81,7 +98,9 @@ const GoalDetails = () => {
               <TrendingDown color="#34A867" size={18} />
             </View>
             <View style={{ gap: 2 }}>
-              <ThemedText style={styles.cardTitle}>წონის მიზანი</ThemedText>
+              <ThemedText style={styles.cardTitle}>
+                {t("wizard.goalDetails.weightGoal")}
+              </ThemedText>
               <ThemedText type="secondary" style={styles.cardCaption}>
                 {etaCaption}
               </ThemedText>
@@ -91,17 +110,17 @@ const GoalDetails = () => {
 
         <Input
           Icon={Target}
-          label="სამიზნე წონა (კგ)"
+          label={t("wizard.goalDetails.targetWeight")}
           placeholder="65"
           value={data.target_weight_kg}
-          onChangeText={(t) => setField("target_weight_kg", t)}
+          onChangeText={(text) => setField("target_weight_kg", text)}
           keyboardType="decimal-pad"
           errorText={targetError}
         />
 
         <View style={{ gap: Spacing.sm }}>
           <ThemedText style={styles.subLabel} type="secondary">
-            კვირეული ტემპი
+            {t("wizard.goalDetails.weeklyPaceLabel")}
           </ThemedText>
           <View style={styles.paceRow}>
             {PACE_OPTIONS.map((opt) => {

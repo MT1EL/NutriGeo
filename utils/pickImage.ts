@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import * as ImagePicker from "expo-image-picker";
 import { Platform } from "react-native";
 
@@ -39,8 +40,8 @@ export async function pickFromCamera(
   if (!perm.granted) {
     throw new Error(
       perm.canAskAgain
-        ? "კამერაზე წვდომა აკრძალულია"
-        : "ჩართე კამერაზე წვდომა პარამეტრებში",
+        ? i18n.t("imagePicker.cameraDenied")
+        : i18n.t("imagePicker.cameraInSettings"),
     );
   }
   const res = await ImagePicker.launchCameraAsync({
@@ -60,8 +61,8 @@ export async function pickFromLibrary(
   if (!perm.granted) {
     throw new Error(
       perm.canAskAgain
-        ? "გალერეაზე წვდომა აკრძალულია"
-        : "ჩართე გალერეაზე წვდომა პარამეტრებში",
+        ? i18n.t("imagePicker.galleryDenied")
+        : i18n.t("imagePicker.galleryInSettings"),
     );
   }
   const res = await ImagePicker.launchImageLibraryAsync({

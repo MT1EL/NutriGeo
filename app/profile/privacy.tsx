@@ -1,46 +1,32 @@
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import ThemedText from "@/components/ui/ThemedText";
-import { LEGAL_LAST_UPDATED } from "@/constants/legal";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Shield } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
-const SECTIONS: { h: string; p: string }[] = [
-  {
-    h: "1. რა მონაცემებს ვაგროვებთ",
-    p: "ჩვენ ვაგროვებთ მონაცემებს, რომლებიც აუცილებელია სერვისის გასაწევად: სახელი, ელფოსტა, ასაკი, წონა, სიმაღლე, კვების ჩანაწერები და აქტივობის სტატისტიკა.",
-  },
-  {
-    h: "2. როგორ ვიყენებთ მონაცემებს",
-    p: "შენი მონაცემები გამოიყენება პერსონალიზებული რეკომენდაციების მისაცემად, კალორიის და მაკრო მიზნების გამოსათვლელად და პროგრესის თვალყურის სადევნებლად.",
-  },
-  {
-    h: "3. გაზიარება",
-    p: "ჩვენ არასოდეს ვყიდით ან ვაზიარებთ შენს პერსონალურ მონაცემებს მესამე მხარეს რეკლამის ან მარკეტინგის მიზნით. გაზიარება ხდება მხოლოდ კანონის მოთხოვნით.",
-  },
-  {
-    h: "4. მონაცემების უსაფრთხოება",
-    p: "ჩვენ ვიყენებთ მაღალი სტანდარტის დაშიფვრას როგორც გადაცემის, ისე შენახვის პროცესში. შენი ანგარიში დაცულია პაროლით.",
-  },
-  {
-    h: "5. შენი უფლებები",
-    p: "შეგიძლია ნებისმიერ დროს მოითხოვო მონაცემების ექსპორტი, განახლება ან წაშლა. დაგვიკავშირდი privacy@nutrigeo.ge.",
-  },
-  {
-    h: "6. ცვლილებები",
-    p: `ამ პოლიტიკის ცვლილების შემთხვევაში შეგატყობინებთ აპლიკაციით ან ელფოსტით. ბოლო განახლება: ${LEGAL_LAST_UPDATED}.`,
-  },
-];
-
 export default function PrivacyScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
+  const SECTIONS: { h: string; p: string }[] = [
+    { h: t("privacy.section1Title"), p: t("privacy.section1Body") },
+    { h: t("privacy.section2Title"), p: t("privacy.section2Body") },
+    { h: t("privacy.section3Title"), p: t("privacy.section3Body") },
+    { h: t("privacy.section4Title"), p: t("privacy.section4Body") },
+    { h: t("privacy.section5Title"), p: t("privacy.section5Body") },
+    {
+      h: t("privacy.section6Title"),
+      p: t("privacy.section6Body", { date: t("legal.lastUpdatedDate") }),
+    },
+  ];
+
   return (
     <SubScreenLayout
-      title="კონფიდენციალურობა"
-      subtitle="მონაცემთა დამუშავების პოლიტიკა"
+      title={t("privacy.title")}
+      subtitle={t("privacy.subtitle")}
     >
       <View style={styles.heroIconWrap}>
         <View style={[styles.heroIcon, { backgroundColor: theme.brandSoft }]}>
@@ -49,8 +35,7 @@ export default function PrivacyScreen() {
       </View>
 
       <ThemedText style={styles.intro} type="secondary">
-        ჩვენ ვაფასებთ შენს კონფიდენციალურობას. ეს დოკუმენტი ხსნის, თუ როგორ
-        ვაგროვებთ, ვიყენებთ და ვიცავთ შენს მონაცემებს.
+        {t("privacy.intro")}
       </ThemedText>
 
       <View style={{ gap: Spacing.lg }}>
@@ -65,7 +50,7 @@ export default function PrivacyScreen() {
       </View>
 
       <ThemedText style={styles.footer} type="secondary">
-        ბოლო განახლება: {LEGAL_LAST_UPDATED}
+        {t("privacy.lastUpdated", { date: t("legal.lastUpdatedDate") })}
       </ThemedText>
     </SubScreenLayout>
   );

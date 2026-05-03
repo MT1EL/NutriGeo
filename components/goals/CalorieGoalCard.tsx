@@ -3,6 +3,7 @@ import Input from "@/components/ui/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Radius, Spacing, Type } from "@/constants/theme";
 import { Flame } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function CalorieGoalCard({ value, onChange }: Props) {
+  const { t } = useTranslation();
   return (
     <BaseCard>
       <View style={styles.cardHeader}>
@@ -19,16 +21,18 @@ export default function CalorieGoalCard({ value, onChange }: Props) {
             <Flame color="#FF7A45" size={18} />
           </View>
           <View style={{ gap: 2 }}>
-            <ThemedText style={styles.cardTitle}>კალორიის მიზანი</ThemedText>
+            <ThemedText style={styles.cardTitle}>
+              {t("goals2.calorieGoal")}
+            </ThemedText>
             <ThemedText type="secondary" style={styles.cardCaption}>
-              გათვლილი შენი მონაცემებით
+              {t("goals2.computedFromYou")}
             </ThemedText>
           </View>
         </View>
       </View>
       <Input
         Icon={Flame}
-        label="დღიური მიზანი (კალ)"
+        label={t("home.kcalGoal")}
         value={value}
         onChangeText={onChange}
         keyboardType="number-pad"

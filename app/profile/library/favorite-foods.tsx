@@ -14,6 +14,7 @@ import { foodImageSource } from "@/utils/image";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, HeartOff } from "lucide-react-native";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -23,6 +24,7 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 
 export default function LibraryFavoriteFoodsScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
@@ -60,8 +62,8 @@ export default function LibraryFavoriteFoodsScreen() {
       if (ctx?.previous) {
         queryClient.setQueryData(["foods", "favorites"], ctx.previous);
       }
-      const message = err instanceof Error ? err.message : "ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+      const message = err instanceof Error ? err.message : t("common.errorGeneric");
+      toast.error(message, t("common.error"));
     },
   });
 
@@ -87,8 +89,8 @@ export default function LibraryFavoriteFoodsScreen() {
 
   return (
     <SubScreenLayout
-      title="საყვარელი საკვები"
-      subtitle={`${foods.length} საკვები`}
+      title={t("library.favoriteFoodsTitle")}
+      subtitle={t("library.foodsCount", { count: foods.length })}
     >
       {isLoading ? (
         <FoodListSkeleton count={4} />
@@ -97,15 +99,14 @@ export default function LibraryFavoriteFoodsScreen() {
           <View style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}>
             <Heart color={theme.brand} size={28} />
           </View>
-          <ThemedText style={styles.emptyTitle}>ცარიელია</ThemedText>
+          <ThemedText style={styles.emptyTitle}>{t("library.empty")}</ThemedText>
           <ThemedText type="secondary" style={styles.emptyText}>
-            საკვების დეტალებში დააჭირე გულის ნიშანს — აქ შენახული საკვები
-            გამოჩნდება
+            {t("library.favoriteFoodsEmptyHint")}
           </ThemedText>
         </View>
       ) : (
         <View style={styles.list}>
-          <SwipeHint text="გადასწიე ბარათი მარცხნივ წასაშლელად" />
+          <SwipeHint text={t("common.swipeLeftToDelete")} />
           {foods.map((food) => (
             <Swipeable
               key={food.id}

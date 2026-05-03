@@ -5,6 +5,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Image } from "expo-image";
 import { Camera } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -14,11 +15,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-function formatWeightChange(kg: number | undefined): string {
+function formatWeightChange(kg: number | undefined, kgUnit: string): string {
   if (kg == null) return "—";
-  if (Math.abs(kg) < 0.05) return "0 კგ";
+  if (Math.abs(kg) < 0.05) return `0 ${kgUnit}`;
   const sign = kg > 0 ? "+" : "−";
-  return `${sign}${Math.abs(kg).toFixed(1)} კგ`;
+  return `${sign}${Math.abs(kg).toFixed(1)} ${kgUnit}`;
 }
 
 type Props = {
@@ -34,22 +35,25 @@ export default function ProfileHeader({
   onAvatarPress,
   uploadingAvatar,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const avatarUrl = profile?.avatar_url;
-  const initial =
-    profile?.display_name?.split(" ")[0]?.[0] ?? "?";
+  const initial = profile?.display_name?.split(" ")[0]?.[0] ?? "?";
 
   const streak = summary?.streak.current ?? 0;
   const weightChange = summary?.weight_change_kg;
   const goalPct = summary?.goal_pct ?? null;
 
   const stats = [
-    { value: `${streak}`, label: "სტრიკი" },
-    { value: formatWeightChange(weightChange), label: "პროგრესი" },
+    { value: `${streak}`, label: t("profile.stats.streak") },
+    {
+      value: formatWeightChange(weightChange, t("weight.kg")),
+      label: t("profile.stats.progress"),
+    },
     {
       value: goalPct != null ? `${Math.max(0, Math.round(goalPct))}%` : "—",
-      label: "მიზანი",
+      label: t("profile.stats.goal"),
     },
   ];
 

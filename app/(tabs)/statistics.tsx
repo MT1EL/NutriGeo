@@ -12,6 +12,7 @@ import { StatisticsSkeleton } from "@/components/ui/Skeletons";
 import { Colors, Spacing } from "@/constants/theme";
 import { useStats } from "@/hooks/use-stats";
 import { formatWeightChange } from "@/utils/format";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -21,6 +22,7 @@ import {
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 export default function StatisticsPage() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const stats = useStats();
@@ -29,12 +31,12 @@ export default function StatisticsPage() {
     stats.summary?.weight_change_kg != null
       ? `${formatWeightChange(stats.summary.weight_change_kg)} ${
           stats.range === "week"
-            ? "კვირაში"
+            ? t("statistics.weekFull")
             : stats.range === "month"
-              ? "თვეში"
-              : "3 თვეში"
+              ? t("statistics.monthFull")
+              : t("statistics.quarterFull")
         }`
-      : "მონაცემი არ არის";
+      : t("common.noData");
 
   return (
     <ScrollView

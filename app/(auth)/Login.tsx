@@ -5,20 +5,23 @@ import { router } from "expo-router";
 import { useFormik } from "formik";
 import { isValidEmail } from "@/utils/validation";
 import { Eye, Mail } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 type FormValues = { email: string; password: string };
 
-function validate(values: FormValues) {
-  const errors: Partial<Record<keyof FormValues, string>> = {};
-  if (!values.email.trim()) errors.email = "შეიყვანე ელ.ფოსტა";
-  else if (!isValidEmail(values.email)) errors.email = "არასწორი ელ.ფოსტა";
-  if (!values.password) errors.password = "შეიყვანე პაროლი";
-  return errors;
-}
-
 function LoginScreen() {
+  const { t } = useTranslation();
   const toast = useToast();
   const { signIn } = useAuth();
+
+  const validate = (values: FormValues) => {
+    const errors: Partial<Record<keyof FormValues, string>> = {};
+    if (!values.email.trim()) errors.email = t("validation.enterEmail");
+    else if (!isValidEmail(values.email))
+      errors.email = t("validation.invalidEmail");
+    if (!values.password) errors.password = t("validation.enterPassword");
+    return errors;
+  };
 
   const form = useFormik<FormValues>({
     initialValues: { email: "", password: "" },
@@ -26,11 +29,12 @@ function LoginScreen() {
     onSubmit: async (values, helpers) => {
       try {
         await signIn(values.email.trim().toLowerCase(), values.password);
-        toast.success("კეთილი იყოს თქვენი დაბრუნება!");
+        toast.success(t("auth.login.welcomeBack"));
         // AuthGate handles redirect once status flips to authenticated
       } catch (err) {
-        const message = err instanceof Error ? err.message : "შესვლა ვერ მოხერხდა";
-        toast.error(message, "შეცდომა");
+        const message =
+          err instanceof Error ? err.message : t("auth.login.failed");
+        toast.error(message, t("common.error"));
       } finally {
         helpers.setSubmitting(false);
       }
@@ -43,7 +47,7 @@ function LoginScreen() {
   const inputs = [
     {
       Icon: Mail,
-      placeholder: "ელ.ფოსტა",
+      placeholder: t("common.email"),
       value: form.values.email,
       onChangeText: form.handleChange("email"),
       errorText: errorOf("email"),
@@ -51,12 +55,12 @@ function LoginScreen() {
     },
     {
       Icon: Eye,
-      placeholder: "პაროლი",
+      placeholder: t("common.password"),
       value: form.values.password,
       onChangeText: form.handleChange("password"),
       errorText: errorOf("password"),
       secure: true,
-      actionText: "დაგავიწყდა პაროლი?",
+      actionText: t("auth.login.forgotPassword"),
       onActionTextPress: () => router.push("/ForgotPassword"),
     },
   ];
@@ -64,12 +68,12 @@ function LoginScreen() {
   return (
     <AuthLayout
       illustrationSource={require("@/assets/illustrations/welcome.png")}
-      title="შესვლა"
-      subtitle="გამარჯობა! შედი ანგარიშში"
-      label={form.isSubmitting ? "გთხოვთ მოიცადოთ..." : "შესვლა"}
+      title={t("auth.login.submit")}
+      subtitle={t("auth.login.title")}
+      label={form.isSubmitting ? t("common.loading") : t("auth.login.submit")}
       inputs={inputs}
-      footerLinkText={"არ გაქვს ანგარიში?"}
-      footerLinkLabel={"რეგისტრაცია"}
+      footerLinkText={t("auth.login.noAccount")}
+      footerLinkLabel={t("auth.register.submit")}
       footerLinkAction={() => {
         router.replace("/Register");
       }}

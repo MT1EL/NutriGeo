@@ -26,7 +26,7 @@ export const CalorieRing = ({
   color = "#50E3C2",
   textColor = "#FFFFFF",
   trackColor = "rgba(255,255,255,0.2)",
-  label = "კალორია დარჩა",
+  label,
 }: Props) => {
   const center = size / 2;
   const radius = (size - strokeWidth) / 2;

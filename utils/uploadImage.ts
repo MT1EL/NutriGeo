@@ -1,4 +1,5 @@
 import { getUploadUrl, type StorageBucket } from "@/api/storage";
+import i18n from "@/i18n";
 
 export type LocalImage = {
   uri: string;
@@ -69,7 +70,7 @@ export async function uploadImage(
       response: detail.slice(0, 500),
     });
     throw new Error(
-      `ფაილის ატვირთვა ვერ მოხერხდა (${res.status})${detail ? `: ${detail.slice(0, 200)}` : ""}`,
+      `${i18n.t("imagePicker.uploadFailed")} (${res.status})${detail ? `: ${detail.slice(0, 200)}` : ""}`,
     );
   }
 

@@ -6,6 +6,7 @@ import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ChevronLeft, Heart, Share2, Star } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -32,6 +33,7 @@ export default function RecipeHero({
   onToggleSaved,
   onShare,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const { width } = useWindowDimensions();
@@ -116,7 +118,7 @@ export default function RecipeHero({
                 style={styles.ratingCount}
                 color="rgba(255,255,255,0.7)"
               >
-                ({recipe.rating.rating_count} შეფასება)
+                {t("recipes.ratingCount", { count: recipe.rating.rating_count })}
               </ThemedText>
             </View>
           )}

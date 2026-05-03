@@ -3,6 +3,7 @@ import BaseCard from "@/components/cards/BaseCard";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Beef, Droplet, Wheat } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 type Props = {
@@ -14,6 +15,7 @@ export default function MacroBalanceReadOnlyCard({
   goals,
   calorieTarget,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -25,21 +27,21 @@ export default function MacroBalanceReadOnlyCard({
 
   const macros = [
     {
-      label: "ცილა",
+      label: t("macros.protein"),
       pct: goals?.protein_pct,
       grams: goals?.protein_g_goal,
       color: theme.macroProtein,
       Icon: Beef,
     },
     {
-      label: "ნახშირწყალი",
+      label: t("macros.carbs"),
       pct: goals?.carbs_pct,
       grams: goals?.carbs_g_goal,
       color: theme.macroCarbs,
       Icon: Wheat,
     },
     {
-      label: "ცხიმი",
+      label: t("macros.fat"),
       pct: goals?.fat_pct,
       grams: goals?.fat_g_goal,
       color: theme.macroFat,
@@ -55,9 +57,11 @@ export default function MacroBalanceReadOnlyCard({
             <Beef color={theme.brand} size={18} />
           </View>
           <View style={{ gap: 2 }}>
-            <ThemedText style={styles.cardTitle}>მაკრო ბალანსი</ThemedText>
+            <ThemedText style={styles.cardTitle}>
+              {t("goals2.macroBalance")}
+            </ThemedText>
             <ThemedText type="secondary" style={styles.cardCaption}>
-              კალორიის გადანაწილება
+              {t("goals2.kcalDistribution")}
             </ThemedText>
           </View>
         </View>
@@ -84,11 +88,11 @@ export default function MacroBalanceReadOnlyCard({
             <View style={{ flex: 1 }}>
               <ThemedText style={styles.label}>{label}</ThemedText>
               <ThemedText style={styles.sub} type="secondary">
-                {grams}გ / {pct}%
+                {grams}{t("macros.g")} / {pct}%
               </ThemedText>
             </View>
             <ThemedText style={styles.value} color={color}>
-              {calorieForMacroPct(pct)} კალ
+              {calorieForMacroPct(pct)} {t("macros.kcalShort")}
             </ThemedText>
           </View>
         ))}

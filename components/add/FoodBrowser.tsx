@@ -14,6 +14,7 @@ import {
   Sparkles,
   Star,
 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -22,12 +23,12 @@ import {
   View,
 } from "react-native";
 
-const TABS: { key: BrowseTab; label: string; Icon: LucideIcon }[] = [
-  { key: "all", label: "ყველა", Icon: LayoutGrid },
-  { key: "my", label: "ჩემი", Icon: ChefHat },
-  { key: "frequent", label: "ხშირი", Icon: History },
-  { key: "favorites", label: "საყვარელი", Icon: Star },
-  { key: "recent", label: "ბოლო", Icon: Sparkles },
+const TABS: { key: BrowseTab; labelKey: string; Icon: LucideIcon }[] = [
+  { key: "all", labelKey: "add.browseTabs.all", Icon: LayoutGrid },
+  { key: "my", labelKey: "add.browseTabs.my", Icon: ChefHat },
+  { key: "frequent", labelKey: "add.browseTabs.frequent", Icon: History },
+  { key: "favorites", labelKey: "add.browseTabs.favorites", Icon: Star },
+  { key: "recent", labelKey: "add.browseTabs.recent", Icon: Sparkles },
 ];
 
 type Props = {
@@ -51,6 +52,7 @@ export default function FoodBrowser({
   onSelect,
   onAdd,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -58,7 +60,7 @@ export default function FoodBrowser({
     <View style={{ gap: Spacing.sm, overflow: "hidden" }}>
       <View style={styles.header}>
         <ThemedText style={styles.title}>
-          {hasQuery ? "ძიების შედეგი" : "დაამატე"}
+          {hasQuery ? t("add.searchResult") : t("add.browseTitle")}
         </ThemedText>
       </View>
 
@@ -71,7 +73,7 @@ export default function FoodBrowser({
           // edge-to-edge and the right side hints at scrollability.
           style={styles.tabsScroll}
         >
-          {TABS.map(({ key, label, Icon }) => {
+          {TABS.map(({ key, labelKey, Icon }) => {
             const isActive = browse === key;
             return (
               <TouchableOpacity
@@ -94,7 +96,7 @@ export default function FoodBrowser({
                   style={styles.tabLabel}
                   color={isActive ? "#FFFFFF" : theme.text}
                 >
-                  {label}
+                  {t(labelKey)}
                 </ThemedText>
               </TouchableOpacity>
             );

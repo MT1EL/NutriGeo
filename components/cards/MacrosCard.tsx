@@ -2,6 +2,7 @@ import { DayMeals } from "@/api/meals";
 import { Colors, Spacing, Type } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Beef, Droplet, PieChart, Wheat } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import { MacroBar } from "../charts/MacroBar";
 import ThemedText from "../ui/ThemedText";
@@ -11,26 +12,27 @@ type Props = {
   data: DayMeals;
 };
 const MacrosCard = ({ data }: Props) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const macros = [
     {
-      label: "ცილა",
+      label: t("macros.protein"),
       consumed: data.totals.protein_g,
       goal: user?.goals.protein_g_goal || 0,
       color: theme.macroProtein,
       Icon: Beef,
     },
     {
-      label: "ნახშირწყალი",
+      label: t("macros.carbs"),
       consumed: data.totals.carbs_g,
       goal: user?.goals.carbs_g_goal || 0,
       color: theme.macroCarbs,
       Icon: Wheat,
     },
     {
-      label: "ცხიმი",
+      label: t("macros.fat"),
       consumed: data.totals.fat_g,
       goal: user?.goals.fat_g_goal || 0,
       color: theme.macroFat,
@@ -41,7 +43,7 @@ const MacrosCard = ({ data }: Props) => {
     <BaseCard>
       <View style={styles.row}>
         <PieChart size={18} color={theme.brand} />
-        <ThemedText style={styles.title}>მაკრონუტრიენტები</ThemedText>
+        <ThemedText style={styles.title}>{t("macros.title")}</ThemedText>
       </View>
       <View style={{ gap: Spacing.md }}>
         {macros.map((item) => (

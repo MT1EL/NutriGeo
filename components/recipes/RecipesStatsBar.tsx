@@ -1,6 +1,7 @@
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { ChefHat, Zap } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import Skeleton from "../ui/Skeleton";
 
@@ -15,6 +16,7 @@ export default function RecipesStatsBar({
   quickCount,
   isLoading,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -35,7 +37,7 @@ export default function RecipesStatsBar({
           <Skeleton width={12} height={19} />
         )}
         <ThemedText type="secondary" style={styles.label}>
-          რეცეპტი
+          {t("recipes.recipeShort")}
         </ThemedText>
       </View>
       <View style={[styles.sep, { backgroundColor: theme.borderLight }]} />
@@ -47,7 +49,7 @@ export default function RecipesStatsBar({
           <Skeleton width={12} height={19} />
         )}
         <ThemedText type="secondary" style={styles.label}>
-          30 წთ-მდე
+          {t("recipes.underMin")}
         </ThemedText>
       </View>
     </View>

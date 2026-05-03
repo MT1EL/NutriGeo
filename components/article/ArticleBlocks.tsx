@@ -1,6 +1,7 @@
 import type { ArticleBlock } from "@/api/types";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 type Props = {
@@ -9,13 +10,14 @@ type Props = {
 };
 
 export default function ArticleBlocks({ blocks, excerpt }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
   if (blocks.length === 0 && !excerpt) {
     return (
       <ThemedText style={styles.body} type="secondary">
-        სტატიის ტექსტი ჯერ არ არის ხელმისაწვდომი.
+        {t("articles.noBody")}
       </ThemedText>
     );
   }

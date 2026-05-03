@@ -133,6 +133,13 @@ export const MEAL_KEY_TO_API: Record<MealKey, ApiMealKey> = {
   ვახშამი: "dinner",
 };
 
+export const MEAL_KEY_TO_I18N: Record<MealKey, string> = {
+  საუზმე: "meal.breakfast",
+  სადილი: "meal.lunch",
+  სნექი: "meal.snack",
+  ვახშამი: "meal.dinner",
+};
+
 export const isMealKey = (s: string | undefined): s is MealKey =>
   s !== undefined && (MEAL_KEYS as string[]).includes(s);
 

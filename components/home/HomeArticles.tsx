@@ -3,6 +3,7 @@ import ArticleCover from "@/components/cards/ArticleCover";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Spacing, Type } from "@/constants/theme";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -12,6 +13,7 @@ import {
 } from "react-native";
 
 export default function HomeArticles({ articles }: { articles: Article[] }) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -20,14 +22,14 @@ export default function HomeArticles({ articles }: { articles: Article[] }) {
   return (
     <View style={{ gap: Spacing.md }}>
       <View style={styles.sectionHeader}>
-        <ThemedText style={styles.sectionTitle}>სტატიები</ThemedText>
+        <ThemedText style={styles.sectionTitle}>{t("home.articles")}</ThemedText>
         <TouchableOpacity
           onPress={() => router.push("/articles")}
           hitSlop={8}
           activeOpacity={0.6}
         >
           <ThemedText style={styles.sectionLink} color={theme.brand}>
-            ყველა
+            {t("home.all")}
           </ThemedText>
         </TouchableOpacity>
       </View>

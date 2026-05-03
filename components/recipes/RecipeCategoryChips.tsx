@@ -1,5 +1,6 @@
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -7,14 +8,14 @@ import {
   useColorScheme,
 } from "react-native";
 
-const CATEGORIES = [
-  { key: "all", label: "ყველა" },
-  { key: "breakfast", label: "საუზმე" },
-  { key: "lunch", label: "სადილი" },
-  { key: "dinner", label: "ვახშამი" },
-  { key: "dessert", label: "დესერტი" },
-  { key: "vegan", label: "ვეგეტარიანული" },
-  { key: "quick", label: "სწრაფი" },
+const CATEGORY_KEYS = [
+  { key: "all", labelKey: "recipes.categoryAll" },
+  { key: "breakfast", labelKey: "recipes.categoryBreakfast" },
+  { key: "lunch", labelKey: "recipes.categoryLunch" },
+  { key: "dinner", labelKey: "recipes.categoryDinner" },
+  { key: "dessert", labelKey: "recipes.categoryDessert" },
+  { key: "vegan", labelKey: "recipes.categoryVegan" },
+  { key: "quick", labelKey: "recipes.categoryQuick" },
 ];
 
 type Props = {
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export default function RecipeCategoryChips({ active, onChange }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -36,7 +38,7 @@ export default function RecipeCategoryChips({ active, onChange }: Props) {
         paddingHorizontal: Spacing.xl,
       }}
     >
-      {CATEGORIES.map((c) => {
+      {CATEGORY_KEYS.map((c) => {
         const isActive = c.key === active;
         return (
           <TouchableOpacity
@@ -55,7 +57,7 @@ export default function RecipeCategoryChips({ active, onChange }: Props) {
               style={styles.label}
               color={isActive ? "#FFFFFF" : theme.text}
             >
-              {c.label}
+              {t(c.labelKey)}
             </ThemedText>
           </TouchableOpacity>
         );

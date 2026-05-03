@@ -1,4 +1,5 @@
 import type { Food, FoodLogEntry } from "@/api/types";
+import i18n from "@/i18n";
 
 export function servingGrams(food: Food): number {
   return food.serving_grams ?? 100;
@@ -18,8 +19,9 @@ export function macroForFood(
 
 export function servingLabel(food: Food): string {
   if (food.serving_label) return food.serving_label;
-  if (food.serving_grams) return `${food.serving_grams}გ`;
-  return "100გ";
+  const g = i18n.t("food.perGramShort");
+  if (food.serving_grams) return `${food.serving_grams}${g}`;
+  return `100${g}`;
 }
 
 export function gramsToServings(grams: number, food: Food): number {
@@ -49,13 +51,12 @@ export function entryServings(entry: FoodLogEntry): number {
   return entry.quantity || 1;
 }
 
-// Human label for a logged entry that respects the unit it was logged in,
-// e.g. "1 cup × 2" for servings or "150გ" for grams.
+// Human label for a logged entry that respects the unit it was logged in.
 export function entryDisplayServing(entry: FoodLogEntry): string {
-  if (entry.quick_add) return "სწრაფი ჩაწერა";
+  if (entry.quick_add) return i18n.t("add.quickAdd");
   if (!entry.food) return "";
   if (entry.unit === "grams") {
-    return `${Math.round(entry.quantity)}გ`;
+    return `${Math.round(entry.quantity)}${i18n.t("food.perGramShort")}`;
   }
   const base = servingLabel(entry.food);
   return entry.quantity !== 1
@@ -79,7 +80,7 @@ export type EntryDisplay = {
 export function entryDisplay(entry: FoodLogEntry): EntryDisplay {
   if (entry.quick_add) {
     return {
-      title: entry.quick_add.name?.trim() || "სწრაფი ჩაწერა",
+      title: entry.quick_add.name?.trim() || i18n.t("add.quickAdd"),
       imageUrl: undefined,
       kcal: Math.round(entry.quick_add.kcal),
       protein_g: Math.round(entry.quick_add.protein_g),

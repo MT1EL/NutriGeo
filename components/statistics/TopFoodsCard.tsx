@@ -5,6 +5,7 @@ import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import type { UiRange } from "@/hooks/use-stats";
 import { UtensilsCrossed } from "lucide-react-native";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import CardEmpty from "./CardEmpty";
 
@@ -26,6 +27,7 @@ type Props = {
 };
 
 export default function TopFoodsCard({ range, topFoods, loggedDays }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -40,14 +42,14 @@ export default function TopFoodsCard({ range, topFoods, loggedDays }: Props) {
 
   const max = items.length ? Math.max(...items.map((f) => f.count)) : 0;
   const hasTrendData = loggedDays >= MIN_DAYS_FOR_TREND;
-  const caption = range === "week" ? "7" : range === "month" ? "30" : "90";
+  const captionN = range === "week" ? 7 : range === "month" ? 30 : 90;
 
   return (
     <BaseCard>
       <View style={styles.cardHeader}>
-        <ThemedText style={styles.cardTitle}>ხშირი საკვები</ThemedText>
+        <ThemedText style={styles.cardTitle}>{t("statistics.frequentFoods")}</ThemedText>
         <ThemedText type="secondary" style={styles.cardCaption}>
-          ბოლო {caption} დღე
+          {t("statistics.lastNDays", { count: captionN })}
         </ThemedText>
       </View>
 
@@ -92,8 +94,8 @@ export default function TopFoodsCard({ range, topFoods, loggedDays }: Props) {
       ) : (
         <CardEmpty
           Icon={UtensilsCrossed}
-          title="საკვების ჩანაწერი არ არის"
-          hint="ჩაწერილი საკვებები რეიტინგულად აქ გამოჩნდება."
+          title={t("statistics.noFoodEntries")}
+          hint={t("statistics.logsAppearHere")}
           color="#7C5CFF"
           tint={colorScheme === "dark" ? "#2A1F4A" : "#F0EBFE"}
         />

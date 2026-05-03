@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ImageSourcePropType,
   StyleSheet,
@@ -44,17 +45,18 @@ type Props = {
 
 const RecipeCard = ({
   id,
-  title = "ჩიზქეიქი",
-  description = "იტალიური დესერტი მდიდრული გემოვნებით",
-  calories = 321,
-  durationMin = 45,
+  title = "",
+  description = "",
+  calories = 0,
+  durationMin = 0,
   servings = 1,
-  difficulty = "საშუალო",
+  difficulty = "",
   image,
   tag,
   hero = false,
   initiallySaved = false,
 }: Props) => {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
@@ -79,8 +81,8 @@ const RecipeCard = ({
     onError: (err, { next }) => {
       setSaved(!next);
       const message =
-        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : t("food.saveFailed");
+      toast.error(message, t("common.error"));
     },
   });
 
@@ -92,8 +94,8 @@ const RecipeCard = ({
   };
 
   const stats = [
-    { Icon: Clock, label: `${durationMin} წთ.` },
-    { Icon: Users, label: `${servings} პორცია` },
+    { Icon: Clock, label: t("recipes.duration", { count: durationMin }) },
+    { Icon: Users, label: t("recipes.servings", { count: servings }) },
     { Icon: ChartNoAxesColumnIncreasingIcon, label: difficulty },
   ];
 
@@ -145,7 +147,7 @@ const RecipeCard = ({
                 style={[styles.calBadge, { backgroundColor: theme.brandSoft }]}
               >
                 <ThemedText style={styles.calBadgeText} color={theme.brand}>
-                  {calories} კალ
+                  {calories} {t("macros.kcalShort")}
                 </ThemedText>
               </View>
             </View>

@@ -10,6 +10,7 @@ import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useRecipeDetail } from "@/hooks/use-recipe-detail";
 import { router, useLocalSearchParams } from "expo-router";
 import { Leaf } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   Share,
@@ -21,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RecipeDetail() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -53,11 +55,11 @@ export default function RecipeDetail() {
         style={[styles.notFound, { backgroundColor: theme.surface }]}
       >
         <ThemedText style={styles.notFoundText}>
-          რეცეპტი ვერ მოიძებნა
+          {t("recipes.notFoundDetail")}
         </ThemedText>
         <TouchableOpacity onPress={() => router.back()}>
           <ThemedText color={theme.brand} style={styles.notFoundLink}>
-            უკან დაბრუნება
+            {t("recipes.backLink")}
           </ThemedText>
         </TouchableOpacity>
       </SafeAreaView>

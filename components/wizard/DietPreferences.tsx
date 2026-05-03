@@ -2,6 +2,7 @@ import type { Diet } from "@/api/types";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useWizard } from "@/contexts/WizardContext";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -12,56 +13,41 @@ import {
 import ThemedText from "../ui/ThemedText";
 import WizzardContentLayout from "./layout";
 
-const DIET_OPTIONS: { key: Diet; label: string }[] = [
-  { key: "none", label: "შეზღუდვების გარეშე" },
-  { key: "vegetarian", label: "ვეგეტარიანული" },
-  { key: "vegan", label: "ვეგანური" },
-  { key: "pescatarian", label: "პესკატარიანული" },
-  { key: "keto", label: "კეტო" },
-  { key: "paleo", label: "პალეო" },
+const DIET_OPTIONS: { key: Diet; labelKey: string }[] = [
+  { key: "none", labelKey: "diet.noRestrictions" },
+  { key: "vegetarian", labelKey: "diet.vegetarian" },
+  { key: "vegan", labelKey: "diet.vegan" },
+  { key: "pescatarian", labelKey: "diet.pescatarian" },
+  { key: "keto", labelKey: "diet.keto" },
+  { key: "paleo", labelKey: "diet.paleo" },
 ];
 
-const ALLERGY_OPTIONS = [
-  "nuts",
-  "dairy",
-  "gluten",
-  "eggs",
-  "soy",
-  "shellfish",
+const ALLERGY_OPTIONS: { value: string; labelKey: string }[] = [
+  { value: "nuts", labelKey: "diet.nuts" },
+  { value: "dairy", labelKey: "diet.milkProducts" },
+  { value: "gluten", labelKey: "diet.gluten" },
+  { value: "eggs", labelKey: "diet.egg" },
+  { value: "soy", labelKey: "diet.soy" },
+  { value: "shellfish", labelKey: "diet.seafoodFull" },
 ];
 
-const ALLERGY_LABELS: Record<string, string> = {
-  nuts: "თხილეული",
-  dairy: "რძის ნაწარმი",
-  gluten: "გლუტენი",
-  eggs: "კვერცხი",
-  soy: "სოია",
-  shellfish: "ზღვის პროდუქტები",
-};
-
-const RESTRICTION_OPTIONS = [
-  "low-sodium",
-  "low-sugar",
-  "halal",
-  "kosher",
+const RESTRICTION_OPTIONS: { value: string; labelKey: string }[] = [
+  { value: "low-sodium", labelKey: "diet.lowSalt" },
+  { value: "low-sugar", labelKey: "diet.lowSugar" },
+  { value: "halal", labelKey: "diet.halal" },
+  { value: "kosher", labelKey: "diet.kosher" },
 ];
-
-const RESTRICTION_LABELS: Record<string, string> = {
-  "low-sodium": "ნაკლები მარილი",
-  "low-sugar": "ნაკლები შაქარი",
-  halal: "ჰალალი",
-  kosher: "კოშერი",
-};
 
 const DietPreferences = () => {
+  const { t } = useTranslation();
   const { data, setField, toggleInArray } = useWizard();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
   return (
     <WizzardContentLayout
-      title="კვების უპირატესობები"
-      subtitle="აირჩიე კვების ტიპი და შენი შეზღუდვები"
+      title={t("wizard.diet.title")}
+      subtitle={t("wizard.diet.subtitle")}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -69,7 +55,7 @@ const DietPreferences = () => {
       >
         <View style={styles.section}>
           <ThemedText type="secondary" style={styles.sectionLabel}>
-            დიეტა
+            {t("wizard.diet.dietLabel")}
           </ThemedText>
           <View style={styles.chipRow}>
             {DIET_OPTIONS.map((opt) => {
@@ -77,7 +63,7 @@ const DietPreferences = () => {
               return (
                 <Chip
                   key={opt.key}
-                  label={opt.label}
+                  label={t(opt.labelKey)}
                   active={active}
                   onPress={() => setField("diet", opt.key)}
                   theme={theme}
@@ -89,13 +75,13 @@ const DietPreferences = () => {
 
         <View style={styles.section}>
           <ThemedText type="secondary" style={styles.sectionLabel}>
-            ალერგიები
+            {t("wizard.diet.allergiesLabel")}
           </ThemedText>
           <View style={styles.chipRow}>
-            {ALLERGY_OPTIONS.map((value) => (
+            {ALLERGY_OPTIONS.map(({ value, labelKey }) => (
               <Chip
                 key={value}
-                label={ALLERGY_LABELS[value]}
+                label={t(labelKey)}
                 active={data.allergies.includes(value)}
                 onPress={() => toggleInArray("allergies", value)}
                 theme={theme}
@@ -106,13 +92,13 @@ const DietPreferences = () => {
 
         <View style={styles.section}>
           <ThemedText type="secondary" style={styles.sectionLabel}>
-            შეზღუდვები
+            {t("wizard.diet.restrictionsLabel")}
           </ThemedText>
           <View style={styles.chipRow}>
-            {RESTRICTION_OPTIONS.map((value) => (
+            {RESTRICTION_OPTIONS.map(({ value, labelKey }) => (
               <Chip
                 key={value}
-                label={RESTRICTION_LABELS[value]}
+                label={t(labelKey)}
                 active={data.restrictions.includes(value)}
                 onPress={() => toggleInArray("restrictions", value)}
                 theme={theme}

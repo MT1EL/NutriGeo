@@ -10,6 +10,7 @@ import {
   Target,
 } from "lucide-react-native";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 const MIN_DAYS_FOR_TREND = 3;
@@ -79,6 +80,7 @@ export default function InsightsCard({
   weightSeries,
   weightGoal,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const isDark = colorScheme === "dark";
 
@@ -104,8 +106,8 @@ export default function InsightsCard({
     if (streakValue > 0) {
       fallback.push({
         Icon: Flame,
-        title: `${streakValue} დღიანი სტრიკი`,
-        body: "განაგრძე — შენი რუტინა მუშაობს.",
+        title: t("statistics.dayStreak", { count: streakValue }),
+        body: t("statistics.keepIt"),
         color: "#FF7A45",
         tint: isDark ? "#3A2010" : "#FEEDE2",
       });
@@ -113,11 +115,11 @@ export default function InsightsCard({
     if (loggedDays >= MIN_DAYS_FOR_TREND) {
       fallback.push({
         Icon: Target,
-        title: `${onTargetDays}/${loggedDays} დღე მიზანში`,
+        title: t("statistics.daysOnTarget", { on: onTargetDays, total: loggedDays }),
         body:
           onTargetDays / loggedDays > 0.6
-            ? "შესანიშნავი დისციპლინა — განაგრძე ასე."
-            : "სცადე უფრო ხშირად ჩაეტიო კალორიის მიზანში.",
+            ? t("statistics.discipline")
+            : t("statistics.tryHarder"),
         color: "#5B6CE0",
         tint: isDark ? "#222B4A" : "#EEF0FB",
       });
@@ -127,8 +129,8 @@ export default function InsightsCard({
       const remaining = (last - weightGoal).toFixed(1);
       fallback.push({
         Icon: Sparkles,
-        title: `მიზნამდე ${remaining}კგ`,
-        body: "მიმდინარე ტემპს თუ შეინარჩუნებ — მიზანი მისაღწევია.",
+        title: t("statistics.toGoalKg", { kg: remaining }),
+        body: t("statistics.currentTempReachable"),
         color: "#7C5CFF",
         tint: isDark ? "#2A1F4A" : "#F0EBFE",
       });
@@ -140,15 +142,15 @@ export default function InsightsCard({
 
   const caption =
     range === "week"
-      ? "ეს კვირა"
+      ? t("statistics.thisWeek")
       : range === "month"
-        ? "ეს თვე"
-        : "ბოლო 3 თვე";
+        ? t("statistics.thisMonth")
+        : t("statistics.last3Months");
 
   return (
     <BaseCard>
       <View style={styles.cardHeader}>
-        <ThemedText style={styles.cardTitle}>ინსაითი</ThemedText>
+        <ThemedText style={styles.cardTitle}>{t("statistics.insightTitle")}</ThemedText>
         <ThemedText type="secondary" style={styles.cardCaption}>
           {caption}
         </ThemedText>

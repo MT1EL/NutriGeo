@@ -4,9 +4,11 @@ import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import ThemedText from "@/components/ui/ThemedText";
 import { Spacing, Type } from "@/constants/theme";
 import { useConnections } from "@/hooks/use-connections";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
 export default function ConnectionsScreen() {
+  const { t } = useTranslation();
   const {
     states,
     expanded,
@@ -19,15 +21,15 @@ export default function ConnectionsScreen() {
 
   return (
     <SubScreenLayout
-      title="კავშირები"
-      subtitle="ჯანმრთელობისა და ფიტნესის აპები"
+      title={t("connections.title")}
+      subtitle={t("connections.subtitle")}
     >
       <ConnectionsBanner count={connectedCount} />
 
       {Object.entries(grouped).map(([category, items]) => (
         <View key={category} style={{ gap: Spacing.sm }}>
           <ThemedText style={styles.groupTitle} type="secondary">
-            {category}
+            {t(`integrations.categories.${category}`)}
           </ThemedText>
           <View style={{ gap: Spacing.md }}>
             {items.map((i) => (
@@ -46,7 +48,7 @@ export default function ConnectionsScreen() {
       ))}
 
       <ThemedText style={styles.footer} type="secondary">
-        მონაცემი არ ეთიშება მესამე მხარეს. შეგიძლია ნებისმიერ დროს გათიშო.
+        {t("connections.footer")}
       </ThemedText>
     </SubScreenLayout>
   );

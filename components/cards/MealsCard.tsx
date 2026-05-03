@@ -7,6 +7,7 @@ import {
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { router } from "expo-router";
 import { ChevronRight, CirclePlus } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -17,13 +18,14 @@ import ThemedText from "../ui/ThemedText";
 import BaseCard from "./BaseCard";
 
 const MealsCard = ({ data }: { data?: DayMeals }) => {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
   return (
     <BaseCard>
       <View style={[styles.row, styles.spaced]}>
-        <ThemedText style={styles.title}>დღის საკვები</ThemedText>
+        <ThemedText style={styles.title}>{t("home.todaysFood")}</ThemedText>
         <TouchableOpacity
           onPress={() => router.navigate("/add")}
           hitSlop={8}
@@ -42,7 +44,7 @@ const MealsCard = ({ data }: { data?: DayMeals }) => {
         const calories = Math.round(meal?.kcal ?? 0);
         const summary =
           entries.length === 0
-            ? "ჯერ არ ჩაგიწერია"
+            ? t("home.noEntriesYet")
             : entries
                 .map((e) => e.food?.name)
                 .filter(Boolean)
@@ -71,7 +73,7 @@ const MealsCard = ({ data }: { data?: DayMeals }) => {
             <View style={{ flex: 1, gap: Spacing.xs }}>
               <View style={[styles.row, styles.spaced]}>
                 <View style={[styles.row, { gap: Spacing.sm }]}>
-                  <ThemedText style={styles.mealTypeTitle}>{key}</ThemedText>
+                  <ThemedText style={styles.mealTypeTitle}>{t(`meal.${MEAL_KEY_TO_API[key]}`)}</ThemedText>
                   <ThemedText style={styles.timelabel} type="secondary">
                     {cfg.time}
                   </ThemedText>
@@ -83,7 +85,7 @@ const MealsCard = ({ data }: { data?: DayMeals }) => {
                       entries.length === 0 ? theme.textSecondary : theme.text
                     }
                   >
-                    {calories} კალ
+                    {calories} {t("macros.kcalShort")}
                   </ThemedText>
                   <ChevronRight color={theme.textSecondary} size={16} />
                 </View>

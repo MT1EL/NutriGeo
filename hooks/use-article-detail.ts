@@ -7,6 +7,7 @@ import {
 } from "@/api/articles";
 import type { Article } from "@/api/types";
 import { useToast } from "@/contexts/ToastContext";
+import i18n from "@/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
@@ -46,8 +47,8 @@ export function useArticleDetail(id: string | undefined) {
     onError: (err, { next }) => {
       setSavedOverride(!next);
       const message =
-        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("common.saveFailed");
+      toast.error(message, i18n.t("common.error"));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["articles", "detail", id] });

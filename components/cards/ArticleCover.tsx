@@ -7,6 +7,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Clock } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   LayoutChangeEvent,
   StyleSheet,
@@ -51,6 +52,7 @@ type Props = {
 };
 
 const ArticleCover = ({ article, variant = "card" }: Props) => {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -87,7 +89,7 @@ const ArticleCover = ({ article, variant = "card" }: Props) => {
             <View style={styles.rowMeta}>
               <Clock color={theme.textSecondary} size={11} />
               <ThemedText style={styles.rowMetaText} type="secondary">
-                {readMin} წთ.
+                {t("articles.minutes", { count: readMin })}
               </ThemedText>
             </View>
           </View>
@@ -135,7 +137,7 @@ const ArticleCover = ({ article, variant = "card" }: Props) => {
           <View style={styles.meta}>
             <Clock color="rgba(255,255,255,0.85)" size={11} />
             <ThemedText style={styles.metaText} color="rgba(255,255,255,0.85)">
-              {readMin} წთ.
+              {t("articles.minutes", { count: readMin })}
             </ThemedText>
           </View>
         </View>

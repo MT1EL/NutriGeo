@@ -4,6 +4,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Clock } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function RecipeSteps({ steps }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const [done, setDone] = useState<Set<number>>(new Set());
@@ -37,9 +39,13 @@ export default function RecipeSteps({ steps }: Props) {
     <BaseCard>
       <View style={styles.cardHeader}>
         <View style={{ gap: 2 }}>
-          <ThemedText style={styles.cardTitle}>მომზადება</ThemedText>
+          <ThemedText style={styles.cardTitle}>{t("recipes.preparation")}</ThemedText>
           <ThemedText type="secondary" style={styles.cardCaption}>
-            {steps.length} ნაბიჯი · {done.size}/{steps.length} შესრულებულია
+            {t("recipes.stepsCount", {
+              count: steps.length,
+              done: done.size,
+              total: steps.length,
+            })}
           </ThemedText>
         </View>
       </View>
@@ -79,7 +85,7 @@ export default function RecipeSteps({ steps }: Props) {
                   <View style={styles.meta}>
                     <Clock color={theme.textSecondary} size={11} />
                     <ThemedText style={styles.metaText} type="secondary">
-                      ~{step.duration_min} წთ
+                      {t("recipes.stepDuration", { count: step.duration_min })}
                     </ThemedText>
                   </View>
                 )}

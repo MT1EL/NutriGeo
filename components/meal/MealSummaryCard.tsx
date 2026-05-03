@@ -1,6 +1,7 @@
 import ThemedText from "@/components/ui/ThemedText";
 import type { MealConfig } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 type MealSummary = {
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export default function MealSummaryCard({ summary, config }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -25,19 +27,19 @@ export default function MealSummaryCard({ summary, config }: Props) {
 
   const macros = [
     {
-      label: "ცილა",
+      label: t("macros.protein"),
       consumed: summary.protein,
       goal: config.proteinGoal,
       color: theme.macroProtein,
     },
     {
-      label: "ნახშირწყ.",
+      label: t("macros.carbsShort"),
       consumed: summary.carbs,
       goal: config.carbsGoal,
       color: theme.macroCarbs,
     },
     {
-      label: "ცხიმი",
+      label: t("macros.fat"),
       consumed: summary.fat,
       goal: config.fatGoal,
       color: theme.macroFat,
@@ -54,14 +56,14 @@ export default function MealSummaryCard({ summary, config }: Props) {
       <View style={styles.top}>
         <View>
           <ThemedText style={styles.consumedLabel} type="secondary">
-            ჩაწერილი
+            {t("macros.consumed")}
           </ThemedText>
           <View style={styles.consumedRow}>
             <ThemedText style={styles.consumedValue}>
               {summary.consumed}
             </ThemedText>
             <ThemedText style={styles.consumedGoal} type="secondary">
-              / {config.goal} კალ
+              / {config.goal} {t("macros.kcalShort")}
             </ThemedText>
           </View>
         </View>
@@ -73,7 +75,7 @@ export default function MealSummaryCard({ summary, config }: Props) {
             {overGoal ? `+${summary.consumed - config.goal}` : remaining}
           </ThemedText>
           <ThemedText style={styles.remainingLabel} type="secondary">
-            {overGoal ? "გადაჭარბდა" : "დარჩა"}
+            {overGoal ? t("macros.exceeded") : t("macros.remaining")}
           </ThemedText>
         </View>
       </View>
@@ -115,7 +117,7 @@ export default function MealSummaryCard({ summary, config }: Props) {
             <ThemedText style={styles.macroValue}>
               {m.consumed}
               <ThemedText style={styles.macroValueGoal} type="secondary">
-                /{m.goal}გ
+                /{m.goal}{t("macros.g")}
               </ThemedText>
             </ThemedText>
           </View>

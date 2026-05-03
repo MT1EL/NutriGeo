@@ -1,6 +1,7 @@
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Plug } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export default function ConnectionsBanner({ count }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -18,10 +20,10 @@ export default function ConnectionsBanner({ count }: Props) {
       </View>
       <View style={{ flex: 1 }}>
         <ThemedText style={styles.title}>
-          {count} დაკავშირებული წყარო
+          {t("connections.connectedSources", { count })}
         </ThemedText>
         <ThemedText type="secondary" style={styles.sub}>
-          მონაცემი ავტომატურად სინქრონიზდება
+          {t("connections.autoSync")}
         </ThemedText>
       </View>
     </View>

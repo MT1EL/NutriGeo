@@ -16,7 +16,12 @@ import { ActiveDateProvider } from "@/contexts/ActiveDateContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import i18n from "@/i18n";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 // Push the user's saved theme preference into RN's Appearance system so every
 // `useColorScheme()` consumer (i.e. the whole app) follows it. Setting the
@@ -89,6 +94,23 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
+
+// On language switch, refetch every query: server responses are localized via
+// the Accept-Language header, so the previous language's payload is stale.
+function LanguageSync() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const onChange = () => queryClient.invalidateQueries();
+    i18n.on("languageChanged", onChange);
+    return () => {
+      i18n.off("languageChanged", onChange);
+    };
+  }, [queryClient]);
+
+  return null;
+}
+
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
@@ -99,6 +121,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <QueryClientProvider client={queryClient}>
+          <LanguageSync />
           <ToastProvider>
             <AuthProvider>
               <ThemeSync />

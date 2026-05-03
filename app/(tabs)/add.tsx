@@ -9,11 +9,18 @@ import CustomFoodSheet from "@/components/sheets/CustomFoodSheet";
 import FoodDetailSheet from "@/components/sheets/FoodDetailSheet";
 import QuickAddSheet from "@/components/sheets/QuickAddSheet";
 import Button from "@/components/ui/Button";
-import { isMealKey, MEAL_CONFIGS, MEAL_KEYS, MealKey } from "@/constants/meals";
+import {
+  isMealKey,
+  MEAL_CONFIGS,
+  MEAL_KEY_TO_I18N,
+  MEAL_KEYS,
+  MealKey,
+} from "@/constants/meals";
 import { Colors, Spacing } from "@/constants/theme";
 import { useAddScreen } from "@/hooks/use-add-screen";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -24,6 +31,7 @@ import {
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 export default function AddScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const { meal } = useLocalSearchParams<{ meal?: string }>();
@@ -64,8 +72,9 @@ export default function AddScreen() {
 
   const config = MEAL_CONFIGS[activeMeal];
   const mealButtons = MEAL_KEYS.map((m) => ({
+    key: m,
     Icon: MEAL_CONFIGS[m].Icon,
-    label: m,
+    label: t(MEAL_KEY_TO_I18N[m]),
   }));
 
   return (
@@ -75,10 +84,10 @@ export default function AddScreen() {
       keyboardVerticalOffset={-TAB_BAR_HEIGHT}
     >
       <Header
-        title="კვების ჩაწერა"
-        inputPlaceholder="მოძებნე საკვები..."
+        title={t("add.title")}
+        inputPlaceholder={t("add.search")}
         buttons={mealButtons}
-        onButtonPress={(button) => setActiveMeal(button.label as MealKey)}
+        onButtonPress={(button) => setActiveMeal(button.key as MealKey)}
         activeButton={activeMeal}
         searchValue={searchInput}
         onSearchChange={setSearchInput}
@@ -95,24 +104,24 @@ export default function AddScreen() {
           iconTint={
             colorScheme === "dark" ? config.iconTintDark : config.iconTint
           }
-          mealLabel={activeMeal}
+          mealLabel={t(MEAL_KEY_TO_I18N[activeMeal])}
           consumed={summary.consumed}
           goal={config.goal}
           macros={[
             {
-              label: "ცილა",
+              label: t("macros.protein"),
               consumed: summary.protein,
               goal: config.proteinGoal,
               color: theme.macroProtein,
             },
             {
-              label: "ნახშირწყ.",
+              label: t("macros.carbsShort"),
               consumed: summary.carbs,
               goal: config.carbsGoal,
               color: theme.macroCarbs,
             },
             {
-              label: "ცხიმი",
+              label: t("macros.fat"),
               consumed: summary.fat,
               goal: config.fatGoal,
               color: theme.macroFat,
@@ -155,7 +164,7 @@ export default function AddScreen() {
         />
 
         <Button onPress={() => setCreateSheetVisible(true)} variant="secondary">
-          + შექმენი ახალი საკვები
+          {t("add.addNewFood")}
         </Button>
       </ScrollView>
 

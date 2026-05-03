@@ -7,6 +7,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { ScanBarcode, X } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Modal,
   Platform,
@@ -38,6 +39,7 @@ export default function BarcodeScannerSheet({
   onClose,
   onFoodFound,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
@@ -65,14 +67,14 @@ export default function BarcodeScannerSheet({
         onFoodFound(res.data);
         onClose();
       } else {
-        toast.error("ბარკოდი ვერ მოიძებნა");
+        toast.error(t("barcode.notFound"));
         setLooking(false);
         // Allow the user to try again without closing the sheet.
         handledRef.current = false;
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "შეცდომა";
-      toast.error(msg, "შეცდომა");
+      const msg = err instanceof Error ? err.message : t("common.error");
+      toast.error(msg, t("common.error"));
       setLooking(false);
       handledRef.current = false;
     }
@@ -88,12 +90,12 @@ export default function BarcodeScannerSheet({
             <ScanBarcode color={theme.brand} size={28} />
           </View>
           <ThemedText style={styles.permTitle}>
-            კამერაზე წვდომა საჭიროა
+            {t("barcode.needCamera")}
           </ThemedText>
           <ThemedText type="secondary" style={styles.permText}>
-            ბარკოდის სკანერისთვის დაგვჭირდება კამერაზე წვდომა
+            {t("barcode.cameraReason")}
           </ThemedText>
-          <Button onPress={requestPermission}>წვდომის მიცემა</Button>
+          <Button onPress={requestPermission}>{t("barcode.grant")}</Button>
         </View>
       );
     }
@@ -113,7 +115,7 @@ export default function BarcodeScannerSheet({
         </View>
         <View style={styles.hintWrap} pointerEvents="none">
           <ThemedText style={styles.hintText} color="#FFFFFF">
-            {looking ? "ვამოწმებ..." : "მიმართე კამერა ბარკოდისკენ"}
+            {looking ? t("barcode.checking") : t("barcode.aim")}
           </ThemedText>
         </View>
       </View>
@@ -133,7 +135,7 @@ export default function BarcodeScannerSheet({
         style={[styles.root, { backgroundColor: theme.background }]}
       >
         <View style={styles.header}>
-          <ThemedText style={styles.title}>ბარკოდი</ThemedText>
+          <ThemedText style={styles.title}>{t("barcode.title")}</ThemedText>
           <TouchableOpacity
             onPress={onClose}
             style={[styles.iconBtn, { backgroundColor: theme.borderLight }]}

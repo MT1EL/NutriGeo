@@ -4,6 +4,7 @@ import {
   listArticles,
 } from "@/api/articles";
 import type { Article, ArticleCategory } from "@/api/types";
+import i18n from "@/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
@@ -42,7 +43,7 @@ export function useArticlesList() {
     const raw = categoriesQuery.data?.data;
     const list: ArticleCategory[] = Array.isArray(raw) ? raw : [];
     return [
-      { slug: "all", label: "ყველა" },
+      { slug: "all", label: i18n.t("articles.categoryAll") },
       ...list.map((c) => ({ slug: c.slug, label: c.label })),
     ];
   }, [categoriesQuery.data]);

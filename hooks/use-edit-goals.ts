@@ -1,6 +1,7 @@
 import { updateGoals } from "@/api/profile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import i18n from "@/i18n";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
@@ -8,13 +9,12 @@ export type Pace = "slow" | "moderate" | "fast";
 
 export const PACE_OPTIONS: {
   key: Pace;
-  label: string;
-  desc: string;
+  labelKey: string;
   weeklyKg: number;
 }[] = [
-  { key: "slow", label: "ნელი", desc: "0.25 კგ/კვ", weeklyKg: 0.25 },
-  { key: "moderate", label: "საშუალო", desc: "0.5 კგ/კვ", weeklyKg: 0.5 },
-  { key: "fast", label: "სწრაფი", desc: "0.75 კგ/კვ", weeklyKg: 0.75 },
+  { key: "slow", labelKey: "wizard.goalDetails.slow", weeklyKg: 0.25 },
+  { key: "moderate", labelKey: "wizard.goalDetails.medium", weeklyKg: 0.5 },
+  { key: "fast", labelKey: "wizard.goalDetails.fast", weeklyKg: 0.75 },
 ];
 
 export function paceFromWeeklyKg(weeklyKg: number | undefined): Pace {
@@ -66,12 +66,12 @@ export function useEditGoals() {
       await queryClient.invalidateQueries({ queryKey: ["meals"] });
       await queryClient.invalidateQueries({ queryKey: ["stats"] });
       await refreshUser();
-      toast.success("მიზნები შენახულია");
+      toast.success(i18n.t("goals2.saved"));
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "შენახვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : i18n.t("common.saveFailed");
+      toast.error(message, i18n.t("common.error"));
     },
   });
 

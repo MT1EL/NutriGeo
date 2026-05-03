@@ -3,6 +3,7 @@ import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useLogWeight } from "@/hooks/use-log-weight";
 import { Minus, Plus, Scale, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -44,6 +45,7 @@ export default function WeightLogSheet({
   defaultWeightKg,
   dateLabel,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const mutation = useLogWeight();
@@ -99,7 +101,7 @@ export default function WeightLogSheet({
                   <Scale color={theme.brand} size={20} />
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <ThemedText style={styles.title}>წონის ჩაწერა</ThemedText>
+                  <ThemedText style={styles.title}>{t("weight.logTitle")}</ThemedText>
                   <ThemedText type="secondary" style={styles.subtitle}>
                     {dateLabel}
                   </ThemedText>
@@ -134,7 +136,7 @@ export default function WeightLogSheet({
                     returnKeyType="done"
                   />
                   <ThemedText style={styles.amountUnit} type="secondary">
-                    კგ
+                    {t("weight.kg")}
                   </ThemedText>
                 </View>
 
@@ -164,7 +166,7 @@ export default function WeightLogSheet({
                   style={styles.primaryBtnText}
                   color={theme.textOnBrand}
                 >
-                  {mutation.isPending ? "ინახება..." : "შენახვა"}
+                  {mutation.isPending ? t("common.saving") : t("common.save")}
                 </ThemedText>
               </TouchableOpacity>
             </SafeAreaView>

@@ -5,6 +5,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { formatWeightChange } from "@/utils/format";
 import { Scale, TrendingDown } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import CardEmpty from "./CardEmpty";
 
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function WeightCard({ weightSeries, weightGoal, summary }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -27,11 +29,11 @@ export default function WeightCard({ weightSeries, weightGoal, summary }: Props)
     <BaseCard>
       <View style={styles.cardHeader}>
         <View style={{ gap: 2 }}>
-          <ThemedText style={styles.cardTitle}>წონის დინამიკა</ThemedText>
+          <ThemedText style={styles.cardTitle}>{t("statistics.weightDynamics")}</ThemedText>
           <ThemedText type="secondary" style={styles.cardCaption}>
             {weightGoal != null
-              ? `მიზანი ${weightGoal}კგ`
-              : "მიზანი დაყენებული არ არის"}
+              ? t("statistics.goalKg", { kg: weightGoal })
+              : t("statistics.noGoalSet")}
           </ThemedText>
         </View>
         {summary?.weight_change_kg != null && (
@@ -56,18 +58,18 @@ export default function WeightCard({ weightSeries, weightGoal, summary }: Props)
           <View style={styles.footer}>
             <View>
               <ThemedText type="secondary" style={styles.footerLabel}>
-                მიმდინარე
+                {t("statistics.current2")}
               </ThemedText>
               <ThemedText style={styles.footerValue}>
-                {lastWeight?.toFixed(1)}კგ
+                {lastWeight?.toFixed(1)}{t("statistics.kgUnit")}
               </ThemedText>
             </View>
             <View style={{ alignItems: "flex-end" }}>
               <ThemedText type="secondary" style={styles.footerLabel}>
-                მიზანი
+                {t("statistics.goal2")}
               </ThemedText>
               <ThemedText style={styles.footerValue} color={theme.brand}>
-                {weightGoal != null ? `${weightGoal}კგ` : "—"}
+                {weightGoal != null ? `${weightGoal}${t("statistics.kgUnit")}` : "—"}
               </ThemedText>
             </View>
           </View>
@@ -75,8 +77,8 @@ export default function WeightCard({ weightSeries, weightGoal, summary }: Props)
       ) : (
         <CardEmpty
           Icon={Scale}
-          title="წონის ჩანაწერი არ არის"
-          hint="ჩაწერე შენი წონა და ნახე დინამიკა გრაფიკზე."
+          title={t("statistics.noWeightEntries")}
+          hint={t("statistics.logWeightHint")}
           color="#34A867"
           tint={colorScheme === "dark" ? "#1F3A28" : "#E6F6EA"}
         />

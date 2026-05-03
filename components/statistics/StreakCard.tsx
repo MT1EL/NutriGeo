@@ -3,6 +3,7 @@ import { DayState, StreakGrid } from "@/components/charts/StreakGrid";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { Activity } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import CardEmpty from "./CardEmpty";
 
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function StreakCard({ days }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -18,9 +20,9 @@ export default function StreakCard({ days }: Props) {
     <BaseCard>
       <View style={styles.cardHeader}>
         <View style={{ gap: 2 }}>
-          <ThemedText style={styles.cardTitle}>ლოგინგ სტრიკი</ThemedText>
+          <ThemedText style={styles.cardTitle}>{t("statistics.loggingStreak")}</ThemedText>
           <ThemedText type="secondary" style={styles.cardCaption}>
-            ბოლო {days.length} დღე
+            {t("statistics.lastDays", { count: days.length })}
           </ThemedText>
         </View>
         <View style={styles.legendRow}>
@@ -29,7 +31,7 @@ export default function StreakCard({ days }: Props) {
               style={[styles.legendDot, { backgroundColor: theme.brand }]}
             />
             <ThemedText style={styles.legendText} type="secondary">
-              ჩაწერილი
+              {t("statistics.logged")}
             </ThemedText>
           </View>
           <View style={styles.legendItem}>
@@ -40,7 +42,7 @@ export default function StreakCard({ days }: Props) {
               ]}
             />
             <ThemedText style={styles.legendText} type="secondary">
-              ნაწილობრ.
+              {t("statistics.partial")}
             </ThemedText>
           </View>
         </View>
@@ -56,8 +58,8 @@ export default function StreakCard({ days }: Props) {
       ) : (
         <CardEmpty
           Icon={Activity}
-          title="სტრიკი ჯერ არ გაქვს"
-          hint="ყოველდღე ჩაწერე საკვები რომ აიგო სტრიკი."
+          title={t("statistics.streakNone")}
+          hint={t("statistics.streakHint")}
           color="#5B6CE0"
           tint={colorScheme === "dark" ? "#222B4A" : "#EEF0FB"}
         />

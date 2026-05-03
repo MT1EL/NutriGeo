@@ -6,6 +6,7 @@ import type { UiRange } from "@/hooks/use-stats";
 import { weekdayShort } from "@/utils/date";
 import { Flame } from "lucide-react-native";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import CardEmpty from "./CardEmpty";
 
@@ -15,7 +16,7 @@ type Bar = { key: string; kcal: number; label: string; showLabel: boolean };
 //   week    → 7 daily bars (raw kcal)
 //   month   → 4 weekly bars (avg kcal/day across *logged* days in that week)
 //   quarter → 12 weekly bars (same averaging)
-function buildBars(series: CaloriesPoint[], range: UiRange): Bar[] {
+function buildBars(series: CaloriesPoint[], range: UiRange, weekLabel: (n: number) => string): Bar[] {
   if (range === "week") {
     return series.map((p, i) => ({
       key: p.date ?? `${i}`,
@@ -42,7 +43,7 @@ function buildBars(series: CaloriesPoint[], range: UiRange): Bar[] {
     out.push({
       key: `wk-${i}`,
       kcal: avg,
-      label: range === "month" ? `კვ ${i + 1}` : `${i + 1}`,
+      label: range === "month" ? weekLabel(i + 1) : `${i + 1}`,
       showLabel: true,
     });
   }
@@ -62,10 +63,14 @@ export default function CaloriesCard({
   calGoal,
   hasAnyCalories,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
-  const bars = useMemo(() => buildBars(series, range), [series, range]);
+  const bars = useMemo(
+    () => buildBars(series, range, (n) => t("statistics.weekN", { n })),
+    [series, range, t],
+  );
   const barMax = bars.length
     ? Math.max(...bars.map((b) => b.kcal), calGoal) * 1.1
     : calGoal * 1.1;
@@ -76,14 +81,14 @@ export default function CaloriesCard({
 
   const title =
     range === "week"
-      ? "კვირის კალორია"
+      ? t("statistics.weeklyKcal")
       : range === "month"
-        ? "თვის კალორია"
-        : "3 თვის კალორია";
+        ? t("statistics.monthlyKcal")
+        : t("statistics.quarterlyKcal");
   const caption =
     range === "week"
-      ? `მიზანი ${calGoal} კალ/დღეში`
-      : `საშ. კალ/დღე · მიზანი ${calGoal}`;
+      ? t("statistics.kcalGoalDay", { kcal: calGoal })
+      : t("statistics.avgKcalDay", { kcal: calGoal });
 
   return (
     <BaseCard>
@@ -100,7 +105,7 @@ export default function CaloriesCard({
               style={[styles.legendDot, { backgroundColor: theme.brand }]}
             />
             <ThemedText style={styles.legendText} type="secondary">
-              {range === "week" ? "დღეს" : "მიმდ."}
+              {range === "week" ? t("statistics.todayShort") : t("statistics.currShort")}
             </ThemedText>
           </View>
           <View style={styles.legendItem}>
@@ -108,7 +113,7 @@ export default function CaloriesCard({
               style={[styles.legendDot, { backgroundColor: theme.warning }]}
             />
             <ThemedText style={styles.legendText} type="secondary">
-              გადაჭარბება
+              {t("statistics.exceeding")}
             </ThemedText>
           </View>
         </View>
@@ -146,7 +151,7 @@ export default function CaloriesCard({
             const overGoal = v > calGoal;
             const isCurrent = i === bars.length - 1;
             const valueText =
-              v >= 1000 ? `${(v / 1000).toFixed(1)}კ` : `${v}`;
+              v >= 1000 ? `${(v / 1000).toFixed(1)}${t("statistics.kThousand")}` : `${v}`;
             return (
               <View key={p.key} style={styles.barCol}>
                 <View style={[styles.barTrack, { width: barWidth }]}>
@@ -195,8 +200,8 @@ export default function CaloriesCard({
       ) : (
         <CardEmpty
           Icon={Flame}
-          title="კალორიის მონაცემი არ არის"
-          hint="დაამატე კვება რომ ნახო შენი დღიური ბალანსი."
+          title={t("statistics.noKcalCard")}
+          hint={t("statistics.addMealsHint")}
           color="#FF7A45"
           tint={colorScheme === "dark" ? "#3A2010" : "#FEEDE2"}
         />

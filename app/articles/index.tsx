@@ -9,6 +9,7 @@ import {
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Spacing, Type } from "@/constants/theme";
 import { useArticlesList } from "@/hooks/use-articles-list";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -17,6 +18,7 @@ import {
 } from "react-native";
 
 export default function ArticlesIndex() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const { activeCat, setActiveCat, articles, categories, hero, rest, isLoading } =
@@ -41,7 +43,7 @@ export default function ArticlesIndex() {
           <>
             <FeaturedArticleSkeleton />
             <View style={{ gap: Spacing.sm }}>
-              <ThemedText style={styles.sectionTitle}>ყველა სტატია</ThemedText>
+              <ThemedText style={styles.sectionTitle}>{t("articles.all")}</ThemedText>
               <ArticleListSkeleton count={3} />
             </View>
           </>
@@ -51,7 +53,7 @@ export default function ArticlesIndex() {
 
         {rest.length > 0 && (
           <View style={{ gap: Spacing.sm }}>
-            <ThemedText style={styles.sectionTitle}>ყველა სტატია</ThemedText>
+            <ThemedText style={styles.sectionTitle}>{t("articles.all")}</ThemedText>
             <View style={{ gap: Spacing.md }}>
               {rest.map((a) => (
                 <ArticleCover key={a.id} article={a} variant="row" />
@@ -63,10 +65,10 @@ export default function ArticlesIndex() {
         {!isLoading && articles.length === 0 && !hero && (
           <View style={styles.empty}>
             <ThemedText style={styles.emptyTitle}>
-              სტატია ვერ მოიძებნა
+              {t("articles.notFound")}
             </ThemedText>
             <ThemedText type="secondary" style={styles.emptyText}>
-              სცადე სხვა კატეგორია
+              {t("articles.tryDifferentCategory")}
             </ThemedText>
           </View>
         )}

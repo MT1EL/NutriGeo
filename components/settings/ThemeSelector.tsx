@@ -2,6 +2,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import type { ThemeMode } from "@/hooks/use-settings";
 import { Globe, LucideIcon, Moon, Sun } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -9,10 +10,10 @@ import {
   View,
 } from "react-native";
 
-const OPTIONS: { key: ThemeMode; label: string; Icon: LucideIcon }[] = [
-  { key: "system", label: "სისტემა", Icon: Globe },
-  { key: "light", label: "ღია", Icon: Sun },
-  { key: "dark", label: "მუქი", Icon: Moon },
+const OPTIONS: { key: ThemeMode; labelKey: string; Icon: LucideIcon }[] = [
+  { key: "system", labelKey: "settings.themeSystem", Icon: Globe },
+  { key: "light", labelKey: "settings.themeLight", Icon: Sun },
+  { key: "dark", labelKey: "settings.themeDark", Icon: Moon },
 ];
 
 type Props = {
@@ -22,16 +23,17 @@ type Props = {
 };
 
 export default function ThemeSelector({ value, onChange, disabled }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
   return (
     <View style={{ gap: Spacing.sm }}>
       <ThemedText style={styles.groupLabel} type="secondary">
-        თემა
+        {t("settings.theme")}
       </ThemedText>
       <View style={styles.row}>
-        {OPTIONS.map(({ key, label, Icon }) => {
+        {OPTIONS.map(({ key, labelKey, Icon }) => {
           const isActive = value === key;
           return (
             <TouchableOpacity
@@ -64,7 +66,7 @@ export default function ThemeSelector({ value, onChange, disabled }: Props) {
                 style={styles.label}
                 color={isActive ? theme.brand : theme.text}
               >
-                {label}
+                {t(labelKey)}
               </ThemedText>
             </TouchableOpacity>
           );

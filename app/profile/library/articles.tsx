@@ -10,6 +10,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bookmark, BookmarkX } from "lucide-react-native";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -19,6 +20,7 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 
 export default function LibraryArticlesScreen() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
@@ -55,8 +57,8 @@ export default function LibraryArticlesScreen() {
       if (ctx?.previous) {
         queryClient.setQueryData(["bookmarks", "articles"], ctx.previous);
       }
-      const message = err instanceof Error ? err.message : "ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+      const message = err instanceof Error ? err.message : t("common.errorGeneric");
+      toast.error(message, t("common.error"));
     },
   });
 
@@ -82,8 +84,8 @@ export default function LibraryArticlesScreen() {
 
   return (
     <SubScreenLayout
-      title="შენახული სტატიები"
-      subtitle={`${articles.length} სტატია`}
+      title={t("library.articlesTitle")}
+      subtitle={t("library.articlesCount", { count: articles.length })}
     >
       {isLoading ? (
         <ArticleListSkeleton count={4} />
@@ -92,14 +94,14 @@ export default function LibraryArticlesScreen() {
           <View style={[styles.emptyIcon, { backgroundColor: theme.brandSoft }]}>
             <Bookmark color={theme.brand} size={28} />
           </View>
-          <ThemedText style={styles.emptyTitle}>ცარიელია</ThemedText>
+          <ThemedText style={styles.emptyTitle}>{t("library.empty")}</ThemedText>
           <ThemedText type="secondary" style={styles.emptyText}>
-            სტატიის წაკითხვისას დააჭირე ნიშანს — აქ შენახული სტატიები გამოჩნდება
+            {t("library.articlesEmptyHint")}
           </ThemedText>
         </View>
       ) : (
         <View style={styles.list}>
-          <SwipeHint text="გადასწიე ბარათი მარცხნივ წასაშლელად" />
+          <SwipeHint text={t("common.swipeLeftToDelete")} />
           {articles.map((a) => (
             <Swipeable
               key={a.id}

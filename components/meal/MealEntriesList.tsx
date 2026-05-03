@@ -6,6 +6,7 @@ import type { MealConfig } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { entryDisplay, entryDisplayServing } from "@/utils/foodMath";
 import { foodImageSource } from "@/utils/image";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 type Props = {
@@ -21,12 +22,13 @@ export default function MealEntriesList({
   config,
   onRemove,
 }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
   return (
     <View style={{ gap: Spacing.sm }}>
-      <ThemedText style={styles.sectionTitle}>ჩაწერილი საკვები</ThemedText>
+      <ThemedText style={styles.sectionTitle}>{t("meal.loggedFoods")}</ThemedText>
       {isLoading ? (
         <FoodListSkeleton count={3} />
       ) : entries.length === 0 ? (
@@ -42,10 +44,10 @@ export default function MealEntriesList({
             <config.Icon color={theme.brand} size={22} />
           </View>
           <ThemedText style={styles.emptyTitle}>
-            ჯერ არაფერი ჩაგიწერია
+            {t("meal.nothingLoggedShort")}
           </ThemedText>
           <ThemedText type="secondary" style={styles.emptyText}>
-            დააწექი ქვემოთ ღილაკს და დაამატე
+            {t("meal.addPressBelow")}
           </ThemedText>
         </View>
       ) : (

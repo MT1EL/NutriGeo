@@ -17,6 +17,7 @@ import {
   Zap,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -44,19 +45,6 @@ const ALL_API_MEAL_KEYS: ApiMealKey[] = [
   "dinner",
 ];
 
-function apiMealLabel(k: ApiMealKey): string {
-  switch (k) {
-    case "breakfast":
-      return "საუზმე";
-    case "lunch":
-      return "სადილი";
-    case "snack":
-      return "სნექი";
-    case "dinner":
-      return "ვახშამი";
-  }
-}
-
 function toNum(s: string): number | null {
   const n = parseFloat(s.replace(",", "."));
   return Number.isFinite(n) && n >= 0 ? n : null;
@@ -68,6 +56,8 @@ export default function QuickAddSheet({
   defaultMealKey,
   todayKey,
 }: Props) {
+  const { t } = useTranslation();
+  const apiMealLabel = (k: ApiMealKey): string => t(`meal.${k}`);
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
@@ -112,22 +102,22 @@ export default function QuickAddSheet({
     },
     onSuccess: () => {
       invalidateFoodLogQueries(queryClient, todayKey);
-      toast.success("ჩაიწერა");
+      toast.success(t("quickAdd.success"));
       onClose();
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "ჩაწერა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : t("quickAdd.failed");
+      toast.error(message, t("common.error"));
     },
   });
 
   const handleSave = () => {
     const next: Record<string, string> = {};
-    if (toNum(kcal) == null) next.kcal = "შეიყვანე კალორია";
-    if (toNum(protein) == null) next.protein = "შეიყვანე ცილა";
-    if (toNum(carbs) == null) next.carbs = "შეიყვანე ნახშირწყალი";
-    if (toNum(fat) == null) next.fat = "შეიყვანე ცხიმი";
+    if (toNum(kcal) == null) next.kcal = t("wizard.suggestion.enterKcalGoal");
+    if (toNum(protein) == null) next.protein = t("wizard.suggestion.enterProtein");
+    if (toNum(carbs) == null) next.carbs = t("wizard.suggestion.enterCarbs");
+    if (toNum(fat) == null) next.fat = t("wizard.suggestion.enterFat");
     setErrors(next);
     if (Object.keys(next).length > 0) return;
     mutation.mutate();
@@ -167,9 +157,9 @@ export default function QuickAddSheet({
                   <Zap color={theme.brand} size={18} />
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <ThemedText style={styles.title}>სწრაფი ჩაწერა</ThemedText>
+                  <ThemedText style={styles.title}>{t("quickAdd.title")}</ThemedText>
                   <ThemedText type="secondary" style={styles.subtitle}>
-                    შეიყვანე კალორია და მაკრო პირდაპირ
+                    {t("quickAdd.subtitle")}
                   </ThemedText>
                 </View>
                 <TouchableOpacity
@@ -193,14 +183,14 @@ export default function QuickAddSheet({
               >
                 <Input
                   Icon={Utensils}
-                  label="დასახელება (არასავალდებულო)"
-                  placeholder="მაგ. რესტორნის სალათი"
+                  label={t("quickAdd.nameOptional")}
+                  placeholder={t("quickAdd.namePlaceholder")}
                   value={name}
                   onChangeText={setName}
                 />
                 <Input
                   Icon={Flame}
-                  label="კალორია"
+                  label={t("food.kcalLabel")}
                   placeholder="0"
                   value={kcal}
                   onChangeText={(t) => {
@@ -214,7 +204,7 @@ export default function QuickAddSheet({
                   <View style={{ flex: 1 }}>
                     <Input
                       Icon={Beef}
-                      label="ცილა (გ)"
+                      label={t("food.proteinG")}
                       placeholder="0"
                       value={protein}
                       onChangeText={(t) => {
@@ -229,7 +219,7 @@ export default function QuickAddSheet({
                   <View style={{ flex: 1 }}>
                     <Input
                       Icon={Wheat}
-                      label="ნახშ. (გ)"
+                      label={t("food.carbsG")}
                       placeholder="0"
                       value={carbs}
                       onChangeText={(t) => {
@@ -245,7 +235,7 @@ export default function QuickAddSheet({
                   <View style={{ flex: 1 }}>
                     <Input
                       Icon={Droplet}
-                      label="ცხიმი (გ)"
+                      label={t("food.fatG")}
                       placeholder="0"
                       value={fat}
                       onChangeText={(t) => {
@@ -259,7 +249,7 @@ export default function QuickAddSheet({
                   <View style={{ flex: 1 }}>
                     <Input
                       Icon={Wheat}
-                      label="ბოჭკ. (გ)"
+                      label={t("food.fiberG")}
                       placeholder="0"
                       value={fiber}
                       onChangeText={setFiber}
@@ -269,7 +259,7 @@ export default function QuickAddSheet({
                 </View>
 
                 <ThemedText style={styles.groupLabel} type="secondary">
-                  კვებაში
+                  {t("quickAdd.inMeal")}
                 </ThemedText>
                 <View style={styles.mealRow}>
                   {ALL_API_MEAL_KEYS.map((m) => {
@@ -315,7 +305,7 @@ export default function QuickAddSheet({
                   style={styles.primaryBtnText}
                   color={theme.textOnBrand}
                 >
-                  {mutation.isPending ? "ინახება..." : "ჩაწერა"}
+                  {mutation.isPending ? t("common.saving") : t("quickAdd.submit")}
                 </ThemedText>
               </TouchableOpacity>
             </SafeAreaView>

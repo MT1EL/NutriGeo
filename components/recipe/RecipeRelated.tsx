@@ -6,6 +6,7 @@ import { recipeImageSource } from "@/utils/image";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Flame } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function RecipeRelated({ related }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -25,7 +27,7 @@ export default function RecipeRelated({ related }: Props) {
 
   return (
     <View style={{ gap: Spacing.md }}>
-      <ThemedText style={styles.sectionTitle}>მსგავსი რეცეპტი</ThemedText>
+      <ThemedText style={styles.sectionTitle}>{t("recipes.relatedSingle")}</ThemedText>
       <View style={{ gap: Spacing.md }}>
         {related.map((r) => (
           <TouchableOpacity
@@ -46,7 +48,7 @@ export default function RecipeRelated({ related }: Props) {
                 <View style={styles.meta}>
                   <Flame color={theme.textSecondary} size={11} />
                   <ThemedText style={styles.metaText} type="secondary">
-                    {r.kcal} კალ · {r.duration_min} წთ
+                    {r.kcal} {t("macros.kcalShort")} · {r.duration_min} {t("recipes.minShort")}
                   </ThemedText>
                 </View>
               </View>

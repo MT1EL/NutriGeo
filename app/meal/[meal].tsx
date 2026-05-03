@@ -11,6 +11,7 @@ import { useMealDetail } from "@/hooks/use-meal-detail";
 import { router, useLocalSearchParams } from "expo-router";
 import { Plus } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Platform,
   ScrollView,
@@ -21,6 +22,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MealModal() {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const insets = useSafeAreaInsets();
@@ -81,7 +83,7 @@ export default function MealModal() {
           <View style={styles.btnContent}>
             <Plus color="#FFFFFF" size={18} />
             <ThemedText style={styles.btnText} color="#FFFFFF">
-              დაამატე საკვები
+              {t("meal.addFood")}
             </ThemedText>
           </View>
         </Button>

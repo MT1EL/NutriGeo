@@ -1,20 +1,12 @@
-const KA_MONTHS = [
-  "იანვარი",
-  "თებერვალი",
-  "მარტი",
-  "აპრილი",
-  "მაისი",
-  "ივნისი",
-  "ივლისი",
-  "აგვისტო",
-  "სექტემბერი",
-  "ოქტომბერი",
-  "ნოემბერი",
-  "დეკემბერი",
-];
+import i18n from "@/i18n";
+
+function months(): string[] {
+  const arr = i18n.t("dates.months", { returnObjects: true });
+  return Array.isArray(arr) ? (arr as string[]) : [];
+}
 
 export function formatTodayKa(d: Date = new Date()): string {
-  return `${d.getDate()} ${KA_MONTHS[d.getMonth()]}, ${d.getFullYear()}`;
+  return `${d.getDate()} ${months()[d.getMonth()]}, ${d.getFullYear()}`;
 }
 
 // Local-timezone "today" as YYYY-MM-DD — matches backend's notion of today
@@ -29,14 +21,16 @@ export function todayISO(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-const WEEK_LABELS_KA = ["კვ", "ორ", "სა", "ოთ", "ხუ", "პა", "შა"];
+function weekdaysShort(): string[] {
+  const arr = i18n.t("dates.weekdaysShort", { returnObjects: true });
+  return Array.isArray(arr) ? (arr as string[]) : [];
+}
 
-// Short Georgian weekday label for a YYYY-MM-DD style date string.
 export function weekdayShort(dateStr: string | undefined): string {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return "";
-  return WEEK_LABELS_KA[d.getDay()] ?? "";
+  return weekdaysShort()[d.getDay()] ?? "";
 }
 
 // Whole-years age from an ISO birth date. Returns null for missing/invalid.

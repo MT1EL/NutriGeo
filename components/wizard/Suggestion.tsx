@@ -9,6 +9,7 @@ import {
   Wheat,
 } from "lucide-react-native";
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -31,16 +32,18 @@ function ageFromBirthDate(iso: string): number | null {
   return age;
 }
 
-function formatEta(weeks: number): string {
-  if (weeks < 1) return "1 კვირაზე ნაკლებში";
-  if (weeks <= 8) return `${Math.round(weeks)} კვირაში`;
-  return `~${Math.round(weeks / 4.345)} თვეში`;
-}
-
 const Suggestion = () => {
+  const { t } = useTranslation();
   const { data, setField } = useWizard();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+
+  const formatEta = (weeks: number): string => {
+    if (weeks < 1) return t("wizard.suggestion.lessThanWeek");
+    if (weeks <= 8)
+      return `${Math.round(weeks)} ${t("wizard.suggestion.weeks")}`;
+    return `~${Math.round(weeks / 4.345)} ${t("wizard.suggestion.monthsApprox")}`;
+  };
 
   const showEta = data.goal_type === "lose" || data.goal_type === "gain";
 
@@ -100,19 +103,19 @@ const Suggestion = () => {
   const macroFields = [
     {
       key: "protein_g" as const,
-      label: "ცილა",
+      label: t("wizard.suggestion.proteinShort"),
       Icon: Beef,
       color: theme.macroProtein,
     },
     {
       key: "carbs_g" as const,
-      label: "ნახშ.",
+      label: t("wizard.suggestion.carbsShort"),
       Icon: Wheat,
       color: theme.macroCarbs,
     },
     {
       key: "fat_g" as const,
-      label: "ცხიმი",
+      label: t("wizard.suggestion.fatShort"),
       Icon: Droplet,
       color: theme.macroFat,
     },
@@ -120,8 +123,8 @@ const Suggestion = () => {
 
   return (
     <WizzardContentLayout
-      title="შენი დღიური მიზნები"
-      subtitle="გამოთვლილი შენი მონაცემების მიხედვით"
+      title={t("wizard.suggestion.title")}
+      subtitle={t("wizard.suggestion.subtitle")}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -142,7 +145,7 @@ const Suggestion = () => {
               style={styles.heroLabel}
               color={theme.brand}
             >
-              შენი სამიზნე
+              {t("wizard.suggestion.yourTarget")}
             </ThemedText>
             <View style={styles.heroFlame}>
               <Flame color={theme.brand} size={16} />
@@ -153,7 +156,7 @@ const Suggestion = () => {
               {kcalValue ? kcalValue.toLocaleString() : "—"}
             </ThemedText>
             <ThemedText type="secondary" style={styles.heroUnit}>
-              კალ / დღე
+              {t("wizard.suggestion.kcalPerDay")}
             </ThemedText>
           </View>
 
@@ -168,7 +171,8 @@ const Suggestion = () => {
               <View style={styles.etaRow}>
                 <CalendarClock color={theme.brand} size={14} />
                 <ThemedText style={styles.etaText} color={theme.text}>
-                  მიაღწევ {data.target_weight_kg} კგ-ს{" "}
+                  {t("wizard.suggestion.willReach")} {data.target_weight_kg}{" "}
+                  {t("wizard.suggestion.kgIn")}{" "}
                 </ThemedText>
                 <ThemedText style={styles.etaTextStrong} color={theme.brand}>
                   {formatEta(etaWeeks)}
@@ -181,9 +185,9 @@ const Suggestion = () => {
         <View>
           <Input
             compact
-            label="კალორია / დღე (შესაცვლელი)"
+            label={t("wizard.suggestion.kcalPerDayInput")}
             value={data.daily_calorie_target}
-            onChangeText={(t) => setField("daily_calorie_target", t)}
+            onChangeText={(text) => setField("daily_calorie_target", text)}
             Icon={Flame}
             keyboardType="decimal-pad"
           />
@@ -194,7 +198,7 @@ const Suggestion = () => {
                   compact
                   label={f.label}
                   value={data[f.key]}
-                  onChangeText={(t) => setField(f.key, t)}
+                  onChangeText={(text) => setField(f.key, text)}
                   Icon={(props) => <f.Icon {...props} color={f.color} />}
                   keyboardType="decimal-pad"
                 />

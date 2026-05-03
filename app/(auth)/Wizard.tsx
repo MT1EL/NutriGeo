@@ -16,6 +16,7 @@ import { WizardProvider, useWizard, type WizardData } from "@/contexts/WizardCon
 import { router, useFocusEffect } from "expo-router";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import React, { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   BackHandler,
@@ -47,7 +48,7 @@ const STEPS: WizardStep[] = [
 ];
 
 function validateSex(d: WizardData) {
-  return d.biological_sex ? null : "აირჩიე სქესი";
+  return d.biological_sex ? null : "wizard.sex.selectError";
 }
 function ageFromBirthDate(iso: string): number | null {
   if (!iso) return null;
@@ -63,35 +64,36 @@ function validatePhysical(d: WizardData) {
   const h = Number(d.height_cm);
   const w = Number(d.weight_kg);
   const age = ageFromBirthDate(d.birth_date);
-  if (!h || h < 100 || h > 250) return "შეიყვანე სწორი სიმაღლე";
-  if (!w || w < 20 || w > 300) return "შეიყვანე სწორი წონა";
+  if (!h || h < 100 || h > 250) return "wizard.physical.invalidHeight";
+  if (!w || w < 20 || w > 300) return "wizard.physical.invalidWeight";
   if (age == null || age < 10 || age > 120)
-    return "აირჩიე დაბადების თარიღი";
+    return "wizard.physical.invalidBirthDate";
   return null;
 }
 function validateGoal(d: WizardData) {
-  return d.goal_type ? null : "აირჩიე მიზანი";
+  return d.goal_type ? null : "wizard.goal.selectError";
 }
 function validateGoalDetails(d: WizardData) {
   if (d.goal_type === "maintain") return null;
   const target = Number(d.target_weight_kg);
   const current = Number(d.weight_kg);
-  if (!target) return "შეიყვანე მიზნობრივი წონა";
+  if (!target) return "wizard.goalDetails.enterTargetWeight";
   if (d.goal_type === "lose" && target >= current)
-    return "მიზნობრივი წონა მიმდინარეზე ნაკლები უნდა იყოს";
+    return "wizard.goalDetails.targetMustBeLess";
   if (d.goal_type === "gain" && target <= current)
-    return "მიზნობრივი წონა მიმდინარეზე მეტი უნდა იყოს";
-  if (!Number(d.weekly_pace_kg)) return "აირჩიე კვირის ტემპი";
+    return "wizard.goalDetails.targetMustBeMore";
+  if (!Number(d.weekly_pace_kg)) return "wizard.goalDetails.selectPace";
   return null;
 }
 function validateActivity(d: WizardData) {
-  return d.activity_level ? null : "აირჩიე აქტიურობის დონე";
+  return d.activity_level ? null : "wizard.activity.selectError";
 }
 function validateSuggestion(d: WizardData) {
-  if (!Number(d.daily_calorie_target)) return "შეიყვანე კალორიული მიზანი";
-  if (!Number(d.protein_g)) return "შეიყვანე ცილა";
-  if (!Number(d.carbs_g)) return "შეიყვანე ნახშირწყალი";
-  if (!Number(d.fat_g)) return "შეიყვანე ცხიმი";
+  if (!Number(d.daily_calorie_target))
+    return "wizard.suggestion.enterKcalGoal";
+  if (!Number(d.protein_g)) return "wizard.suggestion.enterProtein";
+  if (!Number(d.carbs_g)) return "wizard.suggestion.enterCarbs";
+  if (!Number(d.fat_g)) return "wizard.suggestion.enterFat";
   return null;
 }
 
@@ -158,6 +160,7 @@ function buildGoalsPayload(data: WizardData): GoalsInput {
 }
 
 function WizardScreen() {
+  const { t } = useTranslation();
   const { data } = useWizard();
   const { refreshUser, user } = useAuth();
   const toast = useToast();
@@ -183,24 +186,24 @@ function WizardScreen() {
       }
       await refreshUser();
       if (goalsSaved) {
-        toast.success("პროფილი წარმატებით შეიქმნა!");
+        toast.success(t("wizard.steps.savedSuccess"));
       } else {
-        toast.info("პროფილი შეიქმნა — მაკროები შეცვალე პარამეტრებში");
+        toast.info(t("wizard.steps.savedNoMacros"));
       }
       router.replace("/Success");
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "მონაცემების შენახვა ვერ მოხერხდა";
-      toast.error(message, "შეცდომა");
+        err instanceof Error ? err.message : t("wizard.steps.saveFailed");
+      toast.error(message, t("common.error"));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleNextPage = () => {
-    const error = STEPS[activeStep].validate(data);
-    if (error) {
-      toast.error(error);
+    const errorKey = STEPS[activeStep].validate(data);
+    if (errorKey) {
+      toast.error(t(errorKey));
       return;
     }
     if (activeStep < STEPS.length - 1) {
@@ -216,18 +219,18 @@ function WizardScreen() {
 
   const confirmExit = useCallback(() => {
     Alert.alert(
-      "გასვლა?",
-      "თუ ახლა გახვალ, შენი პროფილის შევსება დაიკარგება.",
+      t("wizard.exitConfirmTitle"),
+      t("wizard.exitConfirmMessage"),
       [
-        { text: "გაგრძელება", style: "cancel" },
+        { text: t("common.continue"), style: "cancel" },
         {
-          text: "გასვლა",
+          text: t("wizard.exit"),
           style: "destructive",
           onPress: () => router.back(),
         },
       ],
     );
-  }, []);
+  }, [t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -249,7 +252,7 @@ function WizardScreen() {
         style={styles.kav}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ThemedText style={styles.title}>პროფილის შექმნა</ThemedText>
+        <ThemedText style={styles.title}>{t("wizard.createProfile")}</ThemedText>
 
           <FlatList
           data={STEPS}

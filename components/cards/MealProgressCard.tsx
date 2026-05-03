@@ -1,6 +1,7 @@
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { LucideIcon } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 import ThemedText from "../ui/ThemedText";
 import BaseCard from "./BaseCard";
@@ -31,6 +32,7 @@ export const MealProgressCard = ({
   goal,
   macros,
 }: Props) => {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const remaining = Math.max(goal - consumed, 0);
@@ -48,8 +50,8 @@ export const MealProgressCard = ({
             <ThemedText style={styles.mealLabel}>{mealLabel}</ThemedText>
             <ThemedText type="secondary" style={styles.subLabel}>
               {consumed > 0
-                ? `${consumed} / ${goal} კალ`
-                : `მიზანი ${goal} კალ`}
+                ? `${consumed} / ${goal} ${t("macros.kcalShort")}`
+                : `${t("profile.stats.goal")} ${goal} ${t("macros.kcalShort")}`}
             </ThemedText>
           </View>
         </View>
@@ -61,7 +63,7 @@ export const MealProgressCard = ({
             {overGoal ? `+${consumed - goal}` : remaining}
           </ThemedText>
           <ThemedText type="secondary" style={styles.subLabel}>
-            {overGoal ? "გადაჭარბდა" : "დარჩა"}
+            {overGoal ? t("macros.exceeded") : t("macros.remaining")}
           </ThemedText>
         </View>
       </View>
@@ -108,7 +110,7 @@ export const MealProgressCard = ({
             <ThemedText style={styles.macroValue}>
               {m.consumed}
               <ThemedText style={styles.macroValueGoal} type="secondary">
-                /{m.goal}გ
+                /{m.goal}{t("macros.g")}
               </ThemedText>
             </ThemedText>
           </View>

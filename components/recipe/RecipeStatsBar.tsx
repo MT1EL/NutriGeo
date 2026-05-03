@@ -2,9 +2,10 @@ import type { Recipe } from "@/api/types";
 import BaseCard from "@/components/cards/BaseCard";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Spacing, Type } from "@/constants/theme";
-import { difficultyLabel } from "@/utils/recipe";
+import { difficultyLabelKey } from "@/utils/recipe";
 import { ChefHat, Clock, Users } from "lucide-react-native";
 import { Fragment } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
 type Props = {
@@ -12,16 +13,26 @@ type Props = {
 };
 
 export default function RecipeStatsBar({ recipe }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
+  const difficultyKey = difficultyLabelKey(recipe.difficulty);
   const cols = [
-    { Icon: Clock, value: `${recipe.duration_min} წთ`, label: "დრო" },
-    { Icon: Users, value: `${recipe.servings}`, label: "პორცია" },
+    {
+      Icon: Clock,
+      value: `${recipe.duration_min} ${t("recipes.minShort")}`,
+      label: t("recipes.time"),
+    },
+    {
+      Icon: Users,
+      value: `${recipe.servings}`,
+      label: t("recipes.servingsLabel"),
+    },
     {
       Icon: ChefHat,
-      value: difficultyLabel(recipe.difficulty),
-      label: "სირთულე",
+      value: difficultyKey ? t(difficultyKey) : "—",
+      label: t("recipes.difficulty"),
     },
   ];
 

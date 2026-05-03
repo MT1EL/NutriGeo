@@ -7,6 +7,7 @@ import { ImageBackground } from "expo-image";
 import { router } from "expo-router";
 import { Clock, Flame, Star, Users } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   LayoutChangeEvent,
   StyleSheet,
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export default function FeaturedRecipeHero({ recipe }: Props) {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -66,7 +68,7 @@ export default function FeaturedRecipeHero({ recipe }: Props) {
           <View style={[styles.featured, { backgroundColor: theme.brand }]}>
             <Star color="#FFFFFF" size={11} fill="#FFFFFF" />
             <ThemedText style={styles.featuredText} color="#FFFFFF">
-              კვირის რჩეული
+              {t("recipes.weeksFeatured")}
             </ThemedText>
           </View>
           {tagLabel && (
@@ -95,19 +97,19 @@ export default function FeaturedRecipeHero({ recipe }: Props) {
             <View style={styles.meta}>
               <Flame color="#FFFFFF" size={12} />
               <ThemedText style={styles.metaText} color="#FFFFFF">
-                {recipe.kcal} კალ
+                {recipe.kcal} {t("macros.kcalShort")}
               </ThemedText>
             </View>
             <View style={styles.meta}>
               <Clock color="#FFFFFF" size={12} />
               <ThemedText style={styles.metaText} color="#FFFFFF">
-                {recipe.duration_min} წთ
+                {recipe.duration_min} {t("recipes.minShort")}
               </ThemedText>
             </View>
             <View style={styles.meta}>
               <Users color="#FFFFFF" size={12} />
               <ThemedText style={styles.metaText} color="#FFFFFF">
-                {recipe.servings} პორცია
+                {t("recipes.servings", { count: recipe.servings })}
               </ThemedText>
             </View>
             {recipe.rating.rating_count > 0 && (
