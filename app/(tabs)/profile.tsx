@@ -19,6 +19,7 @@ import {
   Bell,
   Bookmark,
   ChefHat,
+  Crown,
   Globe,
   Heart,
   LogOut,
@@ -180,6 +181,14 @@ const ProfilePage = () => {
 
           <ThemedText style={styles.sectionTitle}>{t("profile.appSection")}</ThemedText>
           <BaseCard style={styles.cardList}>
+            <ProfileMenuRow
+              Icon={Crown}
+              label={t("premium.screenTitle")}
+              hint={t("premium.screenSubtitle")}
+              tint={colorScheme === "dark" ? "#3A2A0A" : "#FFF4DA"}
+              iconColor="#FFB020"
+              href="/profile/premium"
+            />
             <ProfileMenuRow
               Icon={Bell}
               label={t("profile.notifications")}

@@ -1,3 +1,7 @@
+import {
+  PaywallBlur,
+  PaywallBlurOverlay,
+} from "@/components/premium/PaywallBlur";
 import CaloriesCard from "@/components/statistics/CaloriesCard";
 import EmptyState from "@/components/statistics/EmptyState";
 import InsightsCard from "@/components/statistics/InsightsCard";
@@ -14,12 +18,7 @@ import { Colors, Spacing } from "@/constants/theme";
 import { useStats } from "@/hooks/use-stats";
 import { formatWeightChange } from "@/utils/format";
 import { useTranslation } from "react-i18next";
-import {
-  ScrollView,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 export default function StatisticsPage() {
@@ -40,64 +39,78 @@ export default function StatisticsPage() {
       : t("common.noData");
 
   return (
-    <ScrollView
-      style={{ backgroundColor: theme.surface }}
-      contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + 24 }}
-      showsVerticalScrollIndicator={false}
-    >
-      <StatisticsHeader
-        range={stats.range}
-        onRangeChange={stats.setRange}
-        weightLabel={weightLabel}
-        streakDays={stats.currentStreak}
-      />
+    <View style={{ flex: 1, backgroundColor: theme.surface }}>
+      <ScrollView
+        style={{ backgroundColor: theme.surface }}
+        contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + 24 }}
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={stats.range === "week"}
+      >
+        <StatisticsHeader
+          range={stats.range}
+          onRangeChange={stats.setRange}
+          weightLabel={weightLabel}
+          streakDays={stats.currentStreak}
+        />
 
-      <View style={styles.body}>
-        {stats.isInitialLoading ? (
-          <StatisticsSkeleton />
-        ) : stats.isError ? (
-          <ScreenError onRetry={stats.refetch} style={styles.errorWrap} />
-        ) : stats.isTotallyEmpty ? (
-          <EmptyState />
-        ) : (
-          <>
-            <SummaryCards summary={stats.summary} />
-            <InsightsCard
-              range={stats.range}
-              summary={stats.summary}
-              insights={stats.overview?.insights}
-              loggedDays={stats.loggedDays}
-              onTargetDays={stats.onTargetDays}
-              weightSeries={stats.weightSeries}
-              weightGoal={stats.weightGoal}
-            />
-            <WeightCard
-              weightSeries={stats.weightSeries}
-              weightGoal={stats.weightGoal}
-              summary={stats.summary}
-            />
-            <CaloriesCard
-              range={stats.range}
-              series={stats.caloriesSeries}
-              calGoal={stats.calGoal}
-              hasAnyCalories={stats.hasAnyCalories}
-            />
-            <MacroBalanceCard
-              range={stats.range}
-              macrosSeries={stats.macrosSeries}
-              loggedDays={stats.loggedDays}
-            />
-            <StreakCard days={stats.streakDays} />
-            <TopFoodsCard
-              range={stats.range}
-              topFoods={stats.overview?.top_foods}
-              loggedDays={stats.loggedDays}
-            />
-            <RecordsCard records={stats.records} />
-          </>
-        )}
-      </View>
-    </ScrollView>
+        <PaywallBlur
+          intensity={stats.range === "week" ? 0 : undefined}
+          style={{
+            marginTop: -Spacing.lg,
+            borderRadius: 20,
+            overflow: "hidden",
+          }}
+        >
+          <View style={styles.body}>
+            {stats.isInitialLoading && <StatisticsSkeleton />}
+            {stats.isError && (
+              <ScreenError onRetry={stats.refetch} style={styles.errorWrap} />
+            )}
+            {stats.isTotallyEmpty && <EmptyState />}
+            <>
+              <SummaryCards summary={stats.summary} />
+              <InsightsCard
+                range={stats.range}
+                summary={stats.summary}
+                insights={stats.overview?.insights}
+                loggedDays={stats.loggedDays}
+                onTargetDays={stats.onTargetDays}
+                weightSeries={stats.weightSeries}
+                weightGoal={stats.weightGoal}
+              />
+              <WeightCard
+                weightSeries={stats.weightSeries}
+                weightGoal={stats.weightGoal}
+                summary={stats.summary}
+              />
+              <CaloriesCard
+                range={stats.range}
+                series={stats.caloriesSeries}
+                calGoal={stats.calGoal}
+                hasAnyCalories={stats.hasAnyCalories}
+              />
+              <MacroBalanceCard
+                range={stats.range}
+                macrosSeries={stats.macrosSeries}
+                loggedDays={stats.loggedDays}
+              />
+              <StreakCard days={stats.streakDays} />
+              <TopFoodsCard
+                range={stats.range}
+                topFoods={stats.overview?.top_foods}
+                loggedDays={stats.loggedDays}
+              />
+              <RecordsCard records={stats.records} />
+            </>
+          </View>
+        </PaywallBlur>
+      </ScrollView>
+
+      <PaywallBlurOverlay
+        visible={stats.range !== "week"}
+        featureName={t("premium.benefitStatsTitle")}
+      />
+    </View>
   );
 }
 
@@ -105,7 +118,7 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: Spacing.xl,
     gap: Spacing.lg,
-    marginTop: -Spacing.lg,
+    // marginTop: -Spacing.xl,
   },
   errorWrap: {
     paddingVertical: Spacing.huge,

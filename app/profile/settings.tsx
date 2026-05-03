@@ -4,6 +4,8 @@ import UnitsSegment from "@/components/settings/UnitsSegment";
 import { SettingsGroup, SettingsRow } from "@/components/ui/SettingsRow";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Spacing, Type } from "@/constants/theme";
+import { usePremium } from "@/hooks/use-premium";
+import { useRequirePremium } from "@/hooks/use-require-premium";
 import { useSettings } from "@/hooks/use-settings";
 import Constants from "expo-constants";
 import { router } from "expo-router";
@@ -25,6 +27,8 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+  const { isPremium } = usePremium();
+  const requirePremium = useRequirePremium();
   const {
     units,
     themeMode,
@@ -37,10 +41,28 @@ export default function SettingsScreen() {
   } = useSettings();
 
   const confirmExport = () =>
-    Alert.alert(t("settings.exportTitle"), t("settings.exportConfirm"), [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("common.send"), onPress: requestExport },
-    ]);
+    requirePremium(
+      () =>
+        Alert.alert(t("settings.exportTitle"), t("settings.exportConfirm"), [
+          { text: t("common.cancel"), style: "cancel" },
+          { text: t("common.send"), onPress: requestExport },
+        ]),
+      { featureName: t("settings.exportTitle") },
+    );
+
+  const confirmBackup = () =>
+    requirePremium(
+      () =>
+        Alert.alert(t("settings.sync"), t("settings.lastBackup"), [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("settings.sync"),
+            onPress: () =>
+              Alert.alert(t("common.done"), t("settings.syncedDescription")),
+          },
+        ]),
+      { featureName: t("settings.backup") },
+    );
 
   const confirmDeleteAccount = () =>
     Alert.alert(t("settings.deleteAccount"), t("settings.deleteAccountConfirm"), [
@@ -80,6 +102,7 @@ export default function SettingsScreen() {
           label={t("settings.exportTitle")}
           hint={isExporting ? t("common.processing") : t("settings.exportFile")}
           onPress={confirmExport}
+          premiumLocked={!isPremium}
         />
         <SettingsRow
           Icon={Database}
@@ -87,16 +110,8 @@ export default function SettingsScreen() {
           iconTint={colorScheme === "dark" ? "#222B4A" : "#EEF0FB"}
           label={t("settings.backup")}
           hint={t("settings.iCloudLast")}
-          onPress={() =>
-            Alert.alert(t("settings.sync"), t("settings.lastBackup"), [
-              { text: t("common.cancel"), style: "cancel" },
-              {
-                text: t("settings.sync"),
-                onPress: () =>
-                  Alert.alert(t("common.done"), t("settings.syncedDescription")),
-              },
-            ])
-          }
+          onPress={confirmBackup}
+          premiumLocked={!isPremium}
         />
       </SettingsGroup>
 

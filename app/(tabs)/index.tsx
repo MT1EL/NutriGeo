@@ -5,6 +5,7 @@ import MealsCard from "@/components/cards/MealsCard";
 import HomeArticles from "@/components/home/HomeArticles";
 import HomeBodyEmpty from "@/components/home/HomeBodyEmpty";
 import HomeHeader, { HOME_HEADER_OVERLAP } from "@/components/home/HomeHeader";
+import HomeTipCard from "@/components/home/HomeTipCard";
 import WeightLogPill from "@/components/home/WeightLogPill";
 import DatePickerSheet from "@/components/ui/DatePickerSheet";
 import { HomeSkeleton } from "@/components/ui/Skeletons";
@@ -97,6 +98,7 @@ export default function HomeScreen() {
             <MacrosCard data={meals} />
             <WeightLogPill weight={snapshot?.weight ?? null} />
             <MealsCard data={meals} />
+            <HomeTipCard />
             <HomeArticles articles={articles} />
           </>
         )}

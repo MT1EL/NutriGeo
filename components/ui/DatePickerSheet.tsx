@@ -131,8 +131,8 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   picker: {
-    alignSelf: "stretch",
-    width: "100%",
+    margin: "auto",
+    minWidth: "100%",
   },
   done: {
     alignSelf: "stretch",

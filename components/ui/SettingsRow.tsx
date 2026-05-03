@@ -1,5 +1,5 @@
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { ChevronRight, LucideIcon } from "lucide-react-native";
+import { ChevronRight, Crown, LucideIcon } from "lucide-react-native";
 import React from "react";
 import {
   StyleSheet,
@@ -22,6 +22,10 @@ type Props = {
   switchOn?: boolean;
   onSwitchChange?: (v: boolean) => void;
   destructive?: boolean;
+  // Renders a small crown badge next to the chevron, signalling that the
+  // row is premium-gated. The row itself stays tappable so the upgrade
+  // prompt can fire — use useRequirePremium() in onPress.
+  premiumLocked?: boolean;
 };
 
 export const SettingsRow = ({
@@ -36,6 +40,7 @@ export const SettingsRow = ({
   switchOn,
   onSwitchChange,
   destructive,
+  premiumLocked,
 }: Props) => {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -63,6 +68,11 @@ export const SettingsRow = ({
           </ThemedText>
         )}
       </View>
+      {premiumLocked && (
+        <View style={[styles.premiumBadge, { backgroundColor: theme.brandSoft }]}>
+          <Crown color={theme.brand} size={12} />
+        </View>
+      )}
       {rightAccessory === "value" && value !== undefined && (
         <ThemedText style={styles.value} type="secondary">
           {value}
@@ -158,6 +168,13 @@ const styles = StyleSheet.create({
   value: {
     fontSize: Type.sm,
     fontWeight: "600",
+  },
+  premiumBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: Radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
   },
   groupTitle: {
     fontSize: Type.xs,

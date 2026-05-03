@@ -192,6 +192,14 @@ function RootLayout() {
                       options={{ headerShown: false }}
                     />
                     <Stack.Screen
+                      name="coach"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="meal-plan"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
                       name="meal/[meal]"
                       options={{
                         headerShown: false,

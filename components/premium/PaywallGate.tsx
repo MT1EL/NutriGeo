@@ -1,11 +1,11 @@
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { usePremium } from "@/hooks/use-premium";
+import { router } from "expo-router";
 import { Lock } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Alert,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
@@ -45,15 +45,7 @@ function DefaultLocked({
   const theme = Colors[colorScheme];
 
   const onUpgrade = () => {
-    // Real paywall arrives with the IAP/RevenueCat integration. Until then,
-    // surface a placeholder so the gate is functional end-to-end.
-    Alert.alert(
-      t("premium.comingSoonTitle", { defaultValue: "Premium coming soon" }),
-      t("premium.comingSoonBody", {
-        defaultValue:
-          "Subscriptions launch with our next update. Thanks for sticking with us!",
-      }),
-    );
+    router.push("/profile/premium");
   };
 
   return (

@@ -2,6 +2,7 @@ import { GradientView } from "@/components/ui/GradientView";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import type { UiRange } from "@/hooks/use-stats";
+import { Lock } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
@@ -78,6 +79,12 @@ export default function StatisticsHeader({
                 >
                   {r.label}
                 </ThemedText>
+                {r.key !== "week" && (
+                  <Lock
+                    size={Type.sm}
+                    color={isActive ? theme.brand : "#FFFFFF"}
+                  />
+                )}
               </TouchableOpacity>
             );
           })}
@@ -108,6 +115,8 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   rangeChip: {
+    flexDirection: "row",
+    gap: Spacing.xs,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,

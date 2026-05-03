@@ -41,8 +41,7 @@ function buildBars(
     const logged = slice.filter((p) => p.kcal > 0);
     const avg = logged.length
       ? Math.round(
-          logged.reduce((a, p) => a + (Number(p.kcal) || 0), 0) /
-            logged.length,
+          logged.reduce((a, p) => a + (Number(p.kcal) || 0), 0) / logged.length,
         )
       : 0;
     out.push({
@@ -79,7 +78,12 @@ export default function CaloriesCard({
 
   const bars = useMemo(
     () =>
-      buildBars(series, range, (n) => t("statistics.weekN", { n }), weekdayLabels),
+      buildBars(
+        series,
+        range,
+        (n) => t("statistics.weekN", { n }),
+        weekdayLabels,
+      ),
     [series, range, t, weekdayLabels],
   );
   const barMax = bars.length
@@ -116,7 +120,9 @@ export default function CaloriesCard({
               style={[styles.legendDot, { backgroundColor: theme.brand }]}
             />
             <ThemedText style={styles.legendText} type="secondary">
-              {range === "week" ? t("statistics.todayShort") : t("statistics.currShort")}
+              {range === "week"
+                ? t("statistics.todayShort")
+                : t("statistics.currShort")}
             </ThemedText>
           </View>
           <View style={styles.legendItem}>
@@ -162,7 +168,9 @@ export default function CaloriesCard({
             const overGoal = v > calGoal;
             const isCurrent = i === bars.length - 1;
             const valueText =
-              v >= 1000 ? `${(v / 1000).toFixed(1)}${t("statistics.kThousand")}` : `${v}`;
+              v >= 1000
+                ? `${(v / 1000).toFixed(1)}${t("statistics.kThousand")}`
+                : `${v}`;
             return (
               <View key={p.key} style={styles.barCol}>
                 <View style={[styles.barTrack, { width: barWidth }]}>
@@ -286,7 +294,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   barDayWrap: {
-    paddingVertical: 2,
+    padding: 2,
     borderRadius: Radius.sm,
     minWidth: 26,
     alignItems: "center",

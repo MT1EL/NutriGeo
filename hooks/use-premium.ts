@@ -1,6 +1,6 @@
 import { getPremiumStatus } from "@/api/premium";
-import { useAuth } from "@/contexts/AuthContext";
 import type { PremiumStatus } from "@/api/types";
+import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 
 export const PREMIUM_STATUS_QUERY_KEY = ["PremiumStatus"] as const;
