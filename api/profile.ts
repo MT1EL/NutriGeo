@@ -114,23 +114,6 @@ export function updateSettings(input: SettingsInput) {
   return api.put<ApiResponse<Profile>>("/v1/profile/settings", input);
 }
 
-export function uploadAvatar(file: {
-  uri: string;
-  name: string;
-  type: string;
-}) {
-  const form = new FormData();
-  form.append("avatar", {
-    uri: file.uri,
-    name: file.name,
-    type: file.type,
-  } as unknown as Blob);
-  return api.post<ApiResponse<{ avatar_url: string }>>(
-    "/v1/profile/avatar",
-    form,
-  );
-}
-
 export function requestExport(format: "json" | "csv" = "json") {
   return api.post<ApiResponse<ExportJob>>("/v1/profile/export", { format });
 }

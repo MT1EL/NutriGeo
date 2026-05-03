@@ -1,23 +1,26 @@
 import type { Food, FoodLogEntry } from "@/api/types";
-import { MealProgressCard } from "@/components/cards/MealProgressCard";
 import FoodBrowser from "@/components/add/FoodBrowser";
 import LoggedMealList from "@/components/add/LoggedMealList";
 import QuickActionsRow from "@/components/add/QuickActionsRow";
+import { MealProgressCard } from "@/components/cards/MealProgressCard";
 import Header from "@/components/headers";
+import BarcodeScannerSheet from "@/components/sheets/BarcodeScannerSheet";
 import CustomFoodSheet from "@/components/sheets/CustomFoodSheet";
 import FoodDetailSheet from "@/components/sheets/FoodDetailSheet";
+import QuickAddSheet from "@/components/sheets/QuickAddSheet";
 import Button from "@/components/ui/Button";
-import {
-  isMealKey,
-  MEAL_CONFIGS,
-  MEAL_KEYS,
-  MealKey,
-} from "@/constants/meals";
+import { isMealKey, MEAL_CONFIGS, MEAL_KEYS, MealKey } from "@/constants/meals";
 import { Colors, Spacing } from "@/constants/theme";
 import { useAddScreen } from "@/hooks/use-add-screen";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, useColorScheme, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  useColorScheme,
+} from "react-native";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 export default function AddScreen() {
@@ -36,6 +39,8 @@ export default function AddScreen() {
   const [sheetEntry, setSheetEntry] = useState<FoodLogEntry | null>(null);
   const [createSheetVisible, setCreateSheetVisible] = useState(false);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
 
   const {
     today,
@@ -54,6 +59,7 @@ export default function AddScreen() {
     addFood,
     incrementEntry,
     decrementEntry,
+    removeEntry,
   } = useAddScreen(activeMeal);
 
   const config = MEAL_CONFIGS[activeMeal];
@@ -63,7 +69,11 @@ export default function AddScreen() {
   }));
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.surface }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.surface }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={-TAB_BAR_HEIGHT}
+    >
       <Header
         title="კვების ჩაწერა"
         inputPlaceholder="მოძებნე საკვები..."
@@ -110,7 +120,10 @@ export default function AddScreen() {
           ]}
         />
 
-        <QuickActionsRow />
+        <QuickActionsRow
+          onScanBarcode={() => setScannerOpen(true)}
+          onQuickAdd={() => setQuickAddOpen(true)}
+        />
 
         <LoggedMealList
           mealLabel={activeMeal}
@@ -118,11 +131,13 @@ export default function AddScreen() {
           isLoading={foodLogQuery.isLoading}
           config={config}
           onSelect={(entry) => {
+            if (!entry.food) return;
             setSheetFood(entry.food);
             setSheetEntry(entry);
           }}
           onIncrement={incrementEntry}
           onDecrement={decrementEntry}
+          onRemove={removeEntry}
         />
 
         <FoodBrowser
@@ -139,10 +154,7 @@ export default function AddScreen() {
           onAdd={addFood}
         />
 
-        <Button
-          onPress={() => setCreateSheetVisible(true)}
-          variant="secondary"
-        >
+        <Button onPress={() => setCreateSheetVisible(true)} variant="secondary">
           + შექმენი ახალი საკვები
         </Button>
       </ScrollView>
@@ -171,7 +183,22 @@ export default function AddScreen() {
           setEditingFood(null);
         }}
       />
-    </View>
+      <BarcodeScannerSheet
+        visible={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onFoodFound={(food) => {
+          setScannerOpen(false);
+          setSheetFood(food);
+          setSheetEntry(null);
+        }}
+      />
+      <QuickAddSheet
+        visible={quickAddOpen}
+        onClose={() => setQuickAddOpen(false)}
+        defaultMealKey={apiMealKey}
+        todayKey={today}
+      />
+    </KeyboardAvoidingView>
   );
 }
 

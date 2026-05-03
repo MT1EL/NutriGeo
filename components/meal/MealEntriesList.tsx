@@ -4,12 +4,7 @@ import { FoodListSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import type { MealConfig } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import {
-  caloriesForFood,
-  entryDisplayServing,
-  entryServings,
-  macroForFood,
-} from "@/utils/foodMath";
+import { entryDisplay, entryDisplayServing } from "@/utils/foodMath";
 import { foodImageSource } from "@/utils/image";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
@@ -56,19 +51,17 @@ export default function MealEntriesList({
       ) : (
         <View style={{ gap: Spacing.md }}>
           {entries.map((entry) => {
-            const food = entry.food;
-            if (!food) return null;
-            const q = entryServings(entry);
+            const d = entryDisplay(entry);
             return (
               <FoodCard
                 key={entry.id}
-                title={food.name}
-                calories={caloriesForFood(food, q)}
+                title={d.title}
+                calories={d.kcal}
                 serving={entryDisplayServing(entry)}
-                proteinG={macroForFood(food.protein_g_per_100g, food, q)}
-                carbsG={macroForFood(food.carbs_g_per_100g, food, q)}
-                fatG={macroForFood(food.fat_g_per_100g, food, q)}
-                image={foodImageSource(food.image_url)}
+                proteinG={d.protein_g}
+                carbsG={d.carbs_g}
+                fatG={d.fat_g}
+                image={foodImageSource(d.imageUrl)}
                 action="remove"
                 onActionPress={() => onRemove(entry.id)}
               />

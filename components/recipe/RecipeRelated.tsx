@@ -2,7 +2,7 @@ import type { Recipe } from "@/api/types";
 import BaseCard from "@/components/cards/BaseCard";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { foodImageSource } from "@/utils/image";
+import { recipeImageSource } from "@/utils/image";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Flame } from "lucide-react-native";
@@ -35,7 +35,7 @@ export default function RecipeRelated({ related }: Props) {
           >
             <BaseCard style={styles.card}>
               <Image
-                source={foodImageSource(r.cover_url)}
+                source={recipeImageSource(r.cover_url)}
                 style={styles.image}
                 contentFit="cover"
               />

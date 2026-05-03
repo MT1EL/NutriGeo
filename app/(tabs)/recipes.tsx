@@ -11,11 +11,18 @@ import {
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useRecipesList } from "@/hooks/use-recipes-list";
-import { foodImageSource } from "@/utils/image";
+import { recipeImageSource } from "@/utils/image";
 import { difficultyLabel } from "@/utils/recipe";
 import { Search } from "lucide-react-native";
 import { useState } from "react";
-import { FlatList, StyleSheet, useColorScheme, View } from "react-native";
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from "react-native";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 export default function RecipesScreen() {
@@ -78,7 +85,11 @@ export default function RecipesScreen() {
   );
 
   return (
-    <View style={[styles.screen, { backgroundColor: theme.surface }]}>
+    <KeyboardAvoidingView
+      style={[styles.screen, { backgroundColor: theme.surface }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={-TAB_BAR_HEIGHT}
+    >
       <Header
         title="რეცეპტები"
         inputPlaceholder="მოძებნე რეცეპტი..."
@@ -97,7 +108,7 @@ export default function RecipesScreen() {
             durationMin={item.duration_min}
             servings={item.servings}
             difficulty={difficultyLabel(item.difficulty)}
-            image={foodImageSource(item.cover_url)}
+            image={recipeImageSource(item.cover_url)}
             tag={
               item.dietary_tags?.[0]
                 ? { label: item.dietary_tags[0], color: theme.brand }
@@ -123,7 +134,7 @@ export default function RecipesScreen() {
         }}
         keyboardShouldPersistTaps="handled"
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -118,16 +118,29 @@ export type Food = {
 
 export type FoodLogQuantityUnit = "servings" | "grams";
 
+// Inline ad-hoc entry: kcal + macros without a Food row. The user typed
+// these in via Quick Add for one-off meals (restaurants, etc.).
+export type QuickAddPayload = {
+  name?: string;
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fiber_g?: number;
+};
+
 export type FoodLogEntry = {
   id: string;
-  food_id: string;
+  food_id?: string | null;
   meal_key: MealKey;
   quantity: number;
   // Unit `quantity` is expressed in. Missing/undefined → treat as "servings"
   // for back-compat with entries logged before the field existed.
   unit?: FoodLogQuantityUnit;
   logged_at: string;
-  food: Food;
+  food: Food | null;
+  // Present (and `food` is null) when this row was created via Quick Add.
+  quick_add?: QuickAddPayload | null;
 };
 
 export type RecipeRating = {

@@ -14,18 +14,30 @@ function extensionFromMime(mime: string | undefined): string {
   return "jpg";
 }
 
+export type UploadImageOptions = {
+  // Folder inside the bucket; a random filename is appended.
+  // Some buckets (e.g. "foods") require this to be the user id.
+  prefix?: string;
+  // Use this exact path verbatim. Wins over `prefix` when both are set.
+  // Some buckets (e.g. "avatars") require the path to be just the user id.
+  path?: string;
+};
+
 // Pulls bytes off the local file URI, asks the API for a presigned URL,
 // PUTs the bytes there, and returns the public URL the backend gave us.
-// `prefix` becomes the directory inside the bucket (e.g. user id) — some
-// buckets reject uploads without it.
 export async function uploadImage(
   bucket: StorageBucket,
   image: LocalImage,
-  prefix?: string,
+  options: UploadImageOptions = {},
 ): Promise<string> {
   const ext = extensionFromMime(image.mimeType);
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const path = prefix ? `${prefix}/${filename}` : filename;
+  let path: string;
+  if (options.path) {
+    path = options.path;
+  } else {
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    path = options.prefix ? `${options.prefix}/${filename}` : filename;
+  }
 
   const { data: presigned } = await getUploadUrl(bucket, path);
 

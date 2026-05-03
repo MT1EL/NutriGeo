@@ -4,7 +4,7 @@ import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import { RecipeListSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { foodImageSource } from "@/utils/image";
+import { recipeImageSource } from "@/utils/image";
 import { difficultyLabel } from "@/utils/recipe";
 import { useQuery } from "@tanstack/react-query";
 import { Heart } from "lucide-react-native";
@@ -51,7 +51,7 @@ export default function LibraryRecipesScreen() {
               durationMin={r.duration_min}
               servings={r.servings}
               difficulty={difficultyLabel(r.difficulty)}
-              image={foodImageSource(r.cover_url)}
+              image={recipeImageSource(r.cover_url)}
               tag={
                 r.dietary_tags?.[0]
                   ? { label: r.dietary_tags[0], color: theme.brand }

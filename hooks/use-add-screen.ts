@@ -17,7 +17,7 @@ import { MEAL_KEY_TO_API, MealKey as UiMealKey } from "@/constants/meals";
 import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
 import { loggedAtForDate } from "@/utils/date";
-import { caloriesForFood, entryServings, macroForFood } from "@/utils/foodMath";
+import { entryDisplay } from "@/utils/foodMath";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -224,15 +224,12 @@ export function useAddScreen(activeMeal: UiMealKey) {
     () =>
       loggedForMeal.reduce(
         (acc, e) => {
-          if (!e.food) return acc;
-          const q = entryServings(e);
+          const d = entryDisplay(e);
           return {
-            consumed: acc.consumed + caloriesForFood(e.food, q),
-            protein:
-              acc.protein + macroForFood(e.food.protein_g_per_100g, e.food, q),
-            carbs:
-              acc.carbs + macroForFood(e.food.carbs_g_per_100g, e.food, q),
-            fat: acc.fat + macroForFood(e.food.fat_g_per_100g, e.food, q),
+            consumed: acc.consumed + d.kcal,
+            protein: acc.protein + d.protein_g,
+            carbs: acc.carbs + d.carbs_g,
+            fat: acc.fat + d.fat_g,
           };
         },
         { consumed: 0, protein: 0, carbs: 0, fat: 0 },
@@ -292,6 +289,7 @@ export function useAddScreen(activeMeal: UiMealKey) {
     browseFoods,
     browseEmptyText,
     addFood: (food: Food) => addMutation.mutate({ food }),
+    removeEntry: (entry: FoodLogEntry) => removeMutation.mutate(entry.id),
     incrementEntry: (entry: FoodLogEntry) =>
       updateQuantityMutation.mutate({
         id: entry.id,

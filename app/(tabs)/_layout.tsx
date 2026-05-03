@@ -35,10 +35,7 @@ const TabIcon = ({ Icon, focused, theme }: IconRenderProps) => (
       },
     ]}
   >
-    <Icon
-      size={22}
-      color={focused ? theme.brand : theme.tabIconDefault}
-    />
+    <Icon size={24} color={focused ? theme.brand : theme.tabIconDefault} />
   </View>
 );
 

@@ -52,6 +52,7 @@ export function entryServings(entry: FoodLogEntry): number {
 // Human label for a logged entry that respects the unit it was logged in,
 // e.g. "1 cup × 2" for servings or "150გ" for grams.
 export function entryDisplayServing(entry: FoodLogEntry): string {
+  if (entry.quick_add) return "სწრაფი ჩაწერა";
   if (!entry.food) return "";
   if (entry.unit === "grams") {
     return `${Math.round(entry.quantity)}გ`;
@@ -60,4 +61,53 @@ export function entryDisplayServing(entry: FoodLogEntry): string {
   return entry.quantity !== 1
     ? `${base} × ${formatServings(entry.quantity)}`
     : base;
+}
+
+// Unified accessor — returns macros + label for any entry, regardless of
+// whether it's a catalog food or a quick-add. Use this in lists so the math
+// matches the row title.
+export type EntryDisplay = {
+  title: string;
+  imageUrl: string | undefined;
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  isQuickAdd: boolean;
+};
+
+export function entryDisplay(entry: FoodLogEntry): EntryDisplay {
+  if (entry.quick_add) {
+    return {
+      title: entry.quick_add.name?.trim() || "სწრაფი ჩაწერა",
+      imageUrl: undefined,
+      kcal: Math.round(entry.quick_add.kcal),
+      protein_g: Math.round(entry.quick_add.protein_g),
+      carbs_g: Math.round(entry.quick_add.carbs_g),
+      fat_g: Math.round(entry.quick_add.fat_g),
+      isQuickAdd: true,
+    };
+  }
+  const food = entry.food;
+  if (!food) {
+    return {
+      title: "—",
+      imageUrl: undefined,
+      kcal: 0,
+      protein_g: 0,
+      carbs_g: 0,
+      fat_g: 0,
+      isQuickAdd: false,
+    };
+  }
+  const q = entryServings(entry);
+  return {
+    title: food.name,
+    imageUrl: food.image_url,
+    kcal: caloriesForFood(food, q),
+    protein_g: macroForFood(food.protein_g_per_100g, food, q),
+    carbs_g: macroForFood(food.carbs_g_per_100g, food, q),
+    fat_g: macroForFood(food.fat_g_per_100g, food, q),
+    isQuickAdd: false,
+  };
 }

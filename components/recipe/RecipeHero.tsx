@@ -1,7 +1,7 @@
 import type { Recipe } from "@/api/types";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { foodImageSource } from "@/utils/image";
+import { recipeImageSource } from "@/utils/image";
 import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -40,7 +40,7 @@ export default function RecipeHero({
   return (
     <View style={styles.heroWrap}>
       <Image
-        source={foodImageSource(recipe.cover_url)}
+        source={recipeImageSource(recipe.cover_url)}
         style={styles.hero}
         contentFit="cover"
       />

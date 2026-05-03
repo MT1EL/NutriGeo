@@ -1,5 +1,5 @@
-import { ImageSourcePropType } from "react-native";
 import { Flame, Leaf, LucideIcon, Sparkles, Zap } from "lucide-react-native";
+import { ImageSourcePropType } from "react-native";
 
 export type RecipeTag = {
   label: string;
@@ -238,7 +238,10 @@ export const RECIPES: Recipe[] = [
         text: "დაუმატე ბროკოლი და ორაგული. მოაყარე ცაცხვი, ნიორი, ლიმონი.",
         durationMin: 2,
       },
-      { text: "გამოაცხვე კიდევ 12-15 წუთი ორაგული მზად რომ იყოს.", durationMin: 13 },
+      {
+        text: "გამოაცხვე კიდევ 12-15 წუთი ორაგული მზად რომ იყოს.",
+        durationMin: 13,
+      },
     ],
   },
   {
@@ -271,7 +274,10 @@ export const RECIPES: Recipe[] = [
       { qty: "10გ", name: "ნუშის ნაჭრები" },
     ],
     steps: [
-      { text: "შვრია და რძე დადგი ცეცხლზე. მოხარშე 5 წუთი მუდმივად აურიე.", durationMin: 5 },
+      {
+        text: "შვრია და რძე დადგი ცეცხლზე. მოხარშე 5 წუთი მუდმივად აურიე.",
+        durationMin: 5,
+      },
       { text: "გადმოდგი და დაამატე ჩია თესლი.", durationMin: 1 },
       {
         text: "გადაასხი თეფშზე და მოაყარე კენკრა, თაფლი და ნუში.",

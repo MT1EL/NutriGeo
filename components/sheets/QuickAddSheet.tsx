@@ -1,27 +1,20 @@
-import {
-  createCustomFood,
-  updateCustomFood,
-  type CreateFoodInput,
-} from "@/api/foods";
-import type { Food } from "@/api/types";
-import FoodImagePicker, {
-  type PickedImage,
-} from "@/components/ui/FoodImagePicker";
+import { createFoodLog } from "@/api/foodLog";
+import type { MealKey as ApiMealKey } from "@/api/types";
 import Input from "@/components/ui/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import { uploadImage } from "@/utils/uploadImage";
+import { loggedAtForDate } from "@/utils/date";
+import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Beef,
   Droplet,
   Flame,
-  Tag,
   Utensils,
   Wheat,
   X,
+  Zap,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
@@ -35,154 +28,109 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
-  editingFood?: Food | null;
+  defaultMealKey: ApiMealKey;
+  todayKey: string;
 };
+
+const ALL_API_MEAL_KEYS: ApiMealKey[] = [
+  "breakfast",
+  "lunch",
+  "snack",
+  "dinner",
+];
+
+function apiMealLabel(k: ApiMealKey): string {
+  switch (k) {
+    case "breakfast":
+      return "საუზმე";
+    case "lunch":
+      return "სადილი";
+    case "snack":
+      return "სნექი";
+    case "dinner":
+      return "ვახშამი";
+  }
+}
 
 function toNum(s: string): number | null {
   const n = parseFloat(s.replace(",", "."));
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
-function numToStr(n: number | undefined | null): string {
-  if (n == null || !Number.isFinite(n)) return "";
-  return String(n);
-}
-
-export default function CustomFoodSheet({
+export default function QuickAddSheet({
   visible,
   onClose,
-  editingFood,
+  defaultMealKey,
+  todayKey,
 }: Props) {
-  const isEdit = !!editingFood;
-  const { bottom } = useSafeAreaInsets();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const toast = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   const [name, setName] = useState("");
-  const [brand, setBrand] = useState("");
-  const [servingLabel, setServingLabel] = useState("");
-  const [servingGrams, setServingGrams] = useState("");
   const [kcal, setKcal] = useState("");
   const [protein, setProtein] = useState("");
   const [carbs, setCarbs] = useState("");
   const [fat, setFat] = useState("");
   const [fiber, setFiber] = useState("");
-  // PickedImage = newly selected (needs upload). string = existing URL on the
-  // food. null = no image (or "remove this food's existing image").
-  const [image, setImage] = useState<PickedImage | string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [mealKey, setMealKey] = useState<ApiMealKey>(defaultMealKey);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!visible) return;
-    setName(editingFood?.name ?? "");
-    setBrand(editingFood?.brand ?? "");
-    setServingLabel(editingFood?.serving_label ?? "");
-    setServingGrams(numToStr(editingFood?.serving_grams));
-    setKcal(numToStr(editingFood?.kcal_per_100g));
-    setProtein(numToStr(editingFood?.protein_g_per_100g));
-    setCarbs(numToStr(editingFood?.carbs_g_per_100g));
-    setFat(numToStr(editingFood?.fat_g_per_100g));
-    setFiber(numToStr(editingFood?.fiber_g_per_100g));
-    setImage(editingFood?.image_url ?? null);
-    setUploading(false);
+    setName("");
+    setKcal("");
+    setProtein("");
+    setCarbs("");
+    setFat("");
+    setFiber("");
+    setMealKey(defaultMealKey);
     setErrors({});
-  }, [visible, editingFood]);
-
-  const invalidateFoodCaches = () => {
-    queryClient.invalidateQueries({ queryKey: ["foods", "all"] });
-    queryClient.invalidateQueries({ queryKey: ["foods", "recent"] });
-    queryClient.invalidateQueries({ queryKey: ["foods", "mine"] });
-    queryClient.invalidateQueries({ queryKey: ["foods", "search"] });
-  };
+  }, [visible, defaultMealKey]);
 
   const mutation = useMutation({
-    mutationFn: (input: CreateFoodInput) =>
-      isEdit && editingFood
-        ? updateCustomFood(editingFood.id, input)
-        : createCustomFood(input),
+    mutationFn: () => {
+      const fiberNum = fiber ? toNum(fiber) : null;
+      return createFoodLog({
+        meal_key: mealKey,
+        logged_at: loggedAtForDate(todayKey),
+        quick_add: {
+          name: name.trim() || undefined,
+          kcal: toNum(kcal)!,
+          protein_g: toNum(protein)!,
+          carbs_g: toNum(carbs)!,
+          fat_g: toNum(fat)!,
+          ...(fiberNum != null ? { fiber_g: fiberNum } : {}),
+        },
+      });
+    },
     onSuccess: () => {
-      invalidateFoodCaches();
-      toast.success(isEdit ? "ცვლილება შენახულია" : "საკვები შეიქმნა");
+      invalidateFoodLogQueries(queryClient, todayKey);
+      toast.success("ჩაიწერა");
       onClose();
     },
     onError: (err) => {
       const message =
-        err instanceof Error
-          ? err.message
-          : isEdit
-            ? "შენახვა ვერ მოხერხდა"
-            : "შექმნა ვერ მოხერხდა";
+        err instanceof Error ? err.message : "ჩაწერა ვერ მოხერხდა";
       toast.error(message, "შეცდომა");
     },
   });
 
-  const handleSave = async () => {
+  const handleSave = () => {
     const next: Record<string, string> = {};
-    const trimmedName = name.trim();
-    if (!trimmedName) next.name = "შეიყვანე დასახელება";
-    const kcalNum = toNum(kcal);
-    if (kcalNum == null) next.kcal = "შეიყვანე კალორია";
-    const proteinNum = toNum(protein);
-    if (proteinNum == null) next.protein = "შეიყვანე ცილა";
-    const carbsNum = toNum(carbs);
-    if (carbsNum == null) next.carbs = "შეიყვანე ნახშირწყალი";
-    const fatNum = toNum(fat);
-    if (fatNum == null) next.fat = "შეიყვანე ცხიმი";
-
+    if (toNum(kcal) == null) next.kcal = "შეიყვანე კალორია";
+    if (toNum(protein) == null) next.protein = "შეიყვანე ცილა";
+    if (toNum(carbs) == null) next.carbs = "შეიყვანე ნახშირწყალი";
+    if (toNum(fat) == null) next.fat = "შეიყვანე ცხიმი";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-
-    const servingGramsNum = servingGrams ? toNum(servingGrams) : null;
-    const fiberNum = fiber ? toNum(fiber) : null;
-
-    // Image resolution:
-    //   string → existing URL, leave the field unset so backend keeps it
-    //   PickedImage → upload, send the new URL
-    //   null → explicitly clear (only matters for edit; for create, undefined is fine)
-    let imageField: string | null | undefined;
-    if (typeof image === "string") {
-      imageField = undefined;
-    } else if (image) {
-      try {
-        setUploading(true);
-        imageField = await uploadImage("foods", image, { prefix: user?.id });
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "ფოტოს ატვირთვა ვერ მოხერხდა";
-        toast.error(message, "შეცდომა");
-        setUploading(false);
-        return;
-      } finally {
-        setUploading(false);
-      }
-    } else if (isEdit && editingFood?.image_url) {
-      imageField = null;
-    }
-
-    mutation.mutate({
-      name: trimmedName,
-      brand: brand.trim() || undefined,
-      serving_label: servingLabel.trim() || undefined,
-      serving_grams: servingGramsNum ?? undefined,
-      kcal_per_100g: kcalNum!,
-      protein_g_per_100g: proteinNum!,
-      carbs_g_per_100g: carbsNum!,
-      fat_g_per_100g: fatNum!,
-      fiber_g_per_100g: fiberNum ?? undefined,
-      image_url: imageField,
-    });
+    mutation.mutate();
   };
 
   return (
@@ -199,10 +147,7 @@ export default function CustomFoodSheet({
       >
         <Pressable style={styles.backdrop} onPress={onClose}>
           <Pressable
-            style={[
-              styles.sheetWrap,
-              { backgroundColor: theme.surface, paddingBottom: bottom },
-            ]}
+            style={[styles.sheetWrap, { backgroundColor: theme.surface }]}
             onPress={(e) => e.stopPropagation()}
           >
             <SafeAreaView edges={["bottom"]} style={styles.sheetContent}>
@@ -213,12 +158,18 @@ export default function CustomFoodSheet({
               </View>
 
               <View style={styles.headerRow}>
+                <View
+                  style={[
+                    styles.headerIcon,
+                    { backgroundColor: theme.brandSoft },
+                  ]}
+                >
+                  <Zap color={theme.brand} size={18} />
+                </View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <ThemedText style={styles.title}>
-                    {isEdit ? "საკვების რედაქტირება" : "ახალი საკვები"}
-                  </ThemedText>
+                  <ThemedText style={styles.title}>სწრაფი ჩაწერა</ThemedText>
                   <ThemedText type="secondary" style={styles.subtitle}>
-                    100გ-ზე გადაანგარიშებული მონაცემები
+                    შეიყვანე კალორია და მაკრო პირდაპირ
                   </ThemedText>
                 </View>
                 <TouchableOpacity
@@ -240,57 +191,13 @@ export default function CustomFoodSheet({
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.form}
               >
-                <View style={styles.imagePickerWrap}>
-                  <FoodImagePicker
-                    value={image}
-                    onChange={setImage}
-                    uploading={uploading}
-                  />
-                </View>
                 <Input
                   Icon={Utensils}
-                  label="დასახელება"
-                  placeholder="მაგ. ხორცის სალათი"
+                  label="დასახელება (არასავალდებულო)"
+                  placeholder="მაგ. რესტორნის სალათი"
                   value={name}
-                  onChangeText={(t) => {
-                    setName(t);
-                    if (errors.name) setErrors({ ...errors, name: "" });
-                  }}
-                  errorText={errors.name || undefined}
+                  onChangeText={setName}
                 />
-                <Input
-                  Icon={Tag}
-                  label="ბრენდი (არასავალდებულო)"
-                  placeholder="მაგ. Carrefour"
-                  value={brand}
-                  onChangeText={setBrand}
-                />
-                <View style={styles.twoCol}>
-                  <View style={{ flex: 1 }}>
-                    <Input
-                      Icon={Utensils}
-                      label="პორცია"
-                      placeholder="მაგ. ჭიქა"
-                      value={servingLabel}
-                      onChangeText={setServingLabel}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Input
-                      Icon={Utensils}
-                      label="გრამი"
-                      placeholder="100"
-                      value={servingGrams}
-                      onChangeText={setServingGrams}
-                      keyboardType="decimal-pad"
-                    />
-                  </View>
-                </View>
-
-                <ThemedText style={styles.sectionLabel} type="secondary">
-                  100გ-ზე
-                </ThemedText>
-
                 <Input
                   Icon={Flame}
                   label="კალორია"
@@ -360,16 +267,47 @@ export default function CustomFoodSheet({
                     />
                   </View>
                 </View>
+
+                <ThemedText style={styles.groupLabel} type="secondary">
+                  კვებაში
+                </ThemedText>
+                <View style={styles.mealRow}>
+                  {ALL_API_MEAL_KEYS.map((m) => {
+                    const active = m === mealKey;
+                    return (
+                      <TouchableOpacity
+                        key={m}
+                        onPress={() => setMealKey(m)}
+                        activeOpacity={0.85}
+                        style={[
+                          styles.mealChip,
+                          {
+                            backgroundColor: active ? theme.brand : theme.card,
+                            borderColor: active ? theme.brand : theme.border,
+                          },
+                        ]}
+                      >
+                        <ThemedText
+                          style={styles.mealChipText}
+                          color={active ? "#FFFFFF" : theme.text}
+                        >
+                          {apiMealLabel(m)}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </ScrollView>
+
               <TouchableOpacity
                 onPress={handleSave}
                 activeOpacity={0.85}
-                disabled={mutation.isPending || uploading}
+                disabled={mutation.isPending}
                 style={[
                   styles.primaryBtn,
                   {
                     backgroundColor: theme.brand,
-                    opacity: mutation.isPending || uploading ? 0.6 : 1,
+                    opacity: mutation.isPending ? 0.6 : 1,
                   },
                 ]}
               >
@@ -377,13 +315,7 @@ export default function CustomFoodSheet({
                   style={styles.primaryBtnText}
                   color={theme.textOnBrand}
                 >
-                  {uploading
-                    ? "ფოტო იტვირთება..."
-                    : mutation.isPending
-                      ? "ინახება..."
-                      : isEdit
-                        ? "შენახვა"
-                        : "შექმნა"}
+                  {mutation.isPending ? "ინახება..." : "ჩაწერა"}
                 </ThemedText>
               </TouchableOpacity>
             </SafeAreaView>
@@ -395,9 +327,7 @@ export default function CustomFoodSheet({
 }
 
 const styles = StyleSheet.create({
-  kav: {
-    flex: 1,
-  },
+  kav: { flex: 1 },
   backdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",
@@ -414,9 +344,7 @@ const styles = StyleSheet.create({
     gap: Spacing.lg,
     flex: 1,
   },
-  scroll: {
-    flex: 1,
-  },
+  scroll: { flex: 1 },
   handleRow: {
     alignItems: "center",
     paddingBottom: Spacing.sm,
@@ -430,6 +358,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
+  },
+  headerIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: Type.xl,
@@ -449,21 +384,34 @@ const styles = StyleSheet.create({
     gap: 0,
     paddingBottom: Spacing.md,
   },
-  imagePickerWrap: {
-    marginBottom: Spacing.md,
-  },
   twoCol: {
     flexDirection: "row",
     gap: Spacing.md,
   },
-  sectionLabel: {
+  groupLabel: {
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 0.6,
     textTransform: "uppercase",
     marginLeft: Spacing.xs,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
     opacity: 0.7,
+  },
+  mealRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  mealChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  mealChipText: {
+    fontSize: Type.sm,
+    fontWeight: "600",
   },
   primaryBtn: {
     paddingVertical: Spacing.lg,

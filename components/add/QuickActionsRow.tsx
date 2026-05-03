@@ -1,11 +1,6 @@
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import {
-  Camera,
-  Mic,
-  ScanBarcode,
-  Sparkles,
-} from "lucide-react-native";
+import { ScanBarcode, Zap } from "lucide-react-native";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -13,49 +8,48 @@ import {
   View,
 } from "react-native";
 
-const QUICK_ACTIONS = [
-  {
-    Icon: ScanBarcode,
-    label: "ბარკოდი",
-    color: "#5B6CE0",
-    tint: "#EEF0FB",
-    tintDark: "#222B4A",
-  },
-  {
-    Icon: Camera,
-    label: "ფოტო",
-    color: "#2FB871",
-    tint: "#E8F6EC",
-    tintDark: "#1F3A28",
-  },
-  {
-    Icon: Mic,
-    label: "ხმოვანი",
-    color: "#E85A8C",
-    tint: "#FCEAF1",
-    tintDark: "#3A2030",
-  },
-  {
-    Icon: Sparkles,
-    label: "AI",
-    color: "#7C5CFF",
-    tint: "#F0EBFE",
-    tintDark: "#2A1F4A",
-  },
-];
+type Props = {
+  onScanBarcode: () => void;
+  onQuickAdd: () => void;
+};
 
-export default function QuickActionsRow() {
+export default function QuickActionsRow({
+  onScanBarcode,
+  onQuickAdd,
+}: Props) {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+
+  const tiles = [
+    {
+      key: "barcode",
+      Icon: ScanBarcode,
+      label: "ბარკოდი",
+      hint: "შეფუთულ პროდუქტებს",
+      color: "#5B6CE0",
+      tint: colorScheme === "dark" ? "#222B4A" : "#EEF0FB",
+      onPress: onScanBarcode,
+    },
+    {
+      key: "quick",
+      Icon: Zap,
+      label: "სწრაფი ჩაწერა",
+      hint: "უბრალოდ კალორია",
+      color: "#E8A02C",
+      tint: colorScheme === "dark" ? "#3A2E10" : "#FEF6E4",
+      onPress: onQuickAdd,
+    },
+  ];
 
   return (
     <View style={{ gap: Spacing.sm }}>
       <ThemedText style={styles.sectionTitle}>სწრაფი ჩაწერა</ThemedText>
       <View style={styles.row}>
-        {QUICK_ACTIONS.map(({ Icon, label, color, tint, tintDark }) => (
+        {tiles.map(({ key, Icon, label, hint, color, tint, onPress }) => (
           <TouchableOpacity
-            key={label}
+            key={key}
             activeOpacity={0.85}
+            onPress={onPress}
             style={[
               styles.tile,
               {
@@ -64,17 +58,15 @@ export default function QuickActionsRow() {
               },
             ]}
           >
-            <View
-              style={[
-                styles.icon,
-                {
-                  backgroundColor: colorScheme === "dark" ? tintDark : tint,
-                },
-              ]}
-            >
+            <View style={[styles.icon, { backgroundColor: tint }]}>
               <Icon color={color} size={20} />
             </View>
-            <ThemedText style={styles.label}>{label}</ThemedText>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={styles.label}>{label}</ThemedText>
+              <ThemedText type="secondary" style={styles.hint}>
+                {hint}
+              </ThemedText>
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -93,12 +85,13 @@ const styles = StyleSheet.create({
   },
   tile: {
     flex: 1,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: Radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   icon: {
     width: 40,
@@ -108,7 +101,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   label: {
-    fontSize: Type.xs,
+    fontSize: Type.sm,
     fontWeight: "700",
+  },
+  hint: {
+    fontSize: 11,
+    marginTop: 1,
   },
 });

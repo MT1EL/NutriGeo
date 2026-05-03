@@ -4,12 +4,7 @@ import { FoodListSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { type MealConfig, MealKey } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import {
-  caloriesForFood,
-  entryDisplayServing,
-  entryServings,
-  macroForFood,
-} from "@/utils/foodMath";
+import { entryDisplay, entryDisplayServing } from "@/utils/foodMath";
 import { foodImageSource } from "@/utils/image";
 import { StyleSheet, useColorScheme, View } from "react-native";
 
@@ -21,6 +16,7 @@ type Props = {
   onSelect: (entry: FoodLogEntry) => void;
   onIncrement: (entry: FoodLogEntry) => void;
   onDecrement: (entry: FoodLogEntry) => void;
+  onRemove: (entry: FoodLogEntry) => void;
 };
 
 export default function LoggedMealList({
@@ -31,6 +27,7 @@ export default function LoggedMealList({
   onSelect,
   onIncrement,
   onDecrement,
+  onRemove,
 }: Props) {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -68,23 +65,23 @@ export default function LoggedMealList({
       ) : (
         <View style={{ gap: Spacing.md }}>
           {entries.map((entry) => {
-            const food = entry.food;
-            const q = entryServings(entry);
+            const d = entryDisplay(entry);
             return (
               <FoodCard
                 key={entry.id}
-                title={food.name}
-                calories={caloriesForFood(food, q)}
+                title={d.title}
+                calories={d.kcal}
                 serving={entryDisplayServing(entry)}
-                proteinG={macroForFood(food.protein_g_per_100g, food, q)}
-                carbsG={macroForFood(food.carbs_g_per_100g, food, q)}
-                fatG={macroForFood(food.fat_g_per_100g, food, q)}
-                image={foodImageSource(food.image_url)}
-                action="stepper"
+                proteinG={d.protein_g}
+                carbsG={d.carbs_g}
+                fatG={d.fat_g}
+                image={foodImageSource(d.imageUrl)}
+                action={d.isQuickAdd ? "remove" : "stepper"}
                 quantity={entry.quantity}
-                onPress={() => onSelect(entry)}
+                onPress={d.isQuickAdd ? undefined : () => onSelect(entry)}
                 onIncrement={() => onIncrement(entry)}
                 onDecrement={() => onDecrement(entry)}
+                onActionPress={() => onRemove(entry)}
               />
             );
           })}

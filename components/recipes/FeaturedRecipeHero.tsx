@@ -1,7 +1,7 @@
 import type { Recipe } from "@/api/types";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { foodImageSource } from "@/utils/image";
+import { recipeImageSource } from "@/utils/image";
 import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
 import { ImageBackground } from "expo-image";
 import { router } from "expo-router";
@@ -37,7 +37,7 @@ export default function FeaturedRecipeHero({ recipe }: Props) {
       onPress={() => router.push(`/recipes/${recipe.id}`)}
     >
       <ImageBackground
-        source={foodImageSource(recipe.cover_url)}
+        source={recipeImageSource(recipe.cover_url)}
         style={styles.hero}
         onLayout={onLayout}
       >
