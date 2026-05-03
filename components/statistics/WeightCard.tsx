@@ -40,7 +40,7 @@ export default function WeightCard({ weightSeries, weightGoal, summary }: Props)
           <View style={[styles.deltaBadge, { backgroundColor: "#E6F6EA" }]}>
             <TrendingDown color="#34A867" size={12} />
             <ThemedText style={styles.deltaText} color="#34A867">
-              {formatWeightChange(summary.weight_change_kg)}
+              {formatWeightChange(summary.weight_change_kg, t("weight.kg"))}
             </ThemedText>
           </View>
         )}

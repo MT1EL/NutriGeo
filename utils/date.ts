@@ -1,12 +1,11 @@
-import i18n from "@/i18n";
+// `months` and `weekdays` arrays come from the calling component's
+// `t("dates.months"/"dates.weekdaysShort", { returnObjects: true })`. Don't
+// read i18n inside these functions — the React Compiler would memoize the
+// result by `Date` alone and miss language changes.
 
-function months(): string[] {
-  const arr = i18n.t("dates.months", { returnObjects: true });
-  return Array.isArray(arr) ? (arr as string[]) : [];
-}
-
-export function formatTodayKa(d: Date = new Date()): string {
-  return `${d.getDate()} ${months()[d.getMonth()]}, ${d.getFullYear()}`;
+export function formatTodayKa(d: Date, months: readonly string[]): string {
+  const month = months[d.getMonth()] ?? "";
+  return `${d.getDate()} ${month}, ${d.getFullYear()}`;
 }
 
 // Local-timezone "today" as YYYY-MM-DD — matches backend's notion of today
@@ -21,16 +20,14 @@ export function todayISO(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function weekdaysShort(): string[] {
-  const arr = i18n.t("dates.weekdaysShort", { returnObjects: true });
-  return Array.isArray(arr) ? (arr as string[]) : [];
-}
-
-export function weekdayShort(dateStr: string | undefined): string {
+export function weekdayShort(
+  dateStr: string | undefined,
+  weekdays: readonly string[],
+): string {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return "";
-  return weekdaysShort()[d.getDay()] ?? "";
+  return weekdays[d.getDay()] ?? "";
 }
 
 // Whole-years age from an ISO birth date. Returns null for missing/invalid.

@@ -16,7 +16,9 @@ import { ActiveDateProvider } from "@/contexts/ActiveDateContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import i18n from "@/i18n";
+import i18n, { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
+import { identify, resetIdentity } from "@/lib/analytics";
+import { Sentry } from "@/lib/sentry";
 import {
   QueryClient,
   QueryClientProvider,
@@ -35,6 +37,45 @@ function ThemeSync() {
     const override = !pref || pref === "system" ? null : pref;
     Appearance.setColorScheme(override);
   }, [pref]);
+
+  return null;
+}
+
+// Bind/unbind the PostHog distinct ID to the auth user. We track the previous
+// id in a ref so reset() only fires on real sign-outs, not the brief null
+// during initial token hydration.
+function AnalyticsIdentitySync() {
+  const { user } = useAuth();
+  const lastIdRef = React.useRef<string | null>(null);
+
+  useEffect(() => {
+    const id = user?.id ?? null;
+    if (id === lastIdRef.current) return;
+    if (id) {
+      identify(id);
+    } else if (lastIdRef.current) {
+      resetIdentity();
+    }
+    lastIdRef.current = id;
+  }, [user?.id]);
+
+  return null;
+}
+
+// On login, adopt the language saved on the user's account so the choice
+// follows them across devices. The local SecureStore listener in i18n/index.ts
+// will persist whatever we set here, so subsequent boots stay correct.
+function ProfileLanguageSync() {
+  const { user } = useAuth();
+  const serverLang = user?.profile?.language;
+
+  useEffect(() => {
+    if (!serverLang) return;
+    const code = serverLang.split("-")[0] as SupportedLanguage;
+    if (!(SUPPORTED_LANGUAGES as readonly string[]).includes(code)) return;
+    if (i18n.language?.split("-")[0] === code) return;
+    void i18n.changeLanguage(code);
+  }, [serverLang]);
 
   return null;
 }
@@ -113,7 +154,7 @@ function LanguageSync() {
 
 const queryClient = new QueryClient();
 
-export default function RootLayout() {
+function RootLayout() {
   const colorScheme = useColorScheme() || "light";
 
   return (
@@ -125,6 +166,8 @@ export default function RootLayout() {
           <ToastProvider>
             <AuthProvider>
               <ThemeSync />
+              <ProfileLanguageSync />
+              <AnalyticsIdentitySync />
               <ActiveDateProvider>
                 <AuthGate>
                   <Stack>
@@ -169,3 +212,7 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+// Wrap with Sentry so unhandled render errors are reported with a stack trace
+// and the offending component tree. No-op when DSN is empty.
+export default Sentry.wrap(RootLayout);

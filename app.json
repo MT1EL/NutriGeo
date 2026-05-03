@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "ge.nutrigeo.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -44,17 +48,18 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "მიეცი წვდომა გალერეაზე, რომ ატვირთო საკვების ფოტო.",
-          "cameraPermission": "მიეცი წვდომა კამერაზე, რომ გადაიღო საკვების ფოტო."
+          "photosPermission": "Allow access to your photo library so you can upload meal photos.",
+          "cameraPermission": "Allow access to your camera so you can take meal photos."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "მიეცი წვდომა კამერაზე ბარკოდის სკანირებისთვის."
+          "cameraPermission": "Allow camera access to scan product barcodes."
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -64,7 +69,10 @@
       "router": {},
       "eas": {
         "projectId": "9b6096fc-37a4-43ea-a4bd-2fce2113fbb8"
-      }
+      },
+      "sentryDsn": "",
+      "posthogApiKey": "phc_wEwcTWfYyUHN4Hy37gz2LGgyNMyhTT7Q62SBEa2wKxpy",
+      "posthogHost": "https://eu.i.posthog.com"
     },
     "owner": "tornike13",
     "runtimeVersion": {

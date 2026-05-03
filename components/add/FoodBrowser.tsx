@@ -124,7 +124,7 @@ export default function FoodBrowser({
               key={food.id}
               title={food.name}
               calories={caloriesForFood(food)}
-              serving={servingLabel(food)}
+              serving={servingLabel(food, t("food.perGramShort"))}
               proteinG={macroForFood(food.protein_g_per_100g, food)}
               carbsG={macroForFood(food.carbs_g_per_100g, food)}
               fatG={macroForFood(food.fat_g_per_100g, food)}

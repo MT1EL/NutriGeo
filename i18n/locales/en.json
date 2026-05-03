@@ -893,5 +893,13 @@
     "congrats": "Congrats!",
     "ready": "Your profile was created successfully!\n You're ready to start your healthy journey",
     "start": "Get started"
+  },
+  "premium": {
+    "gateTitle": "Premium feature",
+    "gateTitleNamed": "{{feature}} is a premium feature",
+    "gateBody": "Upgrade to unlock advanced statistics, AI meal photos, voice logging, and more.",
+    "upgradeCta": "Upgrade",
+    "comingSoonTitle": "Premium coming soon",
+    "comingSoonBody": "Subscriptions launch with our next update. Thanks for sticking with us!"
   }
 }

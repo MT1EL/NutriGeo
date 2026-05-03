@@ -4,6 +4,7 @@ import Input from "@/components/ui/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useToast } from "@/contexts/ToastContext";
+import { track } from "@/lib/analytics";
 import { loggedAtForDate } from "@/utils/date";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -102,6 +103,7 @@ export default function QuickAddSheet({
     },
     onSuccess: () => {
       invalidateFoodLogQueries(queryClient, todayKey);
+      track("meal_logged", { method: "quick", meal_key: mealKey });
       toast.success(t("quickAdd.success"));
       onClose();
     },

@@ -6,7 +6,7 @@ import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatTodayKa } from "@/utils/date";
 import { ChevronRight, Plus, Scale } from "lucide-react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
@@ -14,11 +14,6 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-
-function dateLabelFor(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  return formatTodayKa(new Date(y, (m || 1) - 1, d || 1));
-}
 
 type Props = {
   weight: DayWeight | null;
@@ -38,6 +33,13 @@ export default function WeightLogPill({ weight }: Props) {
 
   const hasLogged = weight != null;
   const defaultLogWeight = weight?.weight_kg ?? user?.profile.weight_kg ?? 70;
+
+  const dateLabel = useMemo(() => {
+    const [y, m, d] = date.split("-").map(Number);
+    const monthsArr = t("dates.months", { returnObjects: true });
+    const months = Array.isArray(monthsArr) ? (monthsArr as string[]) : [];
+    return formatTodayKa(new Date(y, (m || 1) - 1, d || 1), months);
+  }, [date, t]);
 
   return (
     <>
@@ -80,7 +82,7 @@ export default function WeightLogPill({ weight }: Props) {
                 {isToday ? t("home.logTodayWeight") : t("home.logDayWeight")}
               </ThemedText>
               <ThemedText type="secondary" style={styles.label}>
-                {dateLabelFor(date)}
+                {dateLabel}
               </ThemedText>
             </>
           )}
@@ -92,7 +94,7 @@ export default function WeightLogPill({ weight }: Props) {
         visible={open}
         onClose={() => setOpen(false)}
         defaultWeightKg={defaultLogWeight}
-        dateLabel={dateLabelFor(date)}
+        dateLabel={dateLabel}
       />
     </>
   );

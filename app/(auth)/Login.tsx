@@ -1,6 +1,7 @@
 import AuthLayout from "@/components/layout/AuthLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import { track } from "@/lib/analytics";
 import { router } from "expo-router";
 import { useFormik } from "formik";
 import { isValidEmail } from "@/utils/validation";
@@ -29,6 +30,7 @@ function LoginScreen() {
     onSubmit: async (values, helpers) => {
       try {
         await signIn(values.email.trim().toLowerCase(), values.password);
+        track("login_completed");
         toast.success(t("auth.login.welcomeBack"));
         // AuthGate handles redirect once status flips to authenticated
       } catch (err) {

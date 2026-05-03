@@ -178,6 +178,7 @@ export default function AddScreen() {
         entry={sheetEntry}
         defaultMealKey={apiMealKey}
         todayKey={today}
+        source="add"
         onEditFood={(food) => {
           setSheetFood(null);
           setSheetEntry(null);

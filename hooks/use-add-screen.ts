@@ -18,10 +18,11 @@ import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
 import i18n from "@/i18n";
 import { loggedAtForDate } from "@/utils/date";
-import { entryDisplay } from "@/utils/foodMath";
+import { entryMacros } from "@/utils/foodMath";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
+import { track } from "@/lib/analytics";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export type BrowseTab = "all" | "frequent" | "favorites" | "recent" | "my";
 
@@ -86,6 +87,24 @@ export function useAddScreen(activeMeal: UiMealKey) {
     enabled: debouncedQuery.length > 0,
   });
 
+  // Fire once per resolved search query so we get one event per intent, not
+  // one per keystroke. Tracking after results land lets us include the result
+  // count, which is the signal we actually care about — long queries returning
+  // zero rows are the food-database gaps to plug first.
+  const lastTrackedQuery = useRef<string | null>(null);
+  useEffect(() => {
+    if (!debouncedQuery) return;
+    if (searchQuery.isLoading || !searchQuery.data) return;
+    if (lastTrackedQuery.current === debouncedQuery) return;
+    lastTrackedQuery.current = debouncedQuery;
+    track("food_search_performed", {
+      query_length: debouncedQuery.length,
+      results_count: Array.isArray(searchQuery.data.data)
+        ? searchQuery.data.data.length
+        : 0,
+    });
+  }, [debouncedQuery, searchQuery.isLoading, searchQuery.data]);
+
   const addMutation = useMutation({
     mutationFn: ({ food }: { food: Food }) =>
       createFoodLog({
@@ -139,6 +158,10 @@ export function useAddScreen(activeMeal: UiMealKey) {
         },
       );
       invalidateFoodLogQueries(queryClient, today);
+      track("meal_logged", {
+        method: debouncedQuery ? "search" : browse,
+        meal_key: apiMealKey,
+      });
       toast.success(i18n.t("add.added"));
     },
     onError: (err, _vars, ctx) => {
@@ -225,7 +248,7 @@ export function useAddScreen(activeMeal: UiMealKey) {
     () =>
       loggedForMeal.reduce(
         (acc, e) => {
-          const d = entryDisplay(e);
+          const d = entryMacros(e);
           return {
             consumed: acc.consumed + d.kcal,
             protein: acc.protein + d.protein_g,

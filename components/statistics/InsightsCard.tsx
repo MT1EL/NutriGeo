@@ -136,7 +136,11 @@ export default function InsightsCard({
       });
     }
     return fallback;
-  }, [insights, summary, loggedDays, onTargetDays, weightSeries, weightGoal, isDark]);
+    // `t` must be in deps: when the language changes, react-i18next gives us a
+    // new `t` reference and the React Compiler keys the memo on it, so the
+    // fallback strings refresh. Without it, switching language leaves stale
+    // text on screen until something else invalidates this memo.
+  }, [insights, summary, loggedDays, onTargetDays, weightSeries, weightGoal, isDark, t]);
 
   if (items.length === 0) return null;
 

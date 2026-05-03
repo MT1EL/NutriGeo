@@ -96,6 +96,7 @@ export default function MealModal() {
         entry={sheetEntry}
         defaultMealKey={apiMealKey}
         todayKey={today}
+        source="meal_detail"
       />
     </View>
   );

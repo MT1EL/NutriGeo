@@ -1,0 +1,28 @@
+# Reusable sub-flow. Other flows invoke this with `runFlow: login.yaml`.
+# Resets the app, launches fresh, signs in with TEST_EMAIL / TEST_PASSWORD.
+appId: ge.nutrigeo.app
+---
+- clearState
+- launchApp
+# Onboarding might land us on Login or Register depending on cold-launch state.
+# We always navigate to Login first so the next steps are deterministic.
+- runFlow:
+    when:
+      visible: "Sign up"
+    commands:
+      - tapOn: "Sign in"
+- assertVisible: "Sign in"
+- tapOn:
+    text: "Email"
+- inputText: ${TEST_EMAIL}
+- tapOn:
+    text: "Password"
+- inputText: ${TEST_PASSWORD}
+- hideKeyboard
+- tapOn: "Sign in"
+# Either we land on Home (existing user) or the onboarding wizard fires
+# (first-ever login). Smoke tests assume an established test account, so
+# the wizard path is a hard fail — surface it loudly.
+- extendedWaitUntil:
+    visible: "Home"
+    timeout: 15000

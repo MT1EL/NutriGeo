@@ -13,6 +13,7 @@ import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { WizardProvider, useWizard, type WizardData } from "@/contexts/WizardContext";
+import { track } from "@/lib/analytics";
 import { router, useFocusEffect } from "expo-router";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import React, { useCallback, useRef, useState } from "react";
@@ -33,18 +34,21 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 type WizardStep = {
+  // Stable analytics name for the step. Don't translate or re-style: the
+  // dashboard groups by these strings.
+  name: string;
   component: React.ReactElement;
   validate: (data: WizardData) => string | null;
 };
 
 const STEPS: WizardStep[] = [
-  { component: <SexPage />, validate: validateSex },
-  { component: <PhysicalData />, validate: validatePhysical },
-  { component: <Goal />, validate: validateGoal },
-  { component: <GoalDetails />, validate: validateGoalDetails },
-  { component: <ActivityLevel />, validate: validateActivity },
-  { component: <DietPreferences />, validate: () => null },
-  { component: <Suggestion />, validate: validateSuggestion },
+  { name: "sex", component: <SexPage />, validate: validateSex },
+  { name: "physical", component: <PhysicalData />, validate: validatePhysical },
+  { name: "goal", component: <Goal />, validate: validateGoal },
+  { name: "goal_details", component: <GoalDetails />, validate: validateGoalDetails },
+  { name: "activity", component: <ActivityLevel />, validate: validateActivity },
+  { name: "diet", component: <DietPreferences />, validate: () => null },
+  { name: "suggestion", component: <Suggestion />, validate: validateSuggestion },
 ];
 
 function validateSex(d: WizardData) {
@@ -185,6 +189,7 @@ function WizardScreen() {
         goalsSaved = false;
       }
       await refreshUser();
+      track("wizard_completed", { goals_saved: goalsSaved });
       if (goalsSaved) {
         toast.success(t("wizard.steps.savedSuccess"));
       } else {
@@ -206,6 +211,10 @@ function WizardScreen() {
       toast.error(t(errorKey));
       return;
     }
+    track("wizard_step_completed", {
+      step: STEPS[activeStep].name,
+      step_index: activeStep,
+    });
     if (activeStep < STEPS.length - 1) {
       goTo(activeStep + 1);
     } else {
@@ -226,11 +235,17 @@ function WizardScreen() {
         {
           text: t("wizard.exit"),
           style: "destructive",
-          onPress: () => router.back(),
+          onPress: () => {
+            track("wizard_abandoned", {
+              last_step: STEPS[activeStep].name,
+              last_step_index: activeStep,
+            });
+            router.back();
+          },
         },
       ],
     );
-  }, [t]);
+  }, [t, activeStep]);
 
   useFocusEffect(
     useCallback(() => {

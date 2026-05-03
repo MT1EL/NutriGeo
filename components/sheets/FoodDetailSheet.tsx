@@ -14,6 +14,7 @@ import type {
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useToast } from "@/contexts/ToastContext";
+import { track } from "@/lib/analytics";
 import {
   caloriesForFood,
   formatGrams,
@@ -58,6 +59,10 @@ type Props = {
   defaultMealKey: ApiMealKey;
   todayKey: string;
   onEditFood?: (food: Food) => void;
+  // Analytics tag identifying which screen opened the sheet. Threaded into
+  // the `meal_logged` event as `method` so we can split logging behavior by
+  // entry point in the dashboard. Keep values short and stable.
+  source?: string;
 };
 
 const ALL_API_MEAL_KEYS: ApiMealKey[] = [
@@ -75,6 +80,7 @@ export default function FoodDetailSheet({
   defaultMealKey,
   todayKey,
   onEditFood,
+  source = "food",
 }: Props) {
   const { t } = useTranslation();
   const apiMealLabel = (key: ApiMealKey): string => t(`meal.${key}`);
@@ -174,8 +180,12 @@ export default function FoodDetailSheet({
         },
         makeIdempotencyKey(),
       ),
-    onSuccess: () => {
+    onSuccess: (_res, input) => {
       invalidateFoodLogQueries(queryClient, todayKey);
+      track("meal_logged", {
+        method: source,
+        meal_key: input.meal_key,
+      });
       toast.success(t("add.added"));
       onClose();
     },
@@ -411,7 +421,7 @@ export default function FoodDetailSheet({
                     </ThemedText>
                   ) : (
                     <ThemedText type="secondary" style={styles.brand}>
-                      1 {t("food.serving")} = {servingLabel(food)}
+                      1 {t("food.serving")} = {servingLabel(food, t("food.perGramShort"))}
                     </ThemedText>
                   )}
                 </View>

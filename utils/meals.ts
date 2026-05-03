@@ -1,6 +1,6 @@
 import type { DayMeals, MealSummary } from "@/api/meals";
 import type { FoodLogEntry, MealKey } from "@/api/types";
-import { entryDisplay } from "./foodMath";
+import { entryMacros } from "./foodMath";
 
 export const ALL_MEAL_KEYS: MealKey[] = [
   "breakfast",
@@ -35,7 +35,7 @@ export function aggregateDayMeals(
   for (const e of entries) {
     const meal = meals[e.meal_key];
     if (!meal) continue;
-    const d = entryDisplay(e);
+    const d = entryMacros(e);
 
     meal.kcal += d.kcal;
     meal.protein_g += d.protein_g;

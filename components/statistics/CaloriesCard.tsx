@@ -16,12 +16,17 @@ type Bar = { key: string; kcal: number; label: string; showLabel: boolean };
 //   week    → 7 daily bars (raw kcal)
 //   month   → 4 weekly bars (avg kcal/day across *logged* days in that week)
 //   quarter → 12 weekly bars (same averaging)
-function buildBars(series: CaloriesPoint[], range: UiRange, weekLabel: (n: number) => string): Bar[] {
+function buildBars(
+  series: CaloriesPoint[],
+  range: UiRange,
+  weekLabel: (n: number) => string,
+  weekdays: readonly string[],
+): Bar[] {
   if (range === "week") {
     return series.map((p, i) => ({
       key: p.date ?? `${i}`,
       kcal: Number(p.kcal) || 0,
-      label: weekdayShort(p.date) || `${i + 1}`,
+      label: weekdayShort(p.date, weekdays) || `${i + 1}`,
       showLabel: true,
     }));
   }
@@ -67,9 +72,15 @@ export default function CaloriesCard({
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
+  const weekdayLabels = useMemo(() => {
+    const arr = t("dates.weekdaysShort", { returnObjects: true });
+    return Array.isArray(arr) ? (arr as string[]) : [];
+  }, [t]);
+
   const bars = useMemo(
-    () => buildBars(series, range, (n) => t("statistics.weekN", { n })),
-    [series, range, t],
+    () =>
+      buildBars(series, range, (n) => t("statistics.weekN", { n }), weekdayLabels),
+    [series, range, t, weekdayLabels],
   );
   const barMax = bars.length
     ? Math.max(...bars.map((b) => b.kcal), calGoal) * 1.1

@@ -1,0 +1,28 @@
+# Verifies that picking a language in Settings actually flips UI strings,
+# not just the picker's selection state. Re-runnable; ends back in English.
+appId: ge.nutrigeo.app
+tags:
+  - smoke
+---
+- runFlow: login.yaml
+
+- tapOn: "Profile"
+- assertVisible: "Log out"
+- tapOn: "Settings"
+- tapOn: "Language"
+- tapOn: "Georgian"
+- back
+- back
+- extendedWaitUntil:
+    visible: "გასვლა"
+    timeout: 5000
+
+# Switch back so we end deterministically in English for the next run.
+- tapOn: "პარამეტრები"
+- tapOn: "ენა"
+- tapOn: "English"
+- back
+- back
+- extendedWaitUntil:
+    visible: "Log out"
+    timeout: 5000

@@ -1,6 +1,7 @@
 import AuthLayout from "@/components/layout/AuthLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import { track } from "@/lib/analytics";
 import { isValidEmail } from "@/utils/validation";
 import { router } from "expo-router";
 import { useFormik } from "formik";
@@ -59,6 +60,7 @@ function RegisterScreen() {
           password: values.password,
           name: values.fullName.trim(),
         });
+        track("signup_completed", { has_session: !!user });
         toast.success(t("auth.register.success"), t("auth.register.welcome"));
         if (!user) {
           // No session returned (e.g. email verification required) — send to login.

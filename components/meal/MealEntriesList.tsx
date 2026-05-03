@@ -53,13 +53,13 @@ export default function MealEntriesList({
       ) : (
         <View style={{ gap: Spacing.md }}>
           {entries.map((entry) => {
-            const d = entryDisplay(entry);
+            const d = entryDisplay(entry, t("add.quickAdd"));
             return (
               <FoodCard
                 key={entry.id}
                 title={d.title}
                 calories={d.kcal}
-                serving={entryDisplayServing(entry)}
+                serving={entryDisplayServing(entry, t("food.perGramShort"), t("add.quickAdd"))}
                 proteinG={d.protein_g}
                 carbsG={d.carbs_g}
                 fatG={d.fat_g}

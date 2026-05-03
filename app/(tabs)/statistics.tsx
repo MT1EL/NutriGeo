@@ -29,7 +29,7 @@ export default function StatisticsPage() {
 
   const weightLabel =
     stats.summary?.weight_change_kg != null
-      ? `${formatWeightChange(stats.summary.weight_change_kg)} ${
+      ? `${formatWeightChange(stats.summary.weight_change_kg, t("weight.kg"))} ${
           stats.range === "week"
             ? t("statistics.weekFull")
             : stats.range === "month"

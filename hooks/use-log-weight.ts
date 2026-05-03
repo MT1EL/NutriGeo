@@ -2,6 +2,7 @@ import { logWeight } from "@/api/weight";
 import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
 import i18n from "@/i18n";
+import { track } from "@/lib/analytics";
 import { loggedAtForDate } from "@/utils/date";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -26,6 +27,7 @@ export function useLogWeight() {
       queryClient.invalidateQueries({ queryKey: ["Profile"] });
       queryClient.invalidateQueries({ queryKey: ["home", "day"] });
       queryClient.invalidateQueries({ queryKey: ["weight"] });
+      track("weight_logged", { source: "manual" });
       toast.success(i18n.t("weight.saved"));
     },
     onError: (err) => {

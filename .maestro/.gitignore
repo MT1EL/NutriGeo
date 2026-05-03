@@ -1,0 +1,8 @@
+# Local Maestro runs leave a screenshot/log directory; don't commit.
+.maestro-output/
+*.png
+*.mp4
+
+# Local credential overrides if anyone wants to keep an .env-style file.
+.env
+.env.local

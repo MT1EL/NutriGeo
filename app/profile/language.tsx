@@ -4,6 +4,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useSettings } from "@/hooks/use-settings";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
+import { track } from "@/lib/analytics";
 import { Check } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -28,6 +29,7 @@ export default function LanguageScreen() {
 
   const onPick = (code: Language) => {
     if (code === active) return;
+    track("language_switched", { from: active, to: code });
     // Switch the UI immediately (i18n listener also persists to SecureStore),
     // then sync to the server so the choice follows the account across devices.
     void i18n.changeLanguage(code);

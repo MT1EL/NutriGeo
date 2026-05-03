@@ -15,6 +15,7 @@ import { useHomeData } from "@/hooks/use-home-data";
 import { formatTodayKa, todayISO } from "@/utils/date";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StyleSheet,
@@ -25,19 +26,23 @@ import { TAB_BAR_HEIGHT } from "./_layout";
 
 const STALE_ARTICLES = 5 * 60_000;
 
-function formatLabelForDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  return formatTodayKa(new Date(y, (m || 1) - 1, d || 1));
-}
-
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const { date, setDate, isToday } = useActiveDate();
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const dateLabel = useMemo(() => formatLabelForDate(date), [date]);
+  const months = useMemo(() => {
+    const arr = t("dates.months", { returnObjects: true });
+    return Array.isArray(arr) ? (arr as string[]) : [];
+  }, [t]);
+
+  const dateLabel = useMemo(() => {
+    const [y, m, d] = date.split("-").map(Number);
+    return formatTodayKa(new Date(y, (m || 1) - 1, d || 1), months);
+  }, [date, months]);
 
   const { snapshot, meals, isLoading, isError } = useHomeData();
   const articlesQuery = useQuery({

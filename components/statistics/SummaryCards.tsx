@@ -27,7 +27,7 @@ export default function SummaryCards({ summary }: Props) {
     {
       Icon: TrendingDown,
       label: t("statistics.weightChange"),
-      value: formatWeightChange(summary?.weight_change_kg),
+      value: formatWeightChange(summary?.weight_change_kg, t("weight.kg")),
       tint: isDark ? "#1F3A28" : "#E6F6EA",
       color: "#34A867",
     },

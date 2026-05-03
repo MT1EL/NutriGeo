@@ -1,0 +1,49 @@
+# Full happy-path smoke. No backend mutations — safe to run repeatedly.
+# Sign in → see Home → see Add tab populated → switch language and back → log out.
+appId: ge.nutrigeo.app
+tags:
+  - smoke
+---
+- runFlow: login.yaml
+
+# Home is up. Sanity check a label that only renders when the day card mounts.
+- assertVisible: "Streak"
+
+# Navigate to Add. The tab's a11y label is "Add".
+- tapOn: "Add"
+- extendedWaitUntil:
+    visible: "Search foods..."
+    timeout: 8000
+
+# Back to Home, then Profile.
+- tapOn: "Home"
+- assertVisible: "Streak"
+- tapOn: "Profile"
+- assertVisible: "Settings"
+- assertVisible: "Log out"
+
+# Switch language to Georgian via Settings → Language and verify the
+# Profile-tab "Log out" label flipped. Then switch back so subsequent
+# runs start in English.
+- tapOn: "Settings"
+- tapOn: "Language"
+- tapOn: "Georgian"
+- back
+- back
+- extendedWaitUntil:
+    visible: "გასვლა"
+    timeout: 5000
+- tapOn: "პარამეტრები"
+- tapOn: "ენა"
+- tapOn: "English"
+- back
+- back
+- extendedWaitUntil:
+    visible: "Log out"
+    timeout: 5000
+
+# Log out. Lands back on Sign in.
+- tapOn: "Log out"
+- extendedWaitUntil:
+    visible: "Sign in"
+    timeout: 5000
