@@ -60,14 +60,14 @@ const AuthLayout = ({
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerContainer}>
-            <Text style={[styles.logo, { color: Colors[colorScheme].brand }]}>
-              FORMA
-            </Text>
+            <Text
+              style={[styles.logo, { color: Colors[colorScheme].brand }]}
+            ></Text>
             <Image
               source={illustrationSource}
               style={
                 illustrationSize === "small"
-                  ? { width: 120, height: 180 }
+                  ? { width: 150, height: 150, objectFit: "scale-down" }
                   : { width: 270, height: 270 }
               }
             />

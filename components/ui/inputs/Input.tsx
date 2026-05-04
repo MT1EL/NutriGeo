@@ -97,7 +97,9 @@ const Input = ({
           keyboardType={keyboardType}
           editable={!disabled}
           secureTextEntry={!!secure}
-          autoCapitalize={secure ? "none" : undefined}
+          autoCapitalize={
+            secure || keyboardType === "email-address" ? "none" : undefined
+          }
           autoCorrect={!secure}
         />
       </View>

@@ -118,7 +118,7 @@ function RegisterScreen() {
 
   return (
     <AuthLayout
-      illustrationSource={require("@/assets/illustrations/sign-up.png")}
+      illustrationSource={require("@/assets/images/logo.png")}
       title={t("auth.register.submit")}
       subtitle={t("auth.login.createAccount")}
       label={

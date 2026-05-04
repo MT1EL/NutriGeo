@@ -2,9 +2,9 @@ import AuthLayout from "@/components/layout/AuthLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { track } from "@/lib/analytics";
+import { isValidEmail } from "@/utils/validation";
 import { router } from "expo-router";
 import { useFormik } from "formik";
-import { isValidEmail } from "@/utils/validation";
 import { Eye, Mail } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
@@ -69,7 +69,7 @@ function LoginScreen() {
 
   return (
     <AuthLayout
-      illustrationSource={require("@/assets/illustrations/welcome.png")}
+      illustrationSource={require("@/assets/images/logo.png")}
       title={t("auth.login.submit")}
       subtitle={t("auth.login.title")}
       label={form.isSubmitting ? t("common.loading") : t("auth.login.submit")}
