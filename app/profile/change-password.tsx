@@ -2,7 +2,7 @@ import { HttpError } from "@/api/client";
 import { updatePassword } from "@/api/me";
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
+import Input from "@/components/ui/inputs/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useToast } from "@/contexts/ToastContext";

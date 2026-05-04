@@ -1,5 +1,5 @@
 import BaseCard from "@/components/cards/BaseCard";
-import Input from "@/components/ui/Input";
+import Input from "@/components/ui/inputs/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { PACE_OPTIONS, type Pace } from "@/hooks/use-edit-goals";
@@ -37,7 +37,9 @@ export default function WeightGoalCard({
             <TrendingDown color="#34A867" size={18} />
           </View>
           <View style={{ gap: 2 }}>
-            <ThemedText style={styles.cardTitle}>{t("goals2.weightGoal")}</ThemedText>
+            <ThemedText style={styles.cardTitle}>
+              {t("goals2.weightGoal")}
+            </ThemedText>
             <ThemedText type="secondary" style={styles.cardCaption}>
               {t("goals2.currentTempWeeks")}
             </ThemedText>

@@ -1,5 +1,5 @@
 import BaseCard from "@/components/cards/BaseCard";
-import Input from "@/components/ui/Input";
+import Input from "@/components/ui/inputs/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Radius, Spacing, Type } from "@/constants/theme";
 import { Flame } from "lucide-react-native";

@@ -40,7 +40,9 @@ export type Diet =
   | "paleo";
 export type Units = "metric" | "imperial";
 export type Theme = "light" | "dark" | "system";
-export type Language = "ka" | "en" | "ru";
+// Backend SUPPORTED is {ka, en}; the server clamps to these via
+// src/middleware/language.js. Keep the union in sync.
+export type Language = "ka" | "en";
 export type IntegrationProvider =
   | "apple_health"
   | "google_fit"

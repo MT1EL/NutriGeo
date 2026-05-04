@@ -9,7 +9,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import Input from "../ui/Input";
+import Input from "../ui/inputs/Input";
 import ThemedText from "../ui/ThemedText";
 import WizzardContentLayout from "./layout";
 

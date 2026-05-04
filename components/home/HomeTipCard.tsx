@@ -1,32 +1,48 @@
+import { getDailyAdvice } from "@/api/advice";
+import { HttpError } from "@/api/client";
 import BaseCard from "@/components/cards/BaseCard";
+import Skeleton from "@/components/ui/Skeleton";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { tipIndexForToday } from "@/utils/dailyTip";
+import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { ChevronRight, Sparkles } from "lucide-react-native";
-import React, { useMemo } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Pressable,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, useColorScheme, View } from "react-native";
 
-const TIP_POOL_SIZE = 15;
-
-// Daily motivational/educational one-liner. Same string for everyone on
-// a given date (rotated by day-of-year). The CTA hands off to the
-// premium coach screen for the actual personalized analysis.
+// Personalized one-liner from /v1/advice/daily. Server picks the rule and
+// localizes the text; client just renders it. CTA is server-supplied when
+// the rule has a deeplink (low_logging, weight_stale); otherwise we fall
+// back to the static "Read full analysis" → /coach handoff.
 export default function HomeTipCard() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
-  const tip = useMemo(() => {
-    const idx = tipIndexForToday(TIP_POOL_SIZE);
-    return t(`home.tips.${idx}`);
-  }, [t]);
+  const adviceQuery = useQuery({
+    queryKey: ["advice", "daily"],
+    queryFn: () => getDailyAdvice(),
+    // Backend returns deterministic content per (user, date); 30 min keeps
+    // the home tab snappy without missing the daily rollover.
+    staleTime: 30 * 60_000,
+    retry: (count, err) => !(err instanceof HttpError && err.status === 404),
+  });
+
+  const advice = adviceQuery.data?.data;
+
+  // Pre-onboarded users get 404 no_data. Hide the card entirely rather than
+  // showing a fallback string that would look orphaned.
+  if (
+    adviceQuery.error instanceof HttpError &&
+    adviceQuery.error.status === 404
+  ) {
+    return null;
+  }
+
+  const text = advice?.text;
+  const ctaLabel = advice?.cta?.label ?? t("home.tipCta");
+  const ctaTarget = advice?.cta?.deeplink ?? "/coach";
 
   return (
     <BaseCard style={styles.card} flat>
@@ -34,17 +50,21 @@ export default function HomeTipCard() {
         <Sparkles color={theme.brand} size={20} />
       </View>
       <View style={styles.content}>
-        <ThemedText style={styles.tip}>{tip}</ThemedText>
+        {text ? (
+          <ThemedText style={styles.tip}>{text}</ThemedText>
+        ) : (
+          <View style={{ gap: 6 }}>
+            <Skeleton height={14} width="100%" />
+            <Skeleton height={14} width="80%" />
+          </View>
+        )}
         <Pressable
-          onPress={() => router.push("/coach")}
+          onPress={() => router.push(ctaTarget as never)}
           hitSlop={6}
-          style={({ pressed }) => [
-            styles.cta,
-            pressed && { opacity: 0.6 },
-          ]}
+          style={({ pressed }) => [styles.cta, pressed && { opacity: 0.6 }]}
         >
           <ThemedText style={styles.ctaText} color={theme.brand}>
-            {t("home.tipCta")}
+            {ctaLabel}
           </ThemedText>
           <ChevronRight color={theme.brand} size={14} />
         </Pressable>

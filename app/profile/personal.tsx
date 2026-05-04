@@ -1,7 +1,7 @@
 import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import SexSelector from "@/components/personal/SexSelector";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
+import Input from "@/components/ui/inputs/Input";
 import { PersonalFormSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
 import { Spacing, Type } from "@/constants/theme";
@@ -95,7 +95,9 @@ export default function PersonalScreen() {
         onPress={() => form.handleSubmit()}
         disabled={isSaving || !form.dirty}
       >
-        {isSaving ? t("profile.personalScreen.saving") : t("profile.personalScreen.save")}
+        {isSaving
+          ? t("profile.personalScreen.saving")
+          : t("profile.personalScreen.save")}
       </Button>
     </SubScreenLayout>
   );

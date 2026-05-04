@@ -7,7 +7,7 @@ import type { Food } from "@/api/types";
 import FoodImagePicker, {
   type PickedImage,
 } from "@/components/ui/FoodImagePicker";
-import Input from "@/components/ui/Input";
+import Input from "@/components/ui/inputs/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";

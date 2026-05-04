@@ -14,4 +14,7 @@ export function invalidateFoodLogQueries(
   queryClient.invalidateQueries({ queryKey: ["meals"] });
   queryClient.invalidateQueries({ queryKey: ["streak"] });
   queryClient.invalidateQueries({ queryKey: ["stats"] });
+  // Advice rules read recent meal_logs (low_logging, low_protein, kcal_high)
+  // so a fresh log can flip the rule that fires.
+  queryClient.invalidateQueries({ queryKey: ["advice"] });
 }

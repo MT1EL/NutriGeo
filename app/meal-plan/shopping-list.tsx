@@ -1,3 +1,6 @@
+import { HttpError } from "@/api/client";
+import { getShoppingList } from "@/api/mealPlan";
+import type { ShoppingCategory, ShoppingItem } from "@/api/mealPlan";
 import BaseCard from "@/components/cards/BaseCard";
 import {
   PaywallBlur,
@@ -7,17 +10,14 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useToast } from "@/contexts/ToastContext";
 import { usePremium } from "@/hooks/use-premium";
-import {
-  STATIC_SHOPPING_LIST,
-  type ShoppingCategory,
-  type ShoppingItem,
-} from "@/utils/mealPlanData";
+import { useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { Check, ChevronLeft, Copy, Share2 } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   Share,
@@ -28,10 +28,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Build a flat key for the checked-set so we don't need a nested
-// data structure for local checkbox state.
-const itemKey = (cat: string, item: ShoppingItem) => `${cat}::${item.name}`;
-
 export default function ShoppingListScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
@@ -41,29 +37,36 @@ export default function ShoppingListScreen() {
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
-  const totalItems = useMemo(
-    () =>
-      STATIC_SHOPPING_LIST.reduce((sum, cat) => sum + cat.items.length, 0),
-    [],
-  );
+  const listQuery = useQuery({
+    queryKey: ["meal-plan", "shopping-list"],
+    queryFn: () => getShoppingList(),
+    enabled: isPremium,
+    staleTime: 30 * 60_000,
+    retry: (count, err) => !(err instanceof HttpError && err.status === 404),
+  });
 
-  const toggle = (cat: string, item: ShoppingItem) => {
+  const data = listQuery.data?.data;
+  const categories: ShoppingCategory[] = data?.categories ?? [];
+  const totalItems = data?.total_items ?? 0;
+  const noPlan =
+    listQuery.error instanceof HttpError && listQuery.error.status === 404;
+
+  const toggle = (item: ShoppingItem) => {
     setChecked((prev) => {
       const next = new Set(prev);
-      const k = itemKey(cat, item);
-      if (next.has(k)) next.delete(k);
-      else next.add(k);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
       return next;
     });
   };
 
   const buildShareText = () => {
     const lines: string[] = [];
-    const weekLabel = formatWeekLabel(new Date());
+    const weekLabel = data?.week_of ?? formatWeekLabel(new Date());
     lines.push(t("mealPlan.shopping.shareHeader", { week: weekLabel }));
     lines.push("");
-    for (const cat of STATIC_SHOPPING_LIST) {
-      lines.push(`— ${t(`mealPlan.shopping.${cat.labelKey}`)} —`);
+    for (const cat of categories) {
+      lines.push(`— ${cat.label} —`);
       for (const item of cat.items) {
         lines.push(`• ${item.name} (${item.qty})`);
       }
@@ -154,15 +157,39 @@ export default function ShoppingListScreen() {
       >
         <PaywallBlur intensity={isPremium ? 0 : 30}>
           <View style={{ gap: Spacing.lg }}>
-            {STATIC_SHOPPING_LIST.map((cat) => (
-              <CategoryBlock
-                key={cat.labelKey}
-                category={cat}
-                checked={checked}
-                onToggle={toggle}
-                theme={theme}
-              />
-            ))}
+            {noPlan ? (
+              <BaseCard>
+                <ThemedText
+                  type="secondary"
+                  style={{ textAlign: "center" }}
+                >
+                  {t("mealPlan.shopping.noPlan")}
+                </ThemedText>
+              </BaseCard>
+            ) : listQuery.isLoading ? (
+              <BaseCard>
+                <ActivityIndicator color={theme.brand} />
+              </BaseCard>
+            ) : categories.length === 0 ? (
+              <BaseCard>
+                <ThemedText
+                  type="secondary"
+                  style={{ textAlign: "center" }}
+                >
+                  {t("mealPlan.shopping.empty")}
+                </ThemedText>
+              </BaseCard>
+            ) : (
+              categories.map((cat) => (
+                <CategoryBlock
+                  key={cat.slug}
+                  category={cat}
+                  checked={checked}
+                  onToggle={toggle}
+                  theme={theme}
+                />
+              ))
+            )}
           </View>
         </PaywallBlur>
       </ScrollView>
@@ -183,23 +210,21 @@ function CategoryBlock({
 }: {
   category: ShoppingCategory;
   checked: Set<string>;
-  onToggle: (cat: string, item: ShoppingItem) => void;
+  onToggle: (item: ShoppingItem) => void;
   theme: typeof Colors.light;
 }) {
-  const { t } = useTranslation();
   return (
     <View>
       <ThemedText style={styles.categoryLabel} type="secondary">
-        {t(`mealPlan.shopping.${category.labelKey}`)}
+        {category.label}
       </ThemedText>
       <BaseCard style={styles.listCard}>
         {category.items.map((item, i) => {
-          const k = itemKey(category.labelKey, item);
-          const isChecked = checked.has(k);
+          const isChecked = checked.has(item.id);
           return (
             <Pressable
-              key={item.name}
-              onPress={() => onToggle(category.labelKey, item)}
+              key={item.id}
+              onPress={() => onToggle(item)}
               style={({ pressed }) => [
                 styles.row,
                 i < category.items.length - 1 && {

@@ -1,6 +1,6 @@
 import { createFoodLog } from "@/api/foodLog";
 import type { MealKey as ApiMealKey } from "@/api/types";
-import Input from "@/components/ui/Input";
+import Input from "@/components/ui/inputs/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useToast } from "@/contexts/ToastContext";
@@ -108,8 +108,7 @@ export default function QuickAddSheet({
       onClose();
     },
     onError: (err) => {
-      const message =
-        err instanceof Error ? err.message : t("quickAdd.failed");
+      const message = err instanceof Error ? err.message : t("quickAdd.failed");
       toast.error(message, t("common.error"));
     },
   });
@@ -117,7 +116,8 @@ export default function QuickAddSheet({
   const handleSave = () => {
     const next: Record<string, string> = {};
     if (toNum(kcal) == null) next.kcal = t("wizard.suggestion.enterKcalGoal");
-    if (toNum(protein) == null) next.protein = t("wizard.suggestion.enterProtein");
+    if (toNum(protein) == null)
+      next.protein = t("wizard.suggestion.enterProtein");
     if (toNum(carbs) == null) next.carbs = t("wizard.suggestion.enterCarbs");
     if (toNum(fat) == null) next.fat = t("wizard.suggestion.enterFat");
     setErrors(next);
@@ -159,7 +159,9 @@ export default function QuickAddSheet({
                   <Zap color={theme.brand} size={18} />
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <ThemedText style={styles.title}>{t("quickAdd.title")}</ThemedText>
+                  <ThemedText style={styles.title}>
+                    {t("quickAdd.title")}
+                  </ThemedText>
                   <ThemedText type="secondary" style={styles.subtitle}>
                     {t("quickAdd.subtitle")}
                   </ThemedText>
@@ -307,7 +309,9 @@ export default function QuickAddSheet({
                   style={styles.primaryBtnText}
                   color={theme.textOnBrand}
                 >
-                  {mutation.isPending ? t("common.saving") : t("quickAdd.submit")}
+                  {mutation.isPending
+                    ? t("common.saving")
+                    : t("quickAdd.submit")}
                 </ThemedText>
               </TouchableOpacity>
             </SafeAreaView>

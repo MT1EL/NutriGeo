@@ -8,7 +8,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import ThemedText from "./ThemedText";
+import ThemedText from "../ThemedText";
 
 type Props = {
   label?: string;

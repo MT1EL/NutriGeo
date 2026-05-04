@@ -1,4 +1,11 @@
-import { listRecipes } from "@/api/recipes";
+import { getCoachWeekly, refreshCoach } from "@/api/coach";
+import type {
+  CoachCompare,
+  CoachTrajectory,
+  CoachWeekly,
+} from "@/api/coach";
+import { HttpError } from "@/api/client";
+import { getRecipeById } from "@/api/recipes";
 import type { Recipe } from "@/api/types";
 import BaseCard from "@/components/cards/BaseCard";
 import { LineChart } from "@/components/charts/LineChart";
@@ -11,9 +18,8 @@ import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { usePremium } from "@/hooks/use-premium";
-import { useStats } from "@/hooks/use-stats";
 import { formatWeightChange } from "@/utils/format";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
@@ -29,7 +35,7 @@ import {
   Star,
   Target,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -41,74 +47,68 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Static placeholder values used by sections that need backend support
-// before they can be real (week-over-week deltas, projection math). When
-// the API ships, these become props from a /v1/coach/weekly response.
-const STATIC = {
-  compare: {
-    kcal: { now: 1847, prev: 1923 },
-    protein: { now: 132, prev: 124 },
-    days: { now: 6, prev: 4 },
-    weight: { now: 81.2, prev: 81.6 },
-  },
-  trajectory: {
-    weeks: 11,
-    series: [82.4, 82.1, 82.0, 81.7, 81.5, 81.3, 81.2],
-    targetKg: 78,
-  },
-};
-
 export default function CoachScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const { user } = useAuth();
   const { isPremium } = usePremium();
-  const stats = useStats();
   const toast = useToast();
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   const name = user?.profile?.name || t("coach.defaultName");
-  const streak = stats.currentStreak ?? 0;
-  const kcalAvg = stats.summary?.kcal_avg
-    ? Math.round(stats.summary.kcal_avg)
-    : null;
-  const kcalTarget = user?.goals?.daily_calorie_target ?? null;
-  const weightChangeKg = stats.summary?.weight_change_kg ?? null;
-  const weightChangeFmt = formatWeightChange(
-    stats.summary?.weight_change_kg,
-    ` ${t("weight.kg")}`,
-  );
 
-  const headline = buildHeadline({
-    t,
-    kcalAvg,
-    kcalTarget,
-    weightChangeKg,
+  const coachQuery = useQuery({
+    queryKey: ["coach", "weekly"],
+    queryFn: () => getCoachWeekly(),
+    staleTime: 30 * 60_000,
+    enabled: isPremium,
   });
 
-  const recipesQuery = useQuery({
-    queryKey: ["recipes", "coach-picks"],
-    queryFn: () => listRecipes({ limit: 6 }),
+  const coach: CoachWeekly | undefined = coachQuery.data?.data;
+  const meta = coachQuery.data?.meta;
+  const isSynth = meta?.synthesized === true;
+
+  const pickIds = coach?.recipe_picks?.ids ?? [];
+  // Hydrate up-to-5 recipe IDs in parallel; per-id 404s are silently dropped
+  // so a stale catalog entry doesn't kill the whole row.
+  const picksQuery = useQuery({
+    queryKey: ["coach", "picks", pickIds.join(",")],
+    queryFn: async () => {
+      const results = await Promise.all(
+        pickIds.map((id) => getRecipeById(id).catch(() => null)),
+      );
+      return results
+        .filter((r): r is NonNullable<typeof r> => r !== null)
+        .map((r) => r.data);
+    },
+    enabled: pickIds.length > 0,
     staleTime: 60 * 60_000,
   });
-  const recipes: Recipe[] = recipesQuery.data?.data?.slice(0, 5) ?? [];
+  const recipes: Recipe[] = picksQuery.data ?? [];
 
-  const actionItems =
-    (t("coach.actionItems", { returnObjects: true }) as string[]) ?? [];
-
-  const onRegenerate = async () => {
-    // Placeholder: real implementation will call /v1/coach/refresh which
-    // triggers a server-side LLM run. For now we just refetch stats so the
-    // metrics block updates and confirm with a toast.
-    setRefreshing(true);
-    try {
-      await stats.refetch?.();
+  const refreshMutation = useMutation({
+    mutationFn: () => refreshCoach(),
+    onSuccess: (resp) => {
+      queryClient.setQueryData(["coach", "weekly"], resp);
       toast.success(t("coach.regeneratedToast"));
-    } finally {
-      setRefreshing(false);
-    }
+    },
+    onError: (err) => {
+      if (err instanceof HttpError && err.status === 429) {
+        toast.error(t("coach.refreshLimit"), t("common.error"));
+        return;
+      }
+      const message = err instanceof Error ? err.message : t("common.error");
+      toast.error(message, t("common.error"));
+    },
+  });
+
+  const onRegenerate = () => {
+    if (refreshMutation.isPending) return;
+    refreshMutation.mutate();
   };
+
+  const refreshing = refreshMutation.isPending;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.surface }}>
@@ -180,7 +180,7 @@ export default function CoachScreen() {
             {t("coach.heroTitle", { name })}
           </ThemedText>
           <ThemedText style={styles.heroHeadline} color="#FFFFFF">
-            {headline}
+            {coach?.headline ?? t("coach.kcalNoData")}
           </ThemedText>
         </BaseCard>
 
@@ -193,46 +193,71 @@ export default function CoachScreen() {
               <View style={styles.metricsRow}>
                 <MetricTile
                   label={t("coach.metricStreak")}
-                  value={String(streak)}
+                  value={String(coach?.metrics.streak_days ?? 0)}
                   unit={t("coach.metricStreakUnit")}
                 />
                 <MetricTile
                   label={t("coach.metricKcalAvg")}
                   value={
-                    kcalAvg != null ? String(kcalAvg) : t("coach.metricEmpty")
+                    coach?.metrics.kcal_avg != null
+                      ? String(Math.round(coach.metrics.kcal_avg))
+                      : t("coach.metricEmpty")
                   }
                   unit={t("coach.metricKcalUnit")}
                 />
                 <MetricTile
                   label={t("coach.metricWeightChange")}
-                  value={weightChangeFmt}
+                  value={formatWeightChange(
+                    coach?.metrics.weight_change_kg ?? undefined,
+                    ` ${t("weight.kg")}`,
+                  )}
                 />
               </View>
             </View>
 
-            <CompareSection theme={theme} />
+            {coach ? (
+              <CompareSection theme={theme} compare={coach.compare} />
+            ) : null}
 
-            <TrajectorySection theme={theme} weightUnit={t("weight.kg")} />
+            {coach ? (
+              <TrajectorySection
+                theme={theme}
+                weightUnit={t("weight.kg")}
+                trajectory={coach.trajectory}
+              />
+            ) : null}
 
-            <InsightCard
-              tint="#34A867"
-              tintLight="#E6F6EA"
-              tintDark="#1F3A28"
-              colorScheme={colorScheme}
-              Icon={Star}
-              title={t("coach.highlightTitle")}
-              body={t("coach.highlightBody")}
-            />
+            {coach?.insights?.highlight ? (
+              <InsightCard
+                tint="#34A867"
+                tintLight="#E6F6EA"
+                tintDark="#1F3A28"
+                colorScheme={colorScheme}
+                Icon={Star}
+                title={coach.insights.highlight.title}
+                body={coach.insights.highlight.body}
+              />
+            ) : null}
 
-            <InsightCard
-              tint="#E8A02C"
-              tintLight="#FEF6E4"
-              tintDark="#3A2E10"
-              colorScheme={colorScheme}
-              Icon={Eye}
-              title={t("coach.watchTitle")}
-              body={t("coach.watchBody")}
-            />
+            {coach?.insights?.watch ? (
+              <InsightCard
+                tint="#E8A02C"
+                tintLight="#FEF6E4"
+                tintDark="#3A2E10"
+                colorScheme={colorScheme}
+                Icon={Eye}
+                title={coach.insights.watch.title}
+                body={coach.insights.watch.body}
+              />
+            ) : null}
+
+            {isSynth ? (
+              <BaseCard style={styles.synthBanner}>
+                <ThemedText type="secondary" style={styles.synthText}>
+                  {t("coach.synthBanner")}
+                </ThemedText>
+              </BaseCard>
+            ) : null}
 
             <RecipesSection
               recipes={recipes}
@@ -270,17 +295,18 @@ export default function CoachScreen() {
               </BaseCard>
             </TouchableOpacity>
 
+            {coach?.actions && coach.actions.length > 0 ? (
             <View>
               <ThemedText style={styles.sectionTitle}>
                 {t("coach.actionsTitle")}
               </ThemedText>
               <BaseCard style={styles.listCard}>
-                {actionItems.map((item, i) => (
+                {coach.actions.map((item, i) => (
                   <View
                     key={i}
                     style={[
                       styles.actionRow,
-                      i < actionItems.length - 1 && {
+                      i < coach.actions.length - 1 && {
                         borderBottomColor: theme.borderLight,
                         borderBottomWidth: StyleSheet.hairlineWidth,
                       },
@@ -304,6 +330,7 @@ export default function CoachScreen() {
                 ))}
               </BaseCard>
             </View>
+            ) : null}
           </View>
         </PaywallBlur>
       </ScrollView>
@@ -314,44 +341,6 @@ export default function CoachScreen() {
       />
     </View>
   );
-}
-
-function buildHeadline({
-  t,
-  kcalAvg,
-  kcalTarget,
-  weightChangeKg,
-}: {
-  t: (key: string, opts?: Record<string, unknown>) => string;
-  kcalAvg: number | null;
-  kcalTarget: number | null;
-  weightChangeKg: number | null;
-}): string {
-  if (kcalAvg == null || kcalTarget == null || kcalTarget <= 0) {
-    return t("coach.kcalNoData");
-  }
-  const delta = kcalAvg - kcalTarget;
-  const tolerance = Math.max(50, kcalTarget * 0.03);
-  let kcalPart: string;
-  if (Math.abs(delta) <= tolerance) {
-    kcalPart = t("coach.kcalOnTarget", { avg: kcalAvg });
-  } else if (delta < 0) {
-    kcalPart = t("coach.kcalBelow", { avg: kcalAvg, delta: Math.abs(delta) });
-  } else {
-    kcalPart = t("coach.kcalAbove", { avg: kcalAvg, delta });
-  }
-  let weightPart = "";
-  if (weightChangeKg != null) {
-    const abs = Math.abs(weightChangeKg).toFixed(1);
-    if (Math.abs(weightChangeKg) < 0.1) {
-      weightPart = t("coach.weightFlat");
-    } else if (weightChangeKg < 0) {
-      weightPart = t("coach.weightDown", { kg: abs });
-    } else {
-      weightPart = t("coach.weightUp", { kg: abs });
-    }
-  }
-  return `${kcalPart}${weightPart}`;
 }
 
 function MetricTile({
@@ -387,10 +376,14 @@ function MetricTile({
 
 function CompareSection({
   theme,
+  compare,
 }: {
   theme: typeof Colors.light;
+  compare: CoachCompare;
 }) {
   const { t } = useTranslation();
+  // Skip the weight row entirely if either side of the pair is null —
+  // showing "0 → 0" misleads when the user just hasn't logged.
   const rows: {
     labelKey: string;
     unitKey: string;
@@ -404,33 +397,35 @@ function CompareSection({
     {
       labelKey: "coach.compareKcal",
       unitKey: "coach.compareUnitKcal",
-      now: STATIC.compare.kcal.now,
-      prev: STATIC.compare.kcal.prev,
+      now: compare.kcal_per_day.now,
+      prev: compare.kcal_per_day.prev,
       lowerIsBetter: true,
     },
     {
       labelKey: "coach.compareProtein",
       unitKey: "coach.compareUnitG",
-      now: STATIC.compare.protein.now,
-      prev: STATIC.compare.protein.prev,
+      now: compare.protein_per_day.now,
+      prev: compare.protein_per_day.prev,
       lowerIsBetter: false,
     },
     {
       labelKey: "coach.compareLogDays",
       unitKey: "coach.compareUnitDays",
-      now: STATIC.compare.days.now,
-      prev: STATIC.compare.days.prev,
+      now: compare.days_logged.now,
+      prev: compare.days_logged.prev,
       lowerIsBetter: false,
     },
-    {
+  ];
+  if (compare.weight_kg.now != null && compare.weight_kg.prev != null) {
+    rows.push({
       labelKey: "coach.compareWeight",
       unitKey: "coach.compareUnitKg",
-      now: STATIC.compare.weight.now,
-      prev: STATIC.compare.weight.prev,
+      now: compare.weight_kg.now,
+      prev: compare.weight_kg.prev,
       lowerIsBetter: true,
       decimals: 1,
-    },
-  ];
+    });
+  }
 
   return (
     <View>
@@ -498,14 +493,41 @@ function CompareSection({
 function TrajectorySection({
   theme,
   weightUnit,
+  trajectory,
 }: {
   theme: typeof Colors.light;
   weightUnit: string;
+  trajectory: CoachTrajectory;
 }) {
   const { t } = useTranslation();
-  const series = STATIC.trajectory.series;
-  const last = series[series.length - 1];
-  const target = STATIC.trajectory.targetKg;
+  const series = trajectory.series;
+  const last = series.length > 0 ? series[series.length - 1] : null;
+  const target = trajectory.target_kg;
+  const weeks = trajectory.weeks_to_goal;
+
+  // Empty series → not enough body_logs yet. Render the section but with
+  // an explainer instead of a misleading flat chart.
+  if (series.length === 0) {
+    return (
+      <View>
+        <View style={styles.sectionHeader}>
+          <View
+            style={[styles.sectionIcon, { backgroundColor: theme.brandSoft }]}
+          >
+            <Target color={theme.brand} size={16} />
+          </View>
+          <ThemedText style={styles.sectionTitle}>
+            {t("coach.trajectoryTitle")}
+          </ThemedText>
+        </View>
+        <BaseCard>
+          <ThemedText style={styles.trajectoryBody} type="secondary">
+            {t("coach.trajectoryEmpty")}
+          </ThemedText>
+        </BaseCard>
+      </View>
+    );
+  }
 
   return (
     <View>
@@ -524,12 +546,14 @@ function TrajectorySection({
       </View>
       <BaseCard>
         <ThemedText style={styles.trajectoryBody}>
-          {t("coach.trajectoryBody", { weeks: STATIC.trajectory.weeks })}
+          {weeks != null
+            ? t("coach.trajectoryBody", { weeks })
+            : t("coach.trajectoryDiverging")}
         </ThemedText>
         <LineChart
           values={series}
           color={theme.brand}
-          goal={target}
+          goal={target ?? undefined}
           goalColor={theme.success}
           height={120}
         />
@@ -539,27 +563,33 @@ function TrajectorySection({
               {t("coach.trajectoryNow")}
             </ThemedText>
             <ThemedText style={styles.trajectoryMetaValue}>
-              {last.toFixed(1)} {weightUnit}
+              {last != null ? `${last.toFixed(1)} ${weightUnit}` : "—"}
             </ThemedText>
           </View>
-          <View
-            style={[
-              styles.weeksPill,
-              { backgroundColor: theme.brandSoft },
-            ]}
-          >
-            <ThemedText style={styles.weeksPillText} color={theme.brandDeep}>
-              {t("coach.trajectoryWeeksLabel", {
-                weeks: STATIC.trajectory.weeks,
-              })}
-            </ThemedText>
-          </View>
+          {weeks != null ? (
+            <View
+              style={[
+                styles.weeksPill,
+                { backgroundColor: theme.brandSoft },
+              ]}
+            >
+              <ThemedText
+                style={styles.weeksPillText}
+                color={theme.brandDeep}
+              >
+                {t("coach.trajectoryWeeksLabel", { weeks })}
+              </ThemedText>
+            </View>
+          ) : null}
           <View style={{ alignItems: "flex-end" }}>
             <ThemedText type="secondary" style={styles.trajectoryMetaLabel}>
               {t("coach.trajectoryGoal")}
             </ThemedText>
-            <ThemedText style={styles.trajectoryMetaValue} color={theme.success}>
-              {target.toFixed(1)} {weightUnit}
+            <ThemedText
+              style={styles.trajectoryMetaValue}
+              color={theme.success}
+            >
+              {target != null ? `${target.toFixed(1)} ${weightUnit}` : "—"}
             </ThemedText>
           </View>
         </View>
@@ -851,6 +881,14 @@ const styles = StyleSheet.create({
   weeksPillText: {
     fontSize: Type.xs,
     fontWeight: "800",
+  },
+  synthBanner: {
+    paddingVertical: Spacing.md,
+  },
+  synthText: {
+    fontSize: Type.xs,
+    lineHeight: 18,
+    textAlign: "center",
   },
   insightCard: {
     flexDirection: "row",
