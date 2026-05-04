@@ -59,6 +59,13 @@
         }
       ],
       "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "color": "#4A90E2",
+          "defaultChannel": "default"
+        }
+      ],
       "@sentry/react-native"
     ],
     "experiments": {
@@ -70,7 +77,6 @@
       "eas": {
         "projectId": "9b6096fc-37a4-43ea-a4bd-2fce2113fbb8"
       },
-      "sentryDsn": "",
       "posthogApiKey": "phc_wEwcTWfYyUHN4Hy37gz2LGgyNMyhTT7Q62SBEa2wKxpy",
       "posthogHost": "https://eu.i.posthog.com"
     },

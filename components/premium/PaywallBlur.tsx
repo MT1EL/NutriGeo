@@ -66,6 +66,10 @@ export function PaywallBlurOverlay({
 
   if (isPremium || !visible) return null;
 
+  const onUpgradePress = () => {
+    router.push("/profile/premium");
+  };
+
   return (
     <View
       pointerEvents="box-none"
@@ -94,7 +98,7 @@ export function PaywallBlurOverlay({
         </ThemedText>
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => router.push("/profile/premium")}
+          onPress={onUpgradePress}
           disabled={isLoading}
           style={[
             styles.button,

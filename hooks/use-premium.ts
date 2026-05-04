@@ -30,7 +30,7 @@ export function usePremium() {
   const status = query.data?.data;
 
   return {
-    isPremium: true,
+    isPremium: status?.active ?? false,
     isLoading: query.isLoading,
     status,
     refetch: query.refetch,

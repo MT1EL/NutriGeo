@@ -4,13 +4,15 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { Stack, useRouter, useSegments } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { ActivityIndicator, Appearance, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { registerPushToken } from "@/api/notifications";
 import { Colors } from "@/constants/theme";
 import { ActiveDateProvider } from "@/contexts/ActiveDateContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -18,6 +20,12 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import i18n, { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
 import { identify, resetIdentity } from "@/lib/analytics";
+import {
+  configureNotificationHandler,
+  getPushToken,
+  pushPlatform,
+} from "@/lib/push";
+import { configurePurchases, logoutPurchases } from "@/lib/purchases";
 import { Sentry } from "@/lib/sentry";
 import {
   QueryClient,
@@ -57,6 +65,100 @@ function AnalyticsIdentitySync() {
       resetIdentity();
     }
     lastIdRef.current = id;
+  }, [user?.id]);
+
+  return null;
+}
+
+// Configure RevenueCat once and keep its user identity in sync with the
+// auth user. Anonymous installs get configured with no appUserID; on sign-in
+// we logIn() so any anonymous purchases attach to the named account.
+function PurchasesSync() {
+  const { user } = useAuth();
+  const lastUserIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const userId = user?.id ?? null;
+
+    if (!userId && lastUserIdRef.current) {
+      void logoutPurchases();
+      lastUserIdRef.current = null;
+      return;
+    }
+
+    if (userId === lastUserIdRef.current) return;
+    void configurePurchases(userId);
+    lastUserIdRef.current = userId;
+  }, [user?.id]);
+
+  return null;
+}
+
+// Register the device's Expo push token with the backend after sign-in.
+// Dedupes via SecureStore so a re-mount or a re-launch with the same
+// (user, token) pair doesn't re-POST. Silently skips simulators, web,
+// and permission-denied — settings screen can later resurface a
+// "turn on notifications" prompt if needed.
+const LAST_PUSH_REGISTRATION_KEY = "nutrigeo.last_push_registration";
+function PushRegistrationSync() {
+  const { user } = useAuth();
+  const inFlight = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    configureNotificationHandler();
+  }, []);
+
+  useEffect(() => {
+    const userId = user?.id ?? null;
+
+    // Sign-out transition: clear the cached registration so the next
+    // user (or this user re-signing in) re-registers cleanly. Server-
+    // side cleanup of the now-orphaned token mapping is a v1.1 task.
+    if (!userId && lastUserIdRef.current) {
+      void SecureStore.deleteItemAsync(LAST_PUSH_REGISTRATION_KEY).catch(
+        () => {},
+      );
+      lastUserIdRef.current = null;
+      return;
+    }
+
+    if (!userId || inFlight.current || lastUserIdRef.current === userId) {
+      return;
+    }
+
+    let cancelled = false;
+    inFlight.current = true;
+    (async () => {
+      try {
+        const result = await getPushToken();
+        if (cancelled || !result.ok) return;
+
+        const cacheKey = `${userId}:${result.token}`;
+        const persisted = await SecureStore.getItemAsync(
+          LAST_PUSH_REGISTRATION_KEY,
+        );
+        if (persisted === cacheKey) {
+          lastUserIdRef.current = userId;
+          return;
+        }
+
+        await registerPushToken({
+          token: result.token,
+          platform: pushPlatform(),
+        });
+        await SecureStore.setItemAsync(LAST_PUSH_REGISTRATION_KEY, cacheKey);
+        lastUserIdRef.current = userId;
+      } catch {
+        // Network blip or backend transient error — try again on next mount.
+      } finally {
+        inFlight.current = false;
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id]);
 
   return null;
@@ -168,6 +270,8 @@ function RootLayout() {
               <ThemeSync />
               <ProfileLanguageSync />
               <AnalyticsIdentitySync />
+              <PurchasesSync />
+              <PushRegistrationSync />
               <ActiveDateProvider>
                 <AuthGate>
                   <Stack>

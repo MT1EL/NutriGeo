@@ -1113,6 +1113,11 @@
     "restoreFailed": "Could not restore purchases",
     "restoreNoneTitle": "Nothing to restore",
     "restoreNoneBody": "We couldn't find an active subscription on this account.",
+    "purchaseSuccess": "Welcome to Premium",
+    "purchaseFailed": "Purchase failed. Please try again.",
+    "noOfferings": "No subscription plans available right now.",
+    "planUnavailable": "This plan isn't available on your device.",
+    "manageSubscriptionCta": "Manage subscription",
     "footerLegal": "By continuing, you agree to our Terms and Privacy Policy. Subscriptions auto-renew until cancelled in your store account.",
     "termsLink": "Terms",
     "privacyLink": "Privacy"

@@ -6,6 +6,17 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useToast } from "@/contexts/ToastContext";
 import { PREMIUM_STATUS_QUERY_KEY, usePremium } from "@/hooks/use-premium";
+import {
+  findPackage,
+  getCurrentOffering,
+  isPremiumActive,
+  isPurchasesAvailable,
+  isUserCancelledError,
+  type PlanKind,
+  presentCustomerCenter,
+  purchasePackage,
+  restorePurchases,
+} from "@/lib/purchases";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import {
@@ -121,11 +132,25 @@ export default function PremiumScreen() {
   const [selected, setSelected] = useState<PlanId>("yearly");
   const [purchasing, setPurchasing] = useState(false);
 
+  // Restore: ask RevenueCat first (source of truth for the device's store
+  // history), then ping the backend so the server-side entitlement DB
+  // reflects the same state — handles cross-device restores too.
   const restoreMutation = useMutation({
-    mutationFn: restorePremium,
-    onSuccess: async (res) => {
-      await queryClient.invalidateQueries({ queryKey: PREMIUM_STATUS_QUERY_KEY });
-      if (res.data.active) {
+    mutationFn: async () => {
+      if (isPurchasesAvailable()) {
+        const info = await restorePurchases();
+        if (!isPremiumActive(info)) {
+          // No store-side entitlement — fall through to backend check.
+        }
+      }
+      const res = await restorePremium();
+      return res.data;
+    },
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({
+        queryKey: PREMIUM_STATUS_QUERY_KEY,
+      });
+      if (data.active) {
         toast.success(t("premium.restoreSuccess"));
       } else {
         Alert.alert(
@@ -135,23 +160,76 @@ export default function PremiumScreen() {
       }
     },
     onError: (err) => {
-      const message = err instanceof Error ? err.message : t("premium.restoreFailed");
+      const message =
+        err instanceof Error ? err.message : t("premium.restoreFailed");
       toast.error(message, t("common.error"));
     },
   });
 
-  const onSubscribe = () => {
-    // Real purchase flow lands with the IAP/RevenueCat integration. Until
-    // then, surface the same placeholder the PaywallGate used so the screen
-    // is functional end-to-end without a working store SDK.
+  // Screen labels yearly/monthly/lifetime; RC's PACKAGE_TYPE convention is
+  // ANNUAL/MONTHLY/LIFETIME — only the yearly→annual rename matters.
+  const planToPackage: Record<PlanId, PlanKind> = {
+    monthly: "monthly",
+    yearly: "annual",
+    lifetime: "lifetime",
+  };
+
+  const onSubscribe = async () => {
+    if (!isPurchasesAvailable()) {
+      Alert.alert(t("premium.comingSoonTitle"), t("premium.comingSoonBody"));
+      return;
+    }
+
     setPurchasing(true);
-    setTimeout(() => {
+    try {
+      const offering = await getCurrentOffering();
+      if (!offering) {
+        toast.error(t("premium.noOfferings"), t("common.error"));
+        return;
+      }
+      const pkg = findPackage(offering, planToPackage[selected]);
+      if (!pkg) {
+        toast.error(t("premium.planUnavailable"), t("common.error"));
+        return;
+      }
+      const info = await purchasePackage(pkg);
+      if (isPremiumActive(info)) {
+        // Backend webhook validates the receipt and flips DB state; the
+        // refetch below picks that up. Toast immediately so UX feels snappy.
+        toast.success(t("premium.purchaseSuccess"));
+        await queryClient.invalidateQueries({
+          queryKey: PREMIUM_STATUS_QUERY_KEY,
+        });
+      }
+    } catch (err) {
+      if (isUserCancelledError(err)) return;
+      const message =
+        err instanceof Error ? err.message : t("premium.purchaseFailed");
+      toast.error(message, t("common.error"));
+    } finally {
       setPurchasing(false);
-      Alert.alert(
-        t("premium.comingSoonTitle"),
-        t("premium.comingSoonBody"),
-      );
-    }, 600);
+    }
+  };
+
+  // Premium users get RC's prebuilt Customer Center — handles cancel,
+  // refund, plan change, and restore from one screen. Replaces the App
+  // Store / Play Store deeplink and satisfies the "in-app subscription
+  // management" requirement from both store policies.
+  const onManageSubscription = async () => {
+    if (!isPurchasesAvailable()) {
+      Alert.alert(t("premium.comingSoonTitle"), t("premium.comingSoonBody"));
+      return;
+    }
+    try {
+      await presentCustomerCenter();
+      await queryClient.invalidateQueries({
+        queryKey: PREMIUM_STATUS_QUERY_KEY,
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : t("common.error");
+      toast.error(message, t("common.error"));
+    }
   };
 
   const formatDate = (iso?: string) => {
@@ -254,11 +332,10 @@ export default function PremiumScreen() {
 
       {!isPremium && (
         <View style={{ gap: Spacing.md }}>
-          <Button
-            onPress={onSubscribe}
-            disabled={purchasing}
-          >
-            {purchasing ? t("premium.subscribingCta") : t("premium.subscribeCta")}
+          <Button onPress={onSubscribe} disabled={purchasing}>
+            {purchasing
+              ? t("premium.subscribingCta")
+              : t("premium.subscribeCta")}
           </Button>
           <TouchableOpacity
             activeOpacity={0.6}
@@ -274,6 +351,14 @@ export default function PremiumScreen() {
               </ThemedText>
             )}
           </TouchableOpacity>
+        </View>
+      )}
+
+      {isPremium && (
+        <View style={{ gap: Spacing.md }}>
+          <Button onPress={onManageSubscription}>
+            {t("premium.manageSubscriptionCta")}
+          </Button>
         </View>
       )}
 
