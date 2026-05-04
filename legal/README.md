@@ -5,7 +5,7 @@ Public-facing copies of the privacy policy and terms of service. App Store Conne
 ## Hosting options
 
 - **GitHub Pages**: Easiest. Push these files under a repo with Pages enabled, point at `https://<user>.github.io/<repo>/privacy` and `/terms`.
-- **Vercel / Netlify**: Drop them into a tiny static site, get a custom domain like `nutrigeo.ge/privacy`.
+- **Vercel / Netlify**: Drop them into a tiny static site, get a custom domain like `forma.app/privacy`.
 - **Cloudflare Pages**: Same idea, free tier.
 
 ## Keeping the in-app and hosted copies in sync

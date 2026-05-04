@@ -1,6 +1,6 @@
 # DESTRUCTIVE: creates a real weight-log entry for today on the test account.
 # Only runs under --include-tags destructive, never in default smoke runs.
-appId: ge.nutrigeo.app
+appId: app.forma.tracker
 tags:
   - destructive
 ---

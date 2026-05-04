@@ -1,6 +1,6 @@
 # Full happy-path smoke. No backend mutations — safe to run repeatedly.
 # Sign in → see Home → see Add tab populated → switch language and back → log out.
-appId: ge.nutrigeo.app
+appId: app.forma.tracker
 tags:
   - smoke
 ---

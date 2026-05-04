@@ -1,21 +1,22 @@
 {
   "expo": {
-    "name": "NutriGeo",
-    "slug": "NutriGeo",
+    "name": "Forma",
+    "slug": "forma",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "nutrigeo",
+    "scheme": "forma",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "ge.nutrigeo.app",
+      "bundleIdentifier": "app.forma.tracker",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
+      "package": "app.forma.tracker",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

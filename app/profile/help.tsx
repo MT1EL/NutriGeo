@@ -11,7 +11,7 @@ import {
   MessageCircle,
   Phone,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   LayoutAnimation,
@@ -24,7 +24,10 @@ import {
   View,
 } from "react-native";
 
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -64,11 +67,11 @@ export default function HelpScreen() {
     {
       Icon: Mail,
       label: t("help.email"),
-      hint: "hello@nutrigeo.ge",
+      hint: "hello@forma.app",
       color: "#34A867",
       tint: "#E6F6EA",
       tintDark: "#1F3A28",
-      action: () => Linking.openURL("mailto:hello@nutrigeo.ge"),
+      action: () => Linking.openURL("mailto:hello@forma.app"),
     },
     {
       Icon: MessageCircle,
@@ -77,7 +80,7 @@ export default function HelpScreen() {
       color: "#5B6CE0",
       tint: "#EEF0FB",
       tintDark: "#222B4A",
-      action: () => Linking.openURL("https://nutrigeo.ge/chat"),
+      action: () => Linking.openURL("https://forma.app/chat"),
     },
     {
       Icon: Phone,
@@ -139,32 +142,39 @@ export default function HelpScreen() {
           {t("help.noAnswer")}
         </ThemedText>
         <View style={{ gap: Spacing.sm }}>
-          {CONTACTS.map(({ Icon, label, hint, color, tint, tintDark, action }) => (
-            <TouchableOpacity
-              key={label}
-              activeOpacity={0.7}
-              onPress={action}
-              style={[
-                styles.contactRow,
-                { backgroundColor: theme.card, borderColor: theme.borderLight },
-              ]}
-            >
-              <View
+          {CONTACTS.map(
+            ({ Icon, label, hint, color, tint, tintDark, action }) => (
+              <TouchableOpacity
+                key={label}
+                activeOpacity={0.7}
+                onPress={action}
                 style={[
-                  styles.contactIcon,
-                  { backgroundColor: colorScheme === "dark" ? tintDark : tint },
+                  styles.contactRow,
+                  {
+                    backgroundColor: theme.card,
+                    borderColor: theme.borderLight,
+                  },
                 ]}
               >
-                <Icon color={color} size={18} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <ThemedText style={styles.contactLabel}>{label}</ThemedText>
-                <ThemedText style={styles.contactHint} type="secondary">
-                  {hint}
-                </ThemedText>
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View
+                  style={[
+                    styles.contactIcon,
+                    {
+                      backgroundColor: colorScheme === "dark" ? tintDark : tint,
+                    },
+                  ]}
+                >
+                  <Icon color={color} size={18} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={styles.contactLabel}>{label}</ThemedText>
+                  <ThemedText style={styles.contactHint} type="secondary">
+                    {hint}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+            ),
+          )}
         </View>
       </View>
     </SubScreenLayout>

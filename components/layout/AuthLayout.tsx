@@ -61,7 +61,7 @@ const AuthLayout = ({
         >
           <View style={styles.headerContainer}>
             <Text style={[styles.logo, { color: Colors[colorScheme].brand }]}>
-              NUTRIGEO
+              FORMA
             </Text>
             <Image
               source={illustrationSource}

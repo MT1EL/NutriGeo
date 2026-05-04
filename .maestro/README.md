@@ -23,20 +23,20 @@ Verify: `maestro --version`.
 ```bash
 # All non-destructive smoke checks (default; doesn't mutate backend)
 maestro test \
-  --env TEST_EMAIL=test@nutrigeo.ge \
+  --env TEST_EMAIL=test@forma.app \
   --env TEST_PASSWORD=YourTestPassword \
   --include-tags smoke \
   .maestro/
 
 # Run a single flow
 maestro test \
-  --env TEST_EMAIL=test@nutrigeo.ge \
+  --env TEST_EMAIL=test@forma.app \
   --env TEST_PASSWORD=YourTestPassword \
   .maestro/smoke.yaml
 
 # Destructive flows (creates real food-log + weight-log rows on the test account)
 maestro test \
-  --env TEST_EMAIL=test@nutrigeo.ge \
+  --env TEST_EMAIL=test@forma.app \
   --env TEST_PASSWORD=YourTestPassword \
   --env TEST_FOOD_NAME="Apple" \
   --include-tags destructive \
@@ -49,14 +49,14 @@ A clean run takes ~90s.
 
 ## Files
 
-| File | What it covers | Tag |
-|---|---|---|
-| `smoke.yaml` | Login → Home → Add tab → switch lang ka→en→ka → logout. No backend mutations. | `smoke` |
-| `login.yaml` | Reusable sub-flow: clear state, launch, sign in. Called by other flows. | (sub) |
-| `language-switch.yaml` | Login + switch language and verify UI flips. | `smoke` |
-| `logout.yaml` | Login + log out. | `smoke` |
-| `log-meal.yaml` | Login + tap into Add tab + log first food. **Creates a real entry.** | `destructive` |
-| `log-weight.yaml` | Login + log a weight value. **Creates a real entry.** | `destructive` |
+| File                   | What it covers                                                                | Tag           |
+| ---------------------- | ----------------------------------------------------------------------------- | ------------- |
+| `smoke.yaml`           | Login → Home → Add tab → switch lang ka→en→ka → logout. No backend mutations. | `smoke`       |
+| `login.yaml`           | Reusable sub-flow: clear state, launch, sign in. Called by other flows.       | (sub)         |
+| `language-switch.yaml` | Login + switch language and verify UI flips.                                  | `smoke`       |
+| `logout.yaml`          | Login + log out.                                                              | `smoke`       |
+| `log-meal.yaml`        | Login + tap into Add tab + log first food. **Creates a real entry.**          | `destructive` |
+| `log-weight.yaml`      | Login + log a weight value. **Creates a real entry.**                         | `destructive` |
 
 ## Authoring conventions
 
@@ -69,7 +69,7 @@ A clean run takes ~90s.
 
 1. **First:** check whether the locale is English on the device. ~50% of "broken tests" are wrong-locale runs.
 2. If a UI label changed: update the matcher in the YAML.
-3. If the *flow* changed (e.g. login moved from /Login to /Welcome): update the steps and consider whether the change was intentional.
+3. If the _flow_ changed (e.g. login moved from /Login to /Welcome): update the steps and consider whether the change was intentional.
 4. If timing-related (element appears late): increase the `extendedWaitUntil` timeout.
 
 ## Adding new flows

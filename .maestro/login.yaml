@@ -1,6 +1,6 @@
 # Reusable sub-flow. Other flows invoke this with `runFlow: login.yaml`.
 # Resets the app, launches fresh, signs in with TEST_EMAIL / TEST_PASSWORD.
-appId: ge.nutrigeo.app
+appId: app.forma.tracker
 ---
 - clearState
 - launchApp

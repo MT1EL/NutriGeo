@@ -13,7 +13,7 @@
 # Alternative selector (no search): add `testID="food-card-${food.id}"` to
 # components/cards/FoodCard.tsx and select by id here. Avoids dependency
 # on database content.
-appId: ge.nutrigeo.app
+appId: app.forma.tracker
 tags:
   - destructive
 ---

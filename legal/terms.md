@@ -1,12 +1,12 @@
-# NutriGeo — Terms & Conditions
+# Forma — Terms & Conditions
 
 _Effective from May 1, 2026_
 
-By using NutriGeo you agree to these terms and conditions. Please read them carefully.
+By using Forma you agree to these terms and conditions. Please read them carefully.
 
 ## 1. Use of service
 
-NutriGeo provides a meal-logging and calorie-counting tool. The service is informational and does not replace medical, nutritional, or other professional consultation. You should consult a qualified professional before making significant changes to your diet or health regimen.
+Forma provides a meal-logging and calorie-counting tool. The service is informational and does not replace medical, nutritional, or other professional consultation. You should consult a qualified professional before making significant changes to your diet or health regimen.
 
 ## 2. Account
 
@@ -14,11 +14,11 @@ To create an account you must be at least 13 years old. You are responsible for 
 
 ## 3. Acceptable use
 
-You may not use the service for unlawful purposes, to harass other users, to attempt unauthorized access, or to damage NutriGeo's infrastructure. We may suspend or terminate accounts that violate these rules.
+You may not use the service for unlawful purposes, to harass other users, to attempt unauthorized access, or to damage Forma's infrastructure. We may suspend or terminate accounts that violate these rules.
 
 ## 4. Content
 
-Content you create (meal logs, custom foods, recipes) belongs to you. By submitting it to NutriGeo you grant us a non-exclusive license to store, process, and display it solely for the purpose of providing the service to you.
+Content you create (meal logs, custom foods, recipes) belongs to you. By submitting it to Forma you grant us a non-exclusive license to store, process, and display it solely for the purpose of providing the service to you.
 
 ## 5. Subscriptions and payments
 
@@ -30,7 +30,7 @@ We may change, suspend, or discontinue features of the service at any time. We w
 
 ## 7. Limitation of liability
 
-The service is provided "as is" and "as available". To the maximum extent permitted by law, NutriGeo is not responsible for health outcomes, decisions, or any direct, indirect, incidental, or consequential damages resulting from use of the service.
+The service is provided "as is" and "as available". To the maximum extent permitted by law, Forma is not responsible for health outcomes, decisions, or any direct, indirect, incidental, or consequential damages resulting from use of the service.
 
 ## 8. Governing law
 
@@ -38,4 +38,4 @@ This agreement is governed by Georgian law. Any disputes will be heard in the co
 
 ## Contact
 
-Questions about these terms: **legal@nutrigeo.ge**
+Questions about these terms: **legal@Forma.app**

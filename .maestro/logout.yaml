@@ -1,5 +1,5 @@
 # Smallest possible auth round-trip: sign in, sign out, see Sign in screen.
-appId: ge.nutrigeo.app
+appId: app.forma.tracker
 tags:
   - smoke
 ---

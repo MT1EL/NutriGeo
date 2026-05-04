@@ -6,8 +6,8 @@ type Tokens = {
   refreshToken: string | null;
 };
 
-const ACCESS_KEY = "nutrigeo.access_token";
-const REFRESH_KEY = "nutrigeo.refresh_token";
+const ACCESS_KEY = "forma.access_token";
+const REFRESH_KEY = "forma.refresh_token";
 
 let tokens: Tokens = { accessToken: null, refreshToken: null };
 let hydratePromise: Promise<Tokens> | null = null;

@@ -666,7 +666,7 @@
     "irreversibleConfirm": "This action cannot be undone. Are you sure?",
     "security": "Security",
     "appSection": "App",
-    "footerCredit": "NutriGeo · made with love 🇬🇪"
+    "footerCredit": "Forma · made with love 🇬🇪"
   },
 
   "language": {
@@ -718,7 +718,7 @@
   "about": {
     "title": "About",
     "subtitle": "About the app",
-    "rate": "Rate NutriGeo",
+    "rate": "Rate Forma",
     "rateInStore": "Rate in App Store",
     "rateRedirect": "You'll be taken to the App Store to leave a review.",
     "thanks": "Thanks for your support!",
@@ -731,7 +731,7 @@
     "contact": "Contact us",
     "madeWith": "Made with love",
     "tbilisi": "in Tbilisi 🇬🇪",
-    "rights": "© 2026 NutriGeo. All rights reserved."
+    "rights": "© 2026 Forma. All rights reserved."
   },
 
   "help": {
@@ -771,7 +771,7 @@
     "section4Title": "4. Security",
     "section4Body": "We use high-grade encryption both in transit and at rest. Your account is protected by a password.",
     "section5Title": "5. Your rights",
-    "section5Body": "You can request export, update, or deletion of your data at any time. Contact us at privacy@nutrigeo.ge.",
+    "section5Body": "You can request export, update, or deletion of your data at any time. Contact us at privacy@Forma.app.",
     "section6Title": "6. Changes",
     "section6Body": "If this policy changes, we'll notify you via the app or email. Last updated: {{date}}.",
     "intro": "We value your privacy. This document explains how we collect, use, and protect your data.",
@@ -782,20 +782,20 @@
     "title": "Terms & Conditions",
     "subtitle": "Service terms of use",
     "section1Title": "1. Use of service",
-    "section1Body": "NutriGeo provides a meal-logging and calorie-counting tool. The service is informational and does not replace medical consultation.",
+    "section1Body": "Forma provides a meal-logging and calorie-counting tool. The service is informational and does not replace medical consultation.",
     "section2Title": "2. Account",
     "section2Body": "To create an account you must be 13 or older. You're responsible for the security of your account and all activity on it.",
     "section3Title": "3. Acceptable use",
-    "section3Body": "It is forbidden to use the service for unlawful purposes, to harass other users, or to damage NutriGeo's infrastructure.",
+    "section3Body": "It is forbidden to use the service for unlawful purposes, to harass other users, or to damage Forma's infrastructure.",
     "section4Title": "4. Content",
     "section4Body": "Content you create (meal logs, foods) is yours. We have a license to process it for the purpose of providing the service.",
     "section5Title": "5. Changes & termination",
     "section5Body": "We may change or discontinue features of the service at any time. We'll notify you of significant changes.",
     "section6Title": "6. Limitation of liability",
-    "section6Body": "The service is provided 'as is'. NutriGeo is not responsible for health outcomes resulting from use of the service.",
+    "section6Body": "The service is provided 'as is'. Forma is not responsible for health outcomes resulting from use of the service.",
     "section7Title": "7. Governing law",
     "section7Body": "This agreement is governed by Georgian law. Disputes are heard in Tbilisi courts.",
-    "intro": "By using NutriGeo you agree to these terms and conditions. Please read carefully.",
+    "intro": "By using Forma you agree to these terms and conditions. Please read carefully.",
     "effectiveFrom": "Effective {{date}}"
   },
 
@@ -1075,12 +1075,12 @@
     "upgradeCta": "Upgrade",
     "comingSoonTitle": "Premium coming soon",
     "comingSoonBody": "Subscriptions launch with our next update. Thanks for sticking with us!",
-    "screenTitle": "NutriGeo Premium",
+    "screenTitle": "Forma Premium",
     "screenSubtitle": "Unlock everything",
-    "heroTitle": "Get the full NutriGeo experience",
+    "heroTitle": "Get the full Forma experience",
     "heroSubtitle": "Smarter tracking, deeper insights, and AI-powered tools — built for your goals.",
     "activeTitle": "You're a Premium member",
-    "activeSubtitle": "Thanks for supporting NutriGeo. Enjoy every feature.",
+    "activeSubtitle": "Thanks for supporting Forma. Enjoy every feature.",
     "renewsOn": "Renews on {{date}}",
     "expiresOn": "Access until {{date}}",
     "willNotRenew": "Auto-renew is off",

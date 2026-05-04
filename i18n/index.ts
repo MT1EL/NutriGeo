@@ -1,8 +1,8 @@
 import * as Localization from "expo-localization";
 import * as SecureStore from "expo-secure-store";
 import i18n from "i18next";
-import { Platform } from "react-native";
 import { initReactI18next } from "react-i18next";
+import { Platform } from "react-native";
 import en from "./locales/en.json";
 import ka from "./locales/ka.json";
 
@@ -11,10 +11,12 @@ export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const DEFAULT_LANGUAGE: SupportedLanguage = "ka";
 
-const STORAGE_KEY = "nutrigeo.language";
+const STORAGE_KEY = "forma.language";
 const canPersist = Platform.OS !== "web";
 
-function isSupported(code: string | null | undefined): code is SupportedLanguage {
+function isSupported(
+  code: string | null | undefined,
+): code is SupportedLanguage {
   return !!code && (SUPPORTED_LANGUAGES as readonly string[]).includes(code);
 }
 

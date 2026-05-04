@@ -1,5 +1,5 @@
 /**
- * Design tokens for NutriGeo.
+ * Design tokens for Forma.
  * Colors are organized by role (text, background, brand, semantic, macros, navigation).
  * Spacing / Type / Radius scales replace ad-hoc magic numbers across the app.
  */

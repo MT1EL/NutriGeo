@@ -14,7 +14,6 @@ import {
   Shield,
   Star,
 } from "lucide-react-native";
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { Linking, StyleSheet, useColorScheme, View } from "react-native";
 
@@ -28,16 +27,16 @@ export default function AboutScreen() {
   return (
     <SubScreenLayout
       title={t("about.subtitle")}
-      subtitle={`NutriGeo · v${appVersion}`}
+      subtitle={`Forma · v${appVersion}`}
     >
       <BaseCard style={styles.heroCard}>
         <View style={[styles.logo, { backgroundColor: theme.brandSoft }]}>
           <ThemedText style={styles.logoText} color={theme.brand}>
-            N
+            M
           </ThemedText>
         </View>
         <View style={{ alignItems: "center", gap: 4 }}>
-          <ThemedText style={styles.appName}>NutriGeo</ThemedText>
+          <ThemedText style={styles.appName}>Forma</ThemedText>
           <ThemedText type="secondary" style={styles.tagline}>
             {t("about.tagline")}
           </ThemedText>
@@ -82,13 +81,13 @@ export default function AboutScreen() {
           iconColor="#34A867"
           iconTint={colorScheme === "dark" ? "#1F3A28" : "#E6F6EA"}
           label={t("about.contact")}
-          hint="hello@nutrigeo.ge"
-          onPress={() => Linking.openURL("mailto:hello@nutrigeo.ge")}
+          hint="hello@forma.app"
+          onPress={() => Linking.openURL("mailto:hello@forma.app")}
         />
         <SettingsRow
           Icon={Code}
           label={t("about.openSource")}
-          hint="github.com/nutrigeo"
+          hint="github.com/forma"
           onPress={() => Linking.openURL("https://github.com/")}
         />
       </SettingsGroup>
@@ -97,8 +96,8 @@ export default function AboutScreen() {
         <SettingsRow
           Icon={ExternalLink}
           label={t("about.website")}
-          hint="nutrigeo.ge"
-          onPress={() => Linking.openURL("https://nutrigeo.ge/")}
+          hint="forma.app"
+          onPress={() => Linking.openURL("https://forma.app/")}
         />
       </SettingsGroup>
 

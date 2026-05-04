@@ -1,8 +1,8 @@
-# NutriGeo — Privacy Policy
+# Forma — Privacy Policy
 
 _Last updated: May 1, 2026_
 
-We value your privacy. This document explains how we collect, use, and protect your data when you use NutriGeo.
+We value your privacy. This document explains how we collect, use, and protect your data when you use Forma.
 
 ## 1. What data we collect
 
@@ -22,11 +22,11 @@ We use high-grade encryption both in transit (TLS) and at rest. Your account is 
 
 ## 5. Your rights
 
-You can request export, update, or deletion of your data at any time. You can also delete your account directly from within the app: **Profile → Settings → Delete account**. For other requests, contact us at **privacy@nutrigeo.ge**.
+You can request export, update, or deletion of your data at any time. You can also delete your account directly from within the app: **Profile → Settings → Delete account**. For other requests, contact us at **privacy@Forma.app**.
 
 ## 6. Children
 
-NutriGeo is not directed to children under 13. If you believe a child under 13 has provided us with personal data, please contact us and we will delete it.
+Forma is not directed to children under 13. If you believe a child under 13 has provided us with personal data, please contact us and we will delete it.
 
 ## 7. International transfers
 
@@ -38,4 +38,4 @@ If this policy changes, we'll notify you via the app or email. Continued use of 
 
 ## Contact
 
-Questions about this policy: **privacy@nutrigeo.ge**
+Questions about this policy: **privacy@Forma.app**

@@ -20,12 +20,12 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import i18n, { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
 import { identify, resetIdentity } from "@/lib/analytics";
+import { configurePurchases, logoutPurchases } from "@/lib/purchases";
 import {
   configureNotificationHandler,
   getPushToken,
   pushPlatform,
 } from "@/lib/push";
-import { configurePurchases, logoutPurchases } from "@/lib/purchases";
 import { Sentry } from "@/lib/sentry";
 import {
   QueryClient,
@@ -99,7 +99,7 @@ function PurchasesSync() {
 // (user, token) pair doesn't re-POST. Silently skips simulators, web,
 // and permission-denied — settings screen can later resurface a
 // "turn on notifications" prompt if needed.
-const LAST_PUSH_REGISTRATION_KEY = "nutrigeo.last_push_registration";
+const LAST_PUSH_REGISTRATION_KEY = "forma.last_push_registration";
 function PushRegistrationSync() {
   const { user } = useAuth();
   const inFlight = useRef(false);
@@ -262,63 +262,65 @@ function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <QueryClientProvider client={queryClient}>
-          <LanguageSync />
-          <ToastProvider>
-            <AuthProvider>
-              <ThemeSync />
-              <ProfileLanguageSync />
-              <AnalyticsIdentitySync />
-              <PurchasesSync />
-              <PushRegistrationSync />
-              <ActiveDateProvider>
-                <AuthGate>
-                  <Stack>
-                    <Stack.Screen
-                      name="(auth)"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="(tabs)"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="articles"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="recipes"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="profile"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="coach"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="meal-plan"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="meal/[meal]"
-                      options={{
-                        headerShown: false,
-                        presentation: "modal",
-                        sheetAllowedDetents: "fitToContents",
-                        contentStyle: { backgroundColor: "transparent" },
-                      }}
-                    />
-                  </Stack>
-                  <StatusBar style="auto" />
-                </AuthGate>
-              </ActiveDateProvider>
-            </AuthProvider>
-          </ToastProvider>
-        </QueryClientProvider>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <QueryClientProvider client={queryClient}>
+            <LanguageSync />
+            <ToastProvider>
+              <AuthProvider>
+                <ThemeSync />
+                <ProfileLanguageSync />
+                <AnalyticsIdentitySync />
+                <PurchasesSync />
+                <PushRegistrationSync />
+                <ActiveDateProvider>
+                  <AuthGate>
+                    <Stack>
+                      <Stack.Screen
+                        name="(auth)"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="(tabs)"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="articles"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="recipes"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="profile"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="coach"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="meal-plan"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="meal/[meal]"
+                        options={{
+                          headerShown: false,
+                          presentation: "modal",
+                          sheetAllowedDetents: "fitToContents",
+                          contentStyle: { backgroundColor: "transparent" },
+                        }}
+                      />
+                    </Stack>
+                    <StatusBar style="auto" />
+                  </AuthGate>
+                </ActiveDateProvider>
+              </AuthProvider>
+            </ToastProvider>
+          </QueryClientProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
