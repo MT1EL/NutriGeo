@@ -3,6 +3,7 @@ import Input from "@/components/ui/inputs/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { PACE_OPTIONS, type Pace } from "@/hooks/use-edit-goals";
+import { FormikErrors } from "formik";
 import { Target, TrendingDown } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import {
@@ -17,6 +18,8 @@ type Props = {
   onTargetWeightChange: (next: string) => void;
   pace: Pace;
   onPaceChange: (next: Pace) => void;
+  weeks?: number;
+  errorText?: FormikErrors<{ targetWeight: string }>["targetWeight"];
 };
 
 export default function WeightGoalCard({
@@ -24,6 +27,8 @@ export default function WeightGoalCard({
   onTargetWeightChange,
   pace,
   onPaceChange,
+  weeks,
+  errorText,
 }: Props) {
   const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
@@ -41,7 +46,7 @@ export default function WeightGoalCard({
               {t("goals2.weightGoal")}
             </ThemedText>
             <ThemedText type="secondary" style={styles.cardCaption}>
-              {t("goals2.currentTempWeeks")}
+              {t("goals2.currentTempWeeks", { weeks })}
             </ThemedText>
           </View>
         </View>
@@ -52,7 +57,9 @@ export default function WeightGoalCard({
         label={t("wizard.goalDetails.targetWeight")}
         value={targetWeight}
         onChangeText={onTargetWeightChange}
+        placeholder="65"
         keyboardType="decimal-pad"
+        errorText={errorText}
       />
 
       <View style={{ gap: Spacing.sm }}>

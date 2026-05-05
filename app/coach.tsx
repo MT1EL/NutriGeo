@@ -1,10 +1,6 @@
-import { getCoachWeekly, refreshCoach } from "@/api/coach";
-import type {
-  CoachCompare,
-  CoachTrajectory,
-  CoachWeekly,
-} from "@/api/coach";
 import { HttpError } from "@/api/client";
+import type { CoachCompare, CoachTrajectory, CoachWeekly } from "@/api/coach";
+import { getCoachWeekly, refreshCoach } from "@/api/coach";
 import { getRecipeById } from "@/api/recipes";
 import type { Recipe } from "@/api/types";
 import BaseCard from "@/components/cards/BaseCard";
@@ -166,25 +162,28 @@ export default function CoachScreen() {
         showsVerticalScrollIndicator={false}
         scrollEnabled={isPremium}
       >
-        <BaseCard
-          style={[
-            styles.hero,
-            { backgroundColor: theme.brand, margin: Spacing.lg },
-          ]}
-          flat
+        <PaywallBlur
+          intensity={isPremium ? 0 : 30}
+          style={{ borderRadius: 20 }}
         >
-          <View style={styles.heroIconWrap}>
-            <Sparkles color="#FFFFFF" size={28} />
-          </View>
-          <ThemedText style={styles.heroGreeting} color="#FFFFFFCC">
-            {t("coach.heroTitle", { name })}
-          </ThemedText>
-          <ThemedText style={styles.heroHeadline} color="#FFFFFF">
-            {coach?.headline ?? t("coach.kcalNoData")}
-          </ThemedText>
-        </BaseCard>
+          <BaseCard
+            style={[
+              styles.hero,
+              { backgroundColor: theme.brand, margin: Spacing.lg },
+            ]}
+            flat
+          >
+            <View style={styles.heroIconWrap}>
+              <Sparkles color="#FFFFFF" size={28} />
+            </View>
+            <ThemedText style={styles.heroGreeting} color="#FFFFFFCC">
+              {t("coach.heroTitle", { name })}
+            </ThemedText>
+            <ThemedText style={styles.heroHeadline} color="#FFFFFF">
+              {coach?.headline ?? t("coach.kcalNoData")}
+            </ThemedText>
+          </BaseCard>
 
-        <PaywallBlur intensity={isPremium ? 0 : 30}>
           <View style={[styles.body, { gap: Spacing.xl }]}>
             <View>
               <ThemedText style={styles.sectionTitle}>
@@ -278,16 +277,10 @@ export default function CoachScreen() {
                   <CalendarDays color="#FFFFFF" size={22} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <ThemedText
-                    style={styles.mealPlanTitle}
-                    color="#FFFFFF"
-                  >
+                  <ThemedText style={styles.mealPlanTitle} color="#FFFFFF">
                     {t("mealPlan.tabCardActiveTitle")}
                   </ThemedText>
-                  <ThemedText
-                    style={styles.mealPlanBody}
-                    color="#FFFFFFCC"
-                  >
+                  <ThemedText style={styles.mealPlanBody} color="#FFFFFFCC">
                     {t("mealPlan.tabCardActiveBody")}
                   </ThemedText>
                 </View>
@@ -296,40 +289,40 @@ export default function CoachScreen() {
             </TouchableOpacity>
 
             {coach?.actions && coach.actions.length > 0 ? (
-            <View>
-              <ThemedText style={styles.sectionTitle}>
-                {t("coach.actionsTitle")}
-              </ThemedText>
-              <BaseCard style={styles.listCard}>
-                {coach.actions.map((item, i) => (
-                  <View
-                    key={i}
-                    style={[
-                      styles.actionRow,
-                      i < coach.actions.length - 1 && {
-                        borderBottomColor: theme.borderLight,
-                        borderBottomWidth: StyleSheet.hairlineWidth,
-                      },
-                    ]}
-                  >
+              <View>
+                <ThemedText style={styles.sectionTitle}>
+                  {t("coach.actionsTitle")}
+                </ThemedText>
+                <BaseCard style={styles.listCard}>
+                  {coach.actions.map((item, i) => (
                     <View
+                      key={i}
                       style={[
-                        styles.actionNum,
-                        { backgroundColor: theme.brandSoft },
+                        styles.actionRow,
+                        i < coach.actions.length - 1 && {
+                          borderBottomColor: theme.borderLight,
+                          borderBottomWidth: StyleSheet.hairlineWidth,
+                        },
                       ]}
                     >
-                      <ThemedText
-                        style={styles.actionNumText}
-                        color={theme.brand}
+                      <View
+                        style={[
+                          styles.actionNum,
+                          { backgroundColor: theme.brandSoft },
+                        ]}
                       >
-                        {i + 1}
-                      </ThemedText>
+                        <ThemedText
+                          style={styles.actionNumText}
+                          color={theme.brand}
+                        >
+                          {i + 1}
+                        </ThemedText>
+                      </View>
+                      <ThemedText style={styles.actionText}>{item}</ThemedText>
                     </View>
-                    <ThemedText style={styles.actionText}>{item}</ThemedText>
-                  </View>
-                ))}
-              </BaseCard>
-            </View>
+                  ))}
+                </BaseCard>
+              </View>
             ) : null}
           </View>
         </PaywallBlur>
@@ -533,10 +526,7 @@ function TrajectorySection({
     <View>
       <View style={styles.sectionHeader}>
         <View
-          style={[
-            styles.sectionIcon,
-            { backgroundColor: theme.brandSoft },
-          ]}
+          style={[styles.sectionIcon, { backgroundColor: theme.brandSoft }]}
         >
           <Target color={theme.brand} size={16} />
         </View>
@@ -568,15 +558,9 @@ function TrajectorySection({
           </View>
           {weeks != null ? (
             <View
-              style={[
-                styles.weeksPill,
-                { backgroundColor: theme.brandSoft },
-              ]}
+              style={[styles.weeksPill, { backgroundColor: theme.brandSoft }]}
             >
-              <ThemedText
-                style={styles.weeksPillText}
-                color={theme.brandDeep}
-              >
+              <ThemedText style={styles.weeksPillText} color={theme.brandDeep}>
                 {t("coach.trajectoryWeeksLabel", { weeks })}
               </ThemedText>
             </View>
@@ -701,9 +685,7 @@ function RecipePick({
         <ThemedText style={styles.recipeTitle} numberOfLines={2}>
           {recipe.title}
         </ThemedText>
-        <View
-          style={[styles.recipeKcal, { backgroundColor: theme.brandSoft }]}
-        >
+        <View style={[styles.recipeKcal, { backgroundColor: theme.brandSoft }]}>
           <ThemedText style={styles.recipeKcalText} color={theme.brand}>
             {recipe.kcal} {t("macros.kcalShort")}
           </ThemedText>

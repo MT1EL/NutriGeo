@@ -262,7 +262,7 @@
     "calorieGoal": "Calorie goal",
     "computedFromYou": "Computed from your data",
     "weightGoal": "Weight goal",
-    "currentTempWeeks": "6 weeks at current pace",
+    "currentTempWeeks": "{{weeks}} weeks at current pace",
     "weeklyTempLabel": "Weekly pace",
     "saved": "Goals saved"
   },
@@ -583,6 +583,17 @@
       "save": "Save",
       "saved": "Personal info saved",
       "loadFailed": "Could not load profile"
+    }
+  },
+
+  "goals": {
+    "validation": {
+      "invalidWeight": "Enter a valid weight",
+      "gainWeightTooLow": "For a weight gain journey, your target weight must be higher than your current weight.",
+      "loseWeightTooHigh": "For a fat loss journey, your target weight must be lower than your current weight.",
+      "caloriesTooHighLose": "Calories are too high for fat loss",
+      "caloriesTooLowGain": "Calories are too low for muscle gain",
+      "caloriesNotMaintenance": "Calories should be close to maintenance level"
     }
   },
 

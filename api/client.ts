@@ -1,12 +1,12 @@
-import i18n from '@/i18n';
-import { API_CONFIG } from './config';
-import { clearTokens, getTokens, setTokens } from './tokenStore';
-import type { ApiError, ApiResponse } from './types';
+import i18n from "@/i18n";
+import { API_CONFIG } from "./config";
+import { clearTokens, getTokens, setTokens } from "./tokenStore";
+import type { ApiError, ApiResponse } from "./types";
 
 type Query = Record<string, string | number | boolean | null | undefined>;
 
 export type RequestOptions = {
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   query?: Query;
   body?: unknown;
   headers?: Record<string, string>;
@@ -21,31 +21,45 @@ export class HttpError extends Error {
   code?: string;
   details?: unknown;
 
-  constructor(status: number, payload: ApiError | { message?: string } | string) {
-    const message =
-      typeof payload === 'string'
-        ? payload
-        : 'error' in payload
-        ? payload.error.message
-        : payload.message ?? `HTTP ${status}`;
+  constructor(
+    status: number,
+    payload: ApiError | { message?: string } | string,
+  ) {
+    let message = `HTTP ${status}`;
+
+    if (typeof payload === "string") {
+      message = payload;
+    } else if (payload && typeof payload === "object") {
+      // ✅ YOUR backend format
+      if ("message" in payload && payload.message) {
+        message = payload.message;
+      }
+      // optional fallback if you ever change backend
+      else if ("error" in payload && typeof payload.error === "string") {
+        message = payload.error;
+      }
+    }
+
     super(message);
     this.status = status;
-    if (typeof payload === 'object' && payload !== null && 'error' in payload) {
-      this.code = payload.error.code;
-      this.details = payload.error.details;
+
+    if (payload && typeof payload === "object") {
+      if ("error" in payload && typeof payload.error === "string") {
+        this.code = payload.error;
+      }
     }
   }
 }
 
 function buildQueryString(query?: Query): string {
-  if (!query) return '';
+  if (!query) return "";
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
     if (value === null || value === undefined) continue;
     params.append(key, String(value));
   }
   const s = params.toString();
-  return s ? `?${s}` : '';
+  return s ? `?${s}` : "";
 }
 
 async function parseResponse<T>(res: Response): Promise<T> {
@@ -74,8 +88,8 @@ async function refreshSession(): Promise<boolean> {
   refreshPromise = (async () => {
     try {
       const res = await fetch(`${API_CONFIG.baseUrl}/v1/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
       if (!res.ok) {
@@ -102,9 +116,13 @@ async function refreshSession(): Promise<boolean> {
   return refreshPromise;
 }
 
-async function doFetch<T>(path: string, options: RequestOptions, retry = true): Promise<T> {
+async function doFetch<T>(
+  path: string,
+  options: RequestOptions,
+  retry = true,
+): Promise<T> {
   const {
-    method = 'GET',
+    method = "GET",
     query,
     body,
     headers = {},
@@ -114,24 +132,24 @@ async function doFetch<T>(path: string, options: RequestOptions, retry = true): 
     signal,
   } = options;
 
-  const lang = i18n.language?.split('-')[0] || 'ka';
+  const lang = i18n.language?.split("-")[0] || "ka";
   const finalHeaders: Record<string, string> = {
-    'X-Timezone': timezone ?? API_CONFIG.defaultTimezone,
-    'Accept-Language': lang,
+    "X-Timezone": timezone ?? API_CONFIG.defaultTimezone,
+    "Accept-Language": lang,
     ...headers,
   };
 
   if (body !== undefined && !(body instanceof FormData)) {
-    finalHeaders['Content-Type'] ??= 'application/json';
+    finalHeaders["Content-Type"] ??= "application/json";
   }
 
   if (idempotencyKey) {
-    finalHeaders['Idempotency-Key'] = idempotencyKey;
+    finalHeaders["Idempotency-Key"] = idempotencyKey;
   }
 
   if (auth) {
     const { accessToken } = getTokens();
-    if (accessToken) finalHeaders['Authorization'] = `Bearer ${accessToken}`;
+    if (accessToken) finalHeaders["Authorization"] = `Bearer ${accessToken}`;
   }
 
   const url = `${API_CONFIG.baseUrl}${path}${buildQueryString(query)}`;
@@ -159,23 +177,35 @@ async function doFetch<T>(path: string, options: RequestOptions, retry = true): 
 export const api = {
   request: doFetch,
 
-  get<T>(path: string, options?: Omit<RequestOptions, 'method' | 'body'>) {
-    return doFetch<T>(path, { ...options, method: 'GET' });
+  get<T>(path: string, options?: Omit<RequestOptions, "method" | "body">) {
+    return doFetch<T>(path, { ...options, method: "GET" });
   },
 
-  post<T>(path: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) {
-    return doFetch<T>(path, { ...options, method: 'POST', body });
+  post<T>(
+    path: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">,
+  ) {
+    return doFetch<T>(path, { ...options, method: "POST", body });
   },
 
-  put<T>(path: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) {
-    return doFetch<T>(path, { ...options, method: 'PUT', body });
+  put<T>(
+    path: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">,
+  ) {
+    return doFetch<T>(path, { ...options, method: "PUT", body });
   },
 
-  patch<T>(path: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) {
-    return doFetch<T>(path, { ...options, method: 'PATCH', body });
+  patch<T>(
+    path: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">,
+  ) {
+    return doFetch<T>(path, { ...options, method: "PATCH", body });
   },
 
-  delete<T>(path: string, options?: Omit<RequestOptions, 'method' | 'body'>) {
-    return doFetch<T>(path, { ...options, method: 'DELETE' });
+  delete<T>(path: string, options?: Omit<RequestOptions, "method" | "body">) {
+    return doFetch<T>(path, { ...options, method: "DELETE" });
   },
 };

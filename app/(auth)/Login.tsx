@@ -34,8 +34,13 @@ function LoginScreen() {
         toast.success(t("auth.login.welcomeBack"));
         // AuthGate handles redirect once status flips to authenticated
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : t("auth.login.failed");
+        let message = t("auth.login.failed");
+
+        if (err instanceof Error) {
+          message = err.message;
+        }
+
+        helpers.setFieldError("password", message);
         toast.error(message, t("common.error"));
       } finally {
         helpers.setSubmitting(false);

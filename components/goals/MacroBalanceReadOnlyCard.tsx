@@ -88,7 +88,8 @@ export default function MacroBalanceReadOnlyCard({
             <View style={{ flex: 1 }}>
               <ThemedText style={styles.label}>{label}</ThemedText>
               <ThemedText style={styles.sub} type="secondary">
-                {grams}{t("macros.g")} / {pct}%
+                {grams}
+                {t("macros.g")} / {pct}%
               </ThemedText>
             </View>
             <ThemedText style={styles.value} color={color}>

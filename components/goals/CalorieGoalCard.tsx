@@ -2,6 +2,7 @@ import BaseCard from "@/components/cards/BaseCard";
 import Input from "@/components/ui/inputs/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Radius, Spacing, Type } from "@/constants/theme";
+import { FormikErrors } from "formik";
 import { Flame } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
@@ -9,10 +10,12 @@ import { StyleSheet, View } from "react-native";
 type Props = {
   value: string;
   onChange: (next: string) => void;
+  errorText?: FormikErrors<{ calorieTarget: string }>["calorieTarget"];
 };
 
-export default function CalorieGoalCard({ value, onChange }: Props) {
+export default function CalorieGoalCard({ value, onChange, errorText }: Props) {
   const { t } = useTranslation();
+
   return (
     <BaseCard>
       <View style={styles.cardHeader}>
@@ -34,6 +37,9 @@ export default function CalorieGoalCard({ value, onChange }: Props) {
         Icon={Flame}
         label={t("home.kcalGoal")}
         value={value}
+        placeholder="1500"
+        errorText={errorText}
+        defaultValue={value}
         onChangeText={onChange}
         keyboardType="number-pad"
       />

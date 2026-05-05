@@ -68,6 +68,7 @@ export type UserGoals = {
   protein_pct: number;
   target_weight_kg: number | null;
   weekly_pace_kg: number;
+  tdee_kcal: number;
 };
 
 export type UserHealth = {
@@ -89,6 +90,7 @@ export type UserProfile = {
   timezone: string;
   units: Units;
   weight_kg: number;
+  tdee_kcal: number;
 };
 
 export type User = {

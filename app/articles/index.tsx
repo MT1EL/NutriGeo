@@ -1,7 +1,7 @@
-import ArticleCover from "@/components/cards/ArticleCover";
 import ArticleCategoryChips from "@/components/articles/ArticleCategoryChips";
 import ArticlesIndexHeader from "@/components/articles/ArticlesIndexHeader";
 import FeaturedArticleCard from "@/components/articles/FeaturedArticleCard";
+import ArticleCover from "@/components/cards/ArticleCover";
 import ScreenError from "@/components/ui/ScreenError";
 import {
   ArticleListSkeleton,
@@ -11,12 +11,7 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Spacing, Type } from "@/constants/theme";
 import { useArticlesList } from "@/hooks/use-articles-list";
 import { useTranslation } from "react-i18next";
-import {
-  ScrollView,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 
 export default function ArticlesIndex() {
   const { t } = useTranslation();
@@ -53,7 +48,9 @@ export default function ArticlesIndex() {
           <>
             <FeaturedArticleSkeleton />
             <View style={{ gap: Spacing.sm }}>
-              <ThemedText style={styles.sectionTitle}>{t("articles.all")}</ThemedText>
+              <ThemedText style={styles.sectionTitle}>
+                {t("articles.all")}
+              </ThemedText>
               <ArticleListSkeleton count={3} />
             </View>
           </>
@@ -63,7 +60,9 @@ export default function ArticlesIndex() {
 
         {rest.length > 0 && (
           <View style={{ gap: Spacing.sm }}>
-            <ThemedText style={styles.sectionTitle}>{t("articles.all")}</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              {t("articles.all")}
+            </ThemedText>
             <View style={{ gap: Spacing.md }}>
               {rest.map((a) => (
                 <ArticleCover key={a.id} article={a} variant="row" />
@@ -94,8 +93,8 @@ export default function ArticlesIndex() {
 const styles = StyleSheet.create({
   body: {
     paddingHorizontal: Spacing.xl,
+    paddingTop: 20,
     gap: Spacing.lg,
-    marginTop: -Spacing.lg,
   },
   sectionTitle: {
     fontSize: Type.lg,

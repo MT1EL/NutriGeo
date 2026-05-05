@@ -38,14 +38,7 @@ export default function ArticlesIndexHeader() {
           <ThemedText style={styles.headerTitle} color="#FFFFFF">
             {t("articles.title")}
           </ThemedText>
-          <View style={styles.iconBtn} />
         </View>
-        <ThemedText
-          style={styles.headerSubtitle}
-          color="rgba(255,255,255,0.85)"
-        >
-          {t("articles.subtitle")}
-        </ThemedText>
       </SafeAreaView>
     </GradientView>
   );
@@ -81,5 +74,6 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: Type.sm,
+    textAlign: "center",
   },
 });

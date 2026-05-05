@@ -3,7 +3,6 @@ import Header from "@/components/headers";
 import FeaturedRecipeHero from "@/components/recipes/FeaturedRecipeHero";
 import MealPlanCard from "@/components/recipes/MealPlanCard";
 import RecipeCategoryChips from "@/components/recipes/RecipeCategoryChips";
-import RecipesStatsBar from "@/components/recipes/RecipesStatsBar";
 import Skeleton from "@/components/ui/Skeleton";
 import {
   RecipeCardSkeleton,
@@ -37,21 +36,15 @@ export default function RecipesScreen() {
     setActive,
     searchInput,
     setSearchInput,
-    recipes,
     hero,
     rest,
-    quickCount,
     isLoading,
     refetch,
   } = useRecipesList();
   const ListHeader = (
     <View style={{ gap: Spacing.lg }}>
       <RecipeCategoryChips active={active} onChange={setActive} />
-      <RecipesStatsBar
-        total={recipes.length}
-        quickCount={quickCount}
-        isLoading={isLoading}
-      />
+
       {isLoading && !hero ? (
         <RecipeCardSkeleton />
       ) : (
@@ -60,7 +53,9 @@ export default function RecipesScreen() {
       <MealPlanCard />
       {rest.length > 0 ? (
         <View style={styles.sectionHeader}>
-          <ThemedText style={styles.sectionTitle}>{t("recipes.all")}</ThemedText>
+          <ThemedText style={styles.sectionTitle}>
+            {t("recipes.all")}
+          </ThemedText>
           <ThemedText type="secondary" style={styles.sectionCount}>
             {t("recipes.samples", { count: rest.length })}
           </ThemedText>
