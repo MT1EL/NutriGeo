@@ -266,6 +266,13 @@ export type PremiumStatus = {
   product_id?: string;
   expires_at?: string;
   will_renew?: boolean;
+  cancelled_at: null;
+  is_premium: boolean;
+  manage_url?: null;
+  plan: "annual" | "monthly";
+  provider: "revenuecat";
+  status: "active" | "inactive";
+  trial_end: null | string;
 };
 
 export type ExportJob = {

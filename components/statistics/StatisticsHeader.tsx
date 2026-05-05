@@ -17,6 +17,7 @@ type Props = {
   onRangeChange: (next: UiRange) => void;
   weightLabel: string;
   streakDays: number;
+  isPremium: boolean;
 };
 
 export default function StatisticsHeader({
@@ -24,6 +25,7 @@ export default function StatisticsHeader({
   onRangeChange,
   weightLabel,
   streakDays,
+  isPremium,
 }: Props) {
   const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
@@ -79,7 +81,7 @@ export default function StatisticsHeader({
                 >
                   {r.label}
                 </ThemedText>
-                {r.key !== "week" && (
+                {r.key !== "week" && !isPremium && (
                   <Crown
                     size={Type.sm}
                     color={isActive ? theme.brand : "#FFFFFF"}

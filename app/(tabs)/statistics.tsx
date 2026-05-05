@@ -15,6 +15,7 @@ import WeightCard from "@/components/statistics/WeightCard";
 import ScreenError from "@/components/ui/ScreenError";
 import { StatisticsSkeleton } from "@/components/ui/Skeletons";
 import { Colors, Spacing } from "@/constants/theme";
+import { usePremium } from "@/hooks/use-premium";
 import { useStats } from "@/hooks/use-stats";
 import { formatWeightChange } from "@/utils/format";
 import { useTranslation } from "react-i18next";
@@ -22,6 +23,7 @@ import { ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 export default function StatisticsPage() {
+  const { isPremium } = usePremium();
   const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -44,13 +46,14 @@ export default function StatisticsPage() {
         style={{ backgroundColor: theme.surface }}
         contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + 24 }}
         showsVerticalScrollIndicator={false}
-        scrollEnabled={stats.range === "week"}
+        scrollEnabled={stats.range === "week" || isPremium}
       >
         <StatisticsHeader
           range={stats.range}
           onRangeChange={stats.setRange}
           weightLabel={weightLabel}
           streakDays={stats.currentStreak}
+          isPremium={isPremium}
         />
 
         <PaywallBlur
@@ -61,7 +64,14 @@ export default function StatisticsPage() {
             overflow: "hidden",
           }}
         >
-          <View style={styles.body}>
+          <View
+            style={[
+              styles.body,
+              (isPremium || stats.range === "week") && {
+                marginTop: -Spacing.lg,
+              },
+            ]}
+          >
             {stats.isInitialLoading && <StatisticsSkeleton />}
             {stats.isError && (
               <ScreenError onRetry={stats.refetch} style={styles.errorWrap} />

@@ -17,12 +17,7 @@ import { formatTodayKa, todayISO } from "@/utils/date";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ScrollView,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { TAB_BAR_HEIGHT } from "./_layout";
 
 const STALE_ARTICLES = 5 * 60_000;
@@ -99,6 +94,7 @@ export default function HomeScreen() {
             <WeightLogPill weight={snapshot?.weight ?? null} />
             <MealsCard data={meals} />
             <HomeTipCard />
+
             <HomeArticles articles={articles} />
           </>
         )}

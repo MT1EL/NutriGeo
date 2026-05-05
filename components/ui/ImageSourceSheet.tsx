@@ -50,7 +50,7 @@ export default function ImageSourceSheet({
     const action = pendingActionRef.current;
     if (!action) return;
     pendingActionRef.current = null;
-    const id = setTimeout(action, 250);
+    const id = setTimeout(action, 0);
     return () => clearTimeout(id);
   }, [visible]);
 
@@ -102,7 +102,9 @@ export default function ImageSourceSheet({
               >
                 <Camera color={theme.brand} size={22} />
               </View>
-              <ThemedText style={styles.tileLabel}>{t("imagePicker.camera")}</ThemedText>
+              <ThemedText style={styles.tileLabel}>
+                {t("imagePicker.camera")}
+              </ThemedText>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -118,7 +120,9 @@ export default function ImageSourceSheet({
               >
                 <ImageIcon color={theme.brand} size={22} />
               </View>
-              <ThemedText style={styles.tileLabel}>{t("imagePicker.gallery")}</ThemedText>
+              <ThemedText style={styles.tileLabel}>
+                {t("imagePicker.gallery")}
+              </ThemedText>
             </TouchableOpacity>
           </View>
 
