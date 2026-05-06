@@ -13,12 +13,13 @@ export type OnboardingInput = {
   name: string;
   biological_sex: Sex;
   birth_date: string;
-  height_cm: number;
-  weight_kg: number;
+  // Numbers are interpreted using the `units` field below.
+  height: number;
+  weight: number;
   activity_level: ActivityLevel;
   goal_type: GoalType;
-  target_weight_kg?: number;
-  weekly_pace_kg?: number;
+  target_weight?: number;
+  weekly_pace?: number;
   diet: Diet;
   allergies: string[];
   restrictions: string[];

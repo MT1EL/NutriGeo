@@ -61,8 +61,8 @@ export default function PersonalScreen() {
             <Input
               Icon={Ruler}
               label={t("profile.personalScreen.heightCm")}
-              value={form.values.height_cm}
-              onChangeText={(text) => form.setFieldValue("height_cm", text)}
+              value={form.values.height}
+              onChangeText={(text) => form.setFieldValue("height", text)}
               keyboardType="number-pad"
             />
           </View>
@@ -70,8 +70,8 @@ export default function PersonalScreen() {
             <Input
               Icon={Weight}
               label={t("profile.personalScreen.weightKg")}
-              value={form.values.weight_kg}
-              onChangeText={(text) => form.setFieldValue("weight_kg", text)}
+              value={form.values.weight}
+              onChangeText={(text) => form.setFieldValue("weight", text)}
               keyboardType="decimal-pad"
             />
           </View>

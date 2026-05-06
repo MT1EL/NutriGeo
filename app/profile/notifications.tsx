@@ -13,7 +13,6 @@ import {
   Trophy,
   Users,
 } from "lucide-react-native";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
@@ -22,89 +21,68 @@ import {
   View,
 } from "react-native";
 
+import { useNotifications } from "@/hooks/use-notifications";
+
 export default function NotificationsScreen() {
   const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const [all, setAll] = useState(true);
-  const [meal, setMeal] = useState(true);
-  const [water, setWater] = useState(true);
-  const [streak, setStreak] = useState(true);
-  const [weekly, setWeekly] = useState(true);
-  const [motivational, setMotivational] = useState(false);
-  const [social, setSocial] = useState(false);
 
-  const setAllOff = () => {
-    setAll(false);
-    setMeal(false);
-    setWater(false);
-    setStreak(false);
-    setWeekly(false);
-    setMotivational(false);
-    setSocial(false);
-  };
-  const setAllOn = () => {
-    setAll(true);
-    setMeal(true);
-    setWater(true);
-    setStreak(true);
-    setWeekly(true);
-    setMotivational(true);
-    setSocial(true);
-  };
+  const { prefs, allOn, update, setAllOn, setAllOff } = useNotifications();
 
   return (
     <SubScreenLayout
       title={t("notifications.title")}
       subtitle={t("notifications.subtitle")}
     >
+      {/* BANNER */}
       <View
         style={[
           styles.banner,
           {
-            backgroundColor: all ? theme.brandSoft : theme.borderLight,
+            backgroundColor: allOn ? theme.brandSoft : theme.borderLight,
           },
         ]}
       >
         <View
           style={[
             styles.bannerIcon,
-            { backgroundColor: all ? theme.brand : theme.textSecondary },
+            {
+              backgroundColor: allOn ? theme.brand : theme.textSecondary,
+            },
           ]}
         >
-          {all ? (
-            <Bell color="#FFFFFF" size={20} />
+          {allOn ? (
+            <Bell color="#fff" size={20} />
           ) : (
-            <BellOff color="#FFFFFF" size={20} />
+            <BellOff color="#fff" size={20} />
           )}
         </View>
+
         <View style={{ flex: 1 }}>
-          <ThemedText style={styles.bannerTitle} numberOfLines={1}>
-            {all ? t("notifications.allOn") : t("notifications.allOff")}
+          <ThemedText style={styles.bannerTitle}>
+            {allOn ? t("notifications.allOn") : t("notifications.allOff")}
           </ThemedText>
-          <ThemedText
-            type="secondary"
-            style={styles.bannerSub}
-            numberOfLines={1}
-          >
-            {all ? t("notifications.morePersistent") : t("notifications.noReminders")}
+
+          <ThemedText type="secondary" style={styles.bannerSub}>
+            {allOn
+              ? t("notifications.morePersistent")
+              : t("notifications.noReminders")}
           </ThemedText>
         </View>
+
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={() => (all ? setAllOff() : setAllOn())}
+          onPress={allOn ? setAllOff : setAllOn}
           style={[styles.bannerBtn, { backgroundColor: theme.card }]}
         >
-          <ThemedText
-            style={styles.bannerBtnText}
-            color={theme.brand}
-            numberOfLines={1}
-          >
-            {all ? t("notifications.off") : t("notifications.on")}
+          <ThemedText style={styles.bannerBtnText} color={theme.brand}>
+            {allOn ? t("notifications.off") : t("notifications.on")}
           </ThemedText>
         </TouchableOpacity>
       </View>
 
+      {/* DAILY */}
       <SettingsGroup title={t("notifications.groupDaily")}>
         <SettingsRow
           Icon={Coffee}
@@ -113,9 +91,10 @@ export default function NotificationsScreen() {
           label={t("notifications.mealReminder")}
           hint={t("notifications.mealReminderHint")}
           rightAccessory="switch"
-          switchOn={meal && all}
-          onSwitchChange={setMeal}
+          switchOn={prefs.mealReminders}
+          onSwitchChange={(v) => update({ mealReminders: v })}
         />
+
         <SettingsRow
           Icon={Droplet}
           iconColor="#3FA9F5"
@@ -123,9 +102,10 @@ export default function NotificationsScreen() {
           label={t("notifications.waterReminder")}
           hint={t("notifications.waterReminderHint")}
           rightAccessory="switch"
-          switchOn={water && all}
-          onSwitchChange={setWater}
+          switchOn={prefs.waterReminders}
+          onSwitchChange={(v) => update({ waterReminders: v })}
         />
+
         <SettingsRow
           Icon={Flame}
           iconColor="#FF7A45"
@@ -133,11 +113,12 @@ export default function NotificationsScreen() {
           label={t("notifications.streakKeeper")}
           hint={t("notifications.streakKeeperHint")}
           rightAccessory="switch"
-          switchOn={streak && all}
-          onSwitchChange={setStreak}
+          switchOn={prefs.streakKeeper}
+          onSwitchChange={(v) => update({ streakKeeper: v })}
         />
       </SettingsGroup>
 
+      {/* SUMMARY */}
       <SettingsGroup title={t("notifications.groupSummary")}>
         <SettingsRow
           Icon={Calendar}
@@ -146,9 +127,10 @@ export default function NotificationsScreen() {
           label={t("notifications.weeklyReport")}
           hint={t("notifications.weeklyReportHint")}
           rightAccessory="switch"
-          switchOn={weekly && all}
-          onSwitchChange={setWeekly}
+          switchOn={prefs.weeklySummary}
+          onSwitchChange={(v) => update({ weeklySummary: v })}
         />
+
         <SettingsRow
           Icon={Trophy}
           iconColor="#FFB020"
@@ -156,11 +138,12 @@ export default function NotificationsScreen() {
           label={t("notifications.achievements")}
           hint={t("notifications.achievementsHint")}
           rightAccessory="switch"
-          switchOn={motivational && all}
-          onSwitchChange={setMotivational}
+          switchOn={prefs.motivational}
+          onSwitchChange={(v) => update({ motivational: v })}
         />
       </SettingsGroup>
 
+      {/* EXTRA */}
       <SettingsGroup title={t("notifications.groupExtra")}>
         <SettingsRow
           Icon={Sparkles}
@@ -169,9 +152,10 @@ export default function NotificationsScreen() {
           label={t("notifications.motivation")}
           hint={t("notifications.motivationHint")}
           rightAccessory="switch"
-          switchOn={motivational && all}
-          onSwitchChange={setMotivational}
+          switchOn={prefs.motivational}
+          onSwitchChange={(v) => update({ motivational: v })}
         />
+
         <SettingsRow
           Icon={Users}
           iconColor="#E85A8C"
@@ -179,8 +163,8 @@ export default function NotificationsScreen() {
           label={t("notifications.social")}
           hint={t("notifications.socialHint")}
           rightAccessory="switch"
-          switchOn={social && all}
-          onSwitchChange={setSocial}
+          switchOn={prefs.social}
+          onSwitchChange={(v) => update({ social: v })}
         />
       </SettingsGroup>
     </SubScreenLayout>

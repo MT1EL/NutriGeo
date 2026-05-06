@@ -8,9 +8,9 @@ export const goalProjection = (
   pace: Pace,
   goals?: UserGoals,
 ) => {
-  if (!goals || !user?.profile?.weight_kg) return null;
+  if (!goals || !user?.profile?.weight) return null;
 
-  const currentWeight = user.profile.weight_kg;
+  const currentWeight = user.profile.weight;
 
   const targetWeightNum = parseFloat(targetWeight);
   if (!Number.isFinite(targetWeightNum)) return null;

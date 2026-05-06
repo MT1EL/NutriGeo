@@ -66,8 +66,8 @@ export type UserGoals = {
   goal_type: GoalType;
   protein_g_goal: number;
   protein_pct: number;
-  target_weight_kg: number | null;
-  weekly_pace_kg: number;
+  target_weight: number | null;
+  weekly_pace: number;
   tdee_kcal: number;
 };
 
@@ -82,14 +82,14 @@ export type UserProfile = {
   avatar_url: string | null;
   birth_date: string;
   biological_sex: Sex;
-  height_cm: number;
+  height: number;
   language: Language;
   name: string | null;
   onboarded_at: string | null;
   theme: Theme;
   timezone: string;
   units: Units;
-  weight_kg: number;
+  weight: number;
   tdee_kcal: number;
 };
 
@@ -214,7 +214,12 @@ export type ArticleCategory = {
 
 export type WeightEntry = {
   id: string;
+  // Canonical value, always kg — backend keeps emitting this on weight log
+  // rows for clients that want it raw.
   weight_kg: number;
+  // Same value rendered in the user's stored units (kg or lb). Pair with
+  // the envelope-level `units` field on GET /weight to label.
+  weight?: number;
   // ISO YYYY-MM-DD in the user's timezone — use this for date comparisons
   // (logged_at is a UTC instant and can roll back a day for eastern TZs).
   log_date: string;

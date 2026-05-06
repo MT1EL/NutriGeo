@@ -14,8 +14,8 @@ type PersonalForm = {
   name: string;
   biological_sex: Sex;
   age: string;
-  height_cm: string;
-  weight_kg: string;
+  height: string;
+  weight: string;
 };
 
 export function usePersonalForm() {
@@ -53,16 +53,16 @@ export function usePersonalForm() {
         profile?.age?.toString() ??
         ageFromBirthDate(profile?.birth_date)?.toString() ??
         "",
-      height_cm: profile?.height_cm?.toString() ?? "",
-      weight_kg: profile?.weight_kg?.toString() ?? "",
+      height: profile?.height?.toString() ?? "",
+      weight: profile?.weight?.toString() ?? "",
     },
     onSubmit: (values) => {
       mutation.mutate({
         name: values.name.trim(),
         biological_sex: values.biological_sex,
         birth_date: birthDateFromAge(values.age),
-        height_cm: Number(values.height_cm),
-        weight_kg: Number(values.weight_kg),
+        height: Number(values.height),
+        weight: Number(values.weight),
       });
     },
   });

@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import i18n from "@/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 export const PROFILE_QUERY_KEY = ["Profile"] as const;
 
@@ -26,9 +27,11 @@ export function useSettings() {
     queryFn: getProfile,
   });
   const profile = profileQuery.data?.data?.profile;
-  const units = (profile?.units as Units) ?? "metric";
-  const themeMode = (profile?.theme as ThemeMode) ?? "system";
-  const language = (profile?.language as Language) ?? "ka";
+  const [units, setUnits] = useState<Units>(profile?.units || "metric");
+  const [themeMode, setThemeMode] = useState<ThemeMode>(
+    profile?.theme || "system",
+  );
+  const [language, setLanguage] = useState<Language>(profile?.language || "ka");
 
   const settingsMutation = useMutation({
     mutationFn: (input: Partial<SettingsInput>) => {
@@ -50,6 +53,13 @@ export function useSettings() {
           return { ...old, data: { ...old.data, ...input } };
         },
       );
+      if (input.theme) {
+        setThemeMode(input.theme);
+      } else if (input.language) {
+        setLanguage(input.language);
+      } else if (input.units) {
+        setUnits(input.units);
+      }
       return { previous };
     },
     onError: (err, _input, ctx) => {

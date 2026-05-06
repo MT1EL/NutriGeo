@@ -67,9 +67,13 @@ export default function WeightLogSheet({
 
   const handleSave = () => {
     if (!isValid) return;
-    mutation.mutate(parseFloat(parsed.toFixed(1)), {
-      onSuccess: () => onClose(),
-    });
+    // Sheet collects in kg (UI hardcodes the kg label); pin units so the
+    // server interprets the number correctly even if the user later
+    // switches to imperial.
+    mutation.mutate(
+      { weight: parseFloat(parsed.toFixed(1)), units: "metric" },
+      { onSuccess: () => onClose() },
+    );
   };
 
   return (

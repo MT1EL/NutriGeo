@@ -4,83 +4,36 @@ import type {
   ApiResponse,
   Diet,
   ExportJob,
+  GoalType,
   Language,
   Sex,
   Theme,
   Units,
+  User,
+  UserGoals,
+  UserProfile,
 } from "./types";
-export type GoalType = "lose" | "gain" | "maintain";
 
-export type WeeklyPaceOptions = {
-  min: number;
-  max: number;
-  presets: number[];
-};
-
-export type Goals = {
-  goal_type: GoalType;
-  target_weight_kg: number;
-  weekly_pace_kg: number;
-
-  daily_calorie_target: number;
-
-  bmr_kcal: number | null;
-  tdee_kcal: number | null;
-  activity_kcal: number | null;
-  calorie_adjustment_kcal: number | null;
-
-  protein_pct: number;
-  carbs_pct: number;
-  fat_pct: number;
-
-  protein_g_goal: number | null;
-  carbs_g_goal: number | null;
-  fat_g_goal: number | null;
-
-  weekly_pace_options: WeeklyPaceOptions;
-};
-
-export type Profile = {
-  name: string;
-  avatar_url: string | null;
-
-  biological_sex: "male" | "female";
-  birth_date: string; // ISO string
-  age: number;
-
-  height_cm: number;
-  weight_kg: number;
-
-  language: Language;
-  units: "metric" | "imperial";
-  theme: "light" | "dark" | "system";
-  timezone: string;
-
-  onboarded_at: string; // ISO string
-};
-
-export type User = {
-  id: string;
-  email: string;
-  email_verified: boolean;
-
-  profile: Profile;
-  goals: Goals;
-};
+// Re-export the canonical types so callers that imported them from
+// `@/api/profile` keep compiling. Source of truth is `@/api/types`.
+export type { GoalType, User, UserGoals as Goals, UserProfile as Profile };
 
 export type PersonalInput = {
   name: string;
   biological_sex: Sex;
   birth_date: string;
-  height_cm: number;
-  weight_kg: number;
+  // In the user's stored units. Optional `units` switches the system.
+  height: number;
+  weight: number;
+  units?: Units;
 };
 
 export type GoalsInput = {
   goal_type: GoalType;
-  target_weight_kg?: number;
-  weekly_pace_kg?: number;
   activity_level: ActivityLevel;
+  // In the user's stored units; backend reads `units` from the user record.
+  target_weight?: number;
+  weekly_pace?: number;
   daily_calorie_target?: number;
   protein_pct?: number;
   carbs_pct?: number;
@@ -105,19 +58,19 @@ export function getProfile() {
 }
 
 export function updatePersonal(input: PersonalInput) {
-  return api.put<ApiResponse<Profile>>("/v1/profile/personal", input);
+  return api.put<ApiResponse<UserProfile>>("/v1/profile/personal", input);
 }
 
 export function updateGoals(input: GoalsInput) {
-  return api.put<ApiResponse<Profile>>("/v1/profile/goals", input);
+  return api.put<ApiResponse<UserGoals>>("/v1/profile/goals", input);
 }
 
 export function updateHealth(input: HealthInput) {
-  return api.put<ApiResponse<Profile>>("/v1/profile/health", input);
+  return api.put<ApiResponse<UserProfile>>("/v1/profile/health", input);
 }
 
 export function updateSettings(input: SettingsInput) {
-  return api.put<ApiResponse<Profile>>("/v1/profile/settings", input);
+  return api.put<ApiResponse<UserProfile>>("/v1/profile/settings", input);
 }
 
 export function requestExport(format: "json" | "csv" = "json") {

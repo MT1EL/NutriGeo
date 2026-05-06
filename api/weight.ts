@@ -1,9 +1,12 @@
 import { makeIdempotencyKey } from "@/utils/idempotency";
 import { api } from "./client";
-import type { ApiResponse, Range, WeightEntry } from "./types";
+import type { ApiResponse, Range, Units, WeightEntry } from "./types";
 
 export type LogWeightInput = {
-  weight_kg: number;
+  // In the user's stored units. Pass `units` to disambiguate; otherwise
+  // backend uses the user's stored units.
+  weight: number;
+  units?: Units;
   source?: "manual" | "apple_health" | "google_fit";
   logged_at?: string;
 };

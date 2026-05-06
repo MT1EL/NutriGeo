@@ -32,7 +32,7 @@ export default function WeightLogPill({ weight }: Props) {
   const [open, setOpen] = useState(false);
 
   const hasLogged = weight != null;
-  const defaultLogWeight = weight?.weight_kg ?? user?.profile.weight_kg ?? 70;
+  const defaultLogWeight = weight?.weight_kg ?? user?.profile.weight ?? 70;
 
   const dateLabel = useMemo(() => {
     const [y, m, d] = date.split("-").map(Number);

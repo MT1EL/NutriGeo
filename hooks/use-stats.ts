@@ -61,7 +61,7 @@ export function useStats() {
   );
 
   const calGoal = goals?.daily_calorie_target ?? 2000;
-  const weightGoal = goals?.target_weight_kg ?? null;
+  const weightGoal = goals?.target_weight ?? null;
   const loggedDays = summary?.logged_days ?? 0;
   const onTargetDays = summary?.days_in_target ?? 0;
   const currentStreak = summary?.streak.current ?? 0;

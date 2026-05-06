@@ -115,15 +115,17 @@ function buildOnboardingPayload(data: WizardData, name: string): OnboardingInput
     name,
     biological_sex: data.biological_sex!,
     birth_date: data.birth_date,
-    height_cm: Number(data.height_cm),
-    weight_kg: Number(data.weight_kg),
+    // The wizard collects metric, so values map straight onto the
+    // unit-agnostic keys with `units: "metric"`.
+    height: Number(data.height_cm),
+    weight: Number(data.weight_kg),
     activity_level: data.activity_level!,
     goal_type: data.goal_type!,
     ...(isMaintain
       ? {}
       : {
-          target_weight_kg: Number(data.target_weight_kg),
-          weekly_pace_kg: Number(data.weekly_pace_kg),
+          target_weight: Number(data.target_weight_kg),
+          weekly_pace: Number(data.weekly_pace_kg),
         }),
     diet: data.diet,
     allergies: data.allergies,
@@ -157,8 +159,8 @@ function buildGoalsPayload(data: WizardData): GoalsInput {
     ...(isMaintain
       ? {}
       : {
-          target_weight_kg: Number(data.target_weight_kg),
-          weekly_pace_kg: Number(data.weekly_pace_kg),
+          target_weight: Number(data.target_weight_kg),
+          weekly_pace: Number(data.weekly_pace_kg),
         }),
   };
 }

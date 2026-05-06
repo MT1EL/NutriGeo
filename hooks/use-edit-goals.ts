@@ -45,15 +45,15 @@ export function useEditGoals() {
 
   const formik = useFormik<GoalFormValues>({
     initialValues: {
-      pace: paceFromWeeklyKg(goals?.weekly_pace_kg),
-      targetWeight: String(goals?.target_weight_kg ?? ""),
+      pace: paceFromWeeklyKg(goals?.weekly_pace),
+      targetWeight: String(goals?.target_weight ?? ""),
       calorieTarget: String(goals?.daily_calorie_target ?? ""),
     },
 
     validate: (values) => {
       const errors: Record<string, string> = {};
 
-      const currentWeight = user?.profile.weight_kg;
+      const currentWeight = user?.profile.weight;
 
       const calorieNum = Number(values.calorieTarget);
       const weightNum = Number(values.targetWeight);
@@ -104,9 +104,9 @@ export function useEditGoals() {
     onSubmit: () => {
       if (!goals || !targetWeight || !calorieTarget) return;
 
-      const weeklyPaceKg =
+      const weeklyPace =
         PACE_OPTIONS.find((o) => o.key === pace)?.weeklyKg ??
-        goals.weekly_pace_kg;
+        goals.weekly_pace;
 
       const targetWeightNum = parseFloat(targetWeight.replace(",", "."));
       const calorieNum = parseInt(calorieTarget, 10);
@@ -114,10 +114,10 @@ export function useEditGoals() {
       mutation.mutate({
         goal_type: goals.goal_type,
         activity_level: goals.activity_level,
-        target_weight_kg: Number.isFinite(targetWeightNum)
+        target_weight: Number.isFinite(targetWeightNum)
           ? targetWeightNum
           : undefined,
-        weekly_pace_kg: weeklyPaceKg,
+        weekly_pace: weeklyPace,
         daily_calorie_target: Number.isFinite(calorieNum)
           ? calorieNum
           : undefined,
@@ -156,10 +156,12 @@ export function useEditGoals() {
       case "pace":
         formik.setFieldValue("pace", value);
 
+        // The BMR formula is in metric. Onboarding writes metric today, so
+        // profile.weight/height match kg/cm — fine to pass through.
         const goalCal = calcCalorieGoal({
           sex: user?.profile.biological_sex,
-          weight_kg: user?.profile.weight_kg,
-          height_cm: user?.profile.height_cm,
+          weight_kg: user?.profile.weight,
+          height_cm: user?.profile.height,
           age: user?.profile.age,
           activity_level: user?.goals.activity_level,
           goal_type: user?.goals.goal_type,

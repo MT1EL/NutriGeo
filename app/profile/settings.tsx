@@ -65,29 +65,40 @@ export default function SettingsScreen() {
     );
 
   const confirmDeleteAccount = () =>
-    Alert.alert(t("settings.deleteAccount"), t("settings.deleteAccountConfirm"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: () =>
-          Alert.alert(t("common.confirm"), t("settings.irreversibleConfirm"), [
-            { text: t("common.no"), style: "cancel" },
-            {
-              text: t("settings.yesDelete"),
-              style: "destructive",
-              onPress: deleteAccount,
-            },
-          ]),
-      },
-    ]);
-
+    Alert.alert(
+      t("settings.deleteAccount"),
+      t("settings.deleteAccountConfirm"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: () =>
+            Alert.alert(
+              t("common.confirm"),
+              t("settings.irreversibleConfirm"),
+              [
+                { text: t("common.no"), style: "cancel" },
+                {
+                  text: t("settings.yesDelete"),
+                  style: "destructive",
+                  onPress: deleteAccount,
+                },
+              ],
+            ),
+        },
+      ],
+    );
   return (
     <SubScreenLayout
       title={t("settings.title")}
       subtitle={t("settings.subtitle")}
     >
-      <UnitsSegment value={units} onChange={setUnits} disabled={isSavingSettings} />
+      <UnitsSegment
+        value={units}
+        onChange={setUnits}
+        disabled={isSavingSettings}
+      />
       <ThemeSelector
         value={themeMode}
         onChange={setThemeMode}
