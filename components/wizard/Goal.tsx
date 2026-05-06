@@ -1,48 +1,55 @@
+import type { GoalType } from "@/api/types";
+import { useWizard } from "@/contexts/WizardContext";
 import { Dumbbell, Scale, TrendingDown } from "lucide-react-native";
-import React, { useState } from "react";
+import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import GoalCard from "./cards/GoalCard";
 import WizzardContentLayout from "./layout";
 
-type Props = {};
+const Goal = () => {
+  const { t } = useTranslation();
+  const { data, setField } = useWizard();
 
-const Goal = (props: Props) => {
-  const [activeIndex, setActiveIndex] = useState<null | number>(null);
-  const data = [
+  const OPTIONS = [
     {
-      title: "წონის კლება",
-      subtitle: "კალორიული დეფიციტი",
+      key: "lose" as GoalType,
+      title: t("wizard.goal.lose"),
+      subtitle: t("statistics.kcalDeficit"),
       Icon: TrendingDown,
       tintColor: "#FEF2F2",
       iconColor: "#EF4444",
     },
     {
-      title: "წონის შენარჩუნება",
-      subtitle: "კალორიების ბალანის",
+      key: "maintain" as GoalType,
+      title: t("wizard.goal.maintain"),
+      subtitle: t("statistics.macroBalance"),
       Icon: Scale,
       tintColor: "#EFF6FF",
       iconColor: "#3B82F6",
     },
     {
-      title: "წონის მატება",
-      subtitle: "კალორიული სურპლუსი",
+      key: "gain" as GoalType,
+      title: t("wizard.goal.gain"),
+      subtitle: t("statistics.kcalSurplus"),
       Icon: Dumbbell,
       tintColor: "#F0FDF4",
       iconColor: "#10B981",
     },
   ];
+
   return (
     <WizzardContentLayout
-      title="რა არის შენი მიზანი?"
-      subtitle="აირჩიე შენი ძირითადი მიზანი"
+      title={t("wizard.goal.title")}
+      subtitle={t("wizard.goal.subtitle")}
     >
       <View style={styles.container}>
-        {data.map((item, index) => (
+        {OPTIONS.map((item) => (
           <GoalCard
-            key={item.title}
+            key={item.key}
             goal={item}
-            isActive={index === activeIndex}
-            onPress={() => setActiveIndex(index)}
+            isActive={data.goal_type === item.key}
+            onPress={() => setField("goal_type", item.key)}
           />
         ))}
       </View>

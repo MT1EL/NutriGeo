@@ -1,17 +1,23 @@
 {
   "expo": {
-    "name": "NutriGeo",
+    "name": "Forma",
     "slug": "NutriGeo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "nutrigeo",
+    "scheme": "forma",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "app.forma.tracker",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserTrackingUsageDescription": "Forma uses this to understand how the app is used so we can improve features and personalize your experience. Your data is never sold."
+      }
     },
     "android": {
+      "package": "app.forma.tracker",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -38,11 +44,52 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow access to your photo library so you can upload meal photos.",
+          "cameraPermission": "Allow access to your camera so you can take meal photos."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow camera access to scan product barcodes.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "color": "#4A90E2",
+          "defaultChannel": "default"
+        }
+      ],
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9b6096fc-37a4-43ea-a4bd-2fce2113fbb8"
+      },
+      "posthogApiKey": "phc_wEwcTWfYyUHN4Hy37gz2LGgyNMyhTT7Q62SBEa2wKxpy",
+      "posthogHost": "https://eu.i.posthog.com"
+    },
+    "owner": "tornike13",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9b6096fc-37a4-43ea-a4bd-2fce2113fbb8"
     }
   }
 }

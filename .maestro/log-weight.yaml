@@ -1,0 +1,20 @@
+# DESTRUCTIVE: creates a real weight-log entry for today on the test account.
+# Only runs under --include-tags destructive, never in default smoke runs.
+appId: app.forma.tracker
+tags:
+  - destructive
+---
+- runFlow: login.yaml
+
+# Weight pill is on Home, just under the day header.
+- tapOn: "Log today's weight"
+- extendedWaitUntil:
+    visible: "Save"
+    timeout: 5000
+
+# Sheet opens with the user's last weight as default — just save it.
+- tapOn: "Save"
+
+- extendedWaitUntil:
+    visible: "Weight saved"
+    timeout: 8000

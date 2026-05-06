@@ -1,11 +1,19 @@
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
+import Input from "@/components/ui/inputs/Input";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme.web";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Image } from "expo-image";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
@@ -15,12 +23,7 @@ type Props = {
   subtitle: string;
   onPress: () => void;
   label: string;
-  inputs: {
-    Icon: React.ComponentType<{ color: string }>;
-    placeholder: string;
-    onActionTextPress?: () => void;
-    actionText?: string;
-  }[];
+  inputs: React.ComponentProps<typeof Input>[];
   footerLinkText?: string;
   footerLinkLabel?: string;
   footerLinkAction?: () => void;
@@ -47,47 +50,61 @@ const AuthLayout = ({
         { backgroundColor: Colors[colorScheme].surface },
       ]}
     >
-      <View style={styles.headerContainer}>
-        <Text style={[styles.logo, { color: Colors[colorScheme].brand }]}>
-          NUTRIGEO
-        </Text>
-        <Image
-          source={illustrationSource}
-          style={
-            illustrationSize === "small"
-              ? { width: 120, height: 180 }
-              : { width: 270, height: 270 }
-          }
-        />
-      </View>
-      <View style={styles.contentContainer}>
-        <View style={styles.form}>
-          <View>
-            <ThemedText style={styles.formTitle}>{title}</ThemedText>
-            <ThemedText style={styles.formSubtitle} type="secondary">
-              {subtitle}
-            </ThemedText>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerContainer}>
+            <Text
+              style={[styles.logo, { color: Colors[colorScheme].brand }]}
+            ></Text>
+            <Image
+              source={illustrationSource}
+              style={
+                illustrationSize === "small"
+                  ? { width: 150, height: 150, objectFit: "scale-down" }
+                  : { width: 270, height: 270 }
+              }
+            />
           </View>
-          <View style={styles.inputsContainer}>
-            {inputs.map((input, index) => (
-              <Input key={index} {...input} />
-            ))}
-          </View>
-        </View>
-        <View style={styles.footerContainer}>
-          <Button onPress={onPress}>{label}</Button>
-          {footerLinkText && (
-            <View style={styles.footerLinkContainer}>
-              <ThemedText type="secondary">{footerLinkText}</ThemedText>
-              <TouchableOpacity onPress={footerLinkAction}>
-                <ThemedText color={Colors[colorScheme].brand} type="primary">
-                  {footerLinkLabel}
+          <View style={styles.contentContainer}>
+            <View style={styles.form}>
+              <View>
+                <ThemedText style={styles.formTitle}>{title}</ThemedText>
+                <ThemedText style={styles.formSubtitle} type="secondary">
+                  {subtitle}
                 </ThemedText>
-              </TouchableOpacity>
+              </View>
+              <View style={styles.inputsContainer}>
+                {inputs.map((input, index) => (
+                  <Input key={index} {...input} />
+                ))}
+              </View>
             </View>
-          )}
-        </View>
-      </View>
+            <View style={styles.footerContainer}>
+              <Button onPress={onPress}>{label}</Button>
+              {footerLinkText && (
+                <View style={styles.footerLinkContainer}>
+                  <ThemedText type="secondary">{footerLinkText}</ThemedText>
+                  <TouchableOpacity onPress={footerLinkAction}>
+                    <ThemedText
+                      color={Colors[colorScheme].brand}
+                      type="primary"
+                    >
+                      {footerLinkLabel}
+                    </ThemedText>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -96,6 +113,9 @@ export default AuthLayout;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingTop: 60,
   },
   headerContainer: {
@@ -115,6 +135,7 @@ const styles = StyleSheet.create({
   form: {
     gap: 40,
     marginTop: 48,
+    paddingBottom: 20,
   },
   formTitle: {
     fontSize: 28,
@@ -124,7 +145,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   inputsContainer: {
-    gap: 20,
+    gap: 4,
   },
   footerContainer: {
     gap: 12,

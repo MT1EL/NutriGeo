@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/theme";
+import { Colors, Radius, Spacing } from "@/constants/theme";
 import React from "react";
 import {
   StyleProp,
@@ -11,16 +11,28 @@ import {
 type Props = {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  flat?: boolean;
 };
 
-const BaseCard = ({ children, style }: Props) => {
+const BaseCard = ({ children, style, flat }: Props) => {
   const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
 
   return (
     <View
       style={[
         styles.card,
-        { backgroundColor: Colors[colorScheme].background },
+        {
+          backgroundColor: theme.card,
+          borderColor: theme.borderLight,
+        },
+        !flat && {
+          shadowColor: theme.shadow,
+          shadowOpacity: 1,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 3,
+        },
         style,
       ]}
     >
@@ -32,8 +44,9 @@ const BaseCard = ({ children, style }: Props) => {
 export default BaseCard;
 const styles = StyleSheet.create({
   card: {
-    padding: 20,
-    gap: 20,
-    borderRadius: 20,
+    padding: Spacing.xl,
+    gap: Spacing.lg,
+    borderRadius: Radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
   },
 });

@@ -1,12 +1,20 @@
-import { Colors } from "@/constants/theme";
+import { saveRecipe, unsaveRecipe } from "@/api/recipes";
+import { Colors, Radius, Spacing, Type } from "@/constants/theme";
+import { useToast } from "@/contexts/ToastContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import {
   ChartNoAxesColumnIncreasingIcon,
   Clock,
+  Heart,
+  LucideIcon,
   Users,
 } from "lucide-react-native";
-import React from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
+  ImageSourcePropType,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
@@ -15,52 +23,147 @@ import {
 import ThemedText from "../ui/ThemedText";
 import BaseCard from "./BaseCard";
 
-type Props = {};
+type Tag = {
+  label: string;
+  color: string;
+  Icon?: LucideIcon;
+};
 
-const RecipeCard = (props: Props) => {
+type Props = {
+  id?: string;
+  title?: string;
+  description?: string;
+  calories?: number;
+  durationMin?: number;
+  servings?: number;
+  difficulty?: string;
+  image?: ImageSourcePropType;
+  tag?: Tag;
+  hero?: boolean;
+  initiallySaved?: boolean;
+};
+
+const RecipeCard = ({
+  id,
+  title = "",
+  description = "",
+  calories = 0,
+  durationMin = 0,
+  servings = 1,
+  difficulty = "",
+  image,
+  tag,
+  hero = false,
+  initiallySaved = false,
+}: Props) => {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const [saved, setSaved] = useState(initiallySaved);
+
+  // Keep local state in sync if the prop changes (e.g., parent re-fetched).
+  useEffect(() => {
+    setSaved(initiallySaved);
+  }, [initiallySaved]);
+
+  const saveMutation = useMutation({
+    mutationFn: ({ next }: { next: boolean }) =>
+      next ? saveRecipe(id!) : unsaveRecipe(id!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recipes", "saved"] });
+      queryClient.invalidateQueries({ queryKey: ["recipes", "list"] });
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: ["recipes", "detail", id] });
+      }
+    },
+    onError: (err, { next }) => {
+      setSaved(!next);
+      const message =
+        err instanceof Error ? err.message : t("food.saveFailed");
+      toast.error(message, t("common.error"));
+    },
+  });
+
+  const handleToggleSave = () => {
+    if (!id) return;
+    const next = !saved;
+    setSaved(next);
+    saveMutation.mutate({ next });
+  };
+
   const stats = [
-    {
-      Icon: Clock,
-      label: "45 წთ.",
-    },
-    {
-      Icon: Users,
-      label: "1 პორცია",
-    },
-    {
-      Icon: ChartNoAxesColumnIncreasingIcon,
-      label: "საშუალო",
-    },
+    { Icon: Clock, label: t("recipes.duration", { count: durationMin }) },
+    { Icon: Users, label: t("recipes.servings", { count: servings }) },
+    { Icon: ChartNoAxesColumnIncreasingIcon, label: difficulty },
   ];
+
   return (
-    <TouchableOpacity onPress={() => console.log("Recipe has been pressed")}>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={() => id && router.push(`/recipes/${id}`)}
+    >
       <BaseCard style={styles.card}>
-        <Image
-          source={require("@/assets/images/cheesecake.png")}
-          style={styles.cover}
-        />
+        <View style={styles.coverWrap}>
+          <Image
+            source={image ?? require("@/assets/images/cheesecake.png")}
+            style={[styles.cover, hero && styles.coverHero]}
+            contentFit="cover"
+          />
+          {tag && (
+            <View style={[styles.tag, { backgroundColor: tag.color + "EE" }]}>
+              {tag.Icon && <tag.Icon color="#FFFFFF" size={11} />}
+              <ThemedText style={styles.tagText} color="#FFFFFF">
+                {tag.label}
+              </ThemedText>
+            </View>
+          )}
+          <TouchableOpacity
+            style={styles.saveBtn}
+            activeOpacity={0.7}
+            onPress={handleToggleSave}
+            disabled={!id || saveMutation.isPending}
+            hitSlop={6}
+          >
+            <Heart
+              color={saved ? "#FF4D6D" : "#FFFFFF"}
+              size={18}
+              fill={saved ? "#FF4D6D" : "transparent"}
+            />
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.content}>
           <View style={styles.headerContainer}>
             <View style={styles.titleRow}>
-              <ThemedText style={styles.title}>ჩიზქეიქი</ThemedText>
               <ThemedText
-                style={styles.title}
-                color={Colors[colorScheme].brand}
+                style={[styles.title, hero && styles.titleHero]}
+                numberOfLines={1}
               >
-                321 კალ
+                {title}
               </ThemedText>
+              <View
+                style={[styles.calBadge, { backgroundColor: theme.brandSoft }]}
+              >
+                <ThemedText style={styles.calBadgeText} color={theme.brand}>
+                  {calories} {t("macros.kcalShort")}
+                </ThemedText>
+              </View>
             </View>
-            <ThemedText type="secondary" style={styles.smallDescription}>
-              იტალიური დესერტი მდიდრულ იგემოებით
+            <ThemedText
+              type="secondary"
+              style={styles.smallDescription}
+              numberOfLines={2}
+            >
+              {description}
             </ThemedText>
           </View>
 
           <View style={styles.statsRow}>
             {stats.map(({ Icon, label }) => (
               <View key={label} style={styles.stat}>
-                <Icon size={16} color={Colors[colorScheme].textSecondary} />
+                <Icon size={14} color={theme.textSecondary} />
                 <ThemedText type="secondary" style={styles.statLabel}>
                   {label}
                 </ThemedText>
@@ -76,44 +179,95 @@ const RecipeCard = (props: Props) => {
 export default RecipeCard;
 const styles = StyleSheet.create({
   card: {
-    gap: 12,
-    padding: 10,
+    gap: Spacing.md,
+    padding: Spacing.md,
+  },
+  coverWrap: {
+    position: "relative",
   },
   cover: {
     width: "100%",
-    aspectRatio: 2.5,
+    aspectRatio: 2.4,
+    borderRadius: Radius.md,
+  },
+  coverHero: {
+    aspectRatio: 1.7,
+  },
+  tag: {
+    position: "absolute",
+    top: Spacing.sm,
+    left: Spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+  },
+  tagText: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+  },
+  saveBtn: {
+    position: "absolute",
+    top: Spacing.sm,
+    right: Spacing.sm,
+    width: 32,
+    height: 32,
+    borderRadius: Radius.pill,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   content: {
-    gap: 20,
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.xs,
   },
   headerContainer: {
-    gap: 4,
+    gap: Spacing.xs + 2,
   },
   titleRow: {
     flexDirection: "row",
     width: "100%",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: Spacing.sm,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "semibold",
+    fontSize: Type.xl,
+    fontWeight: "700",
+    flex: 1,
+  },
+  titleHero: {
+    fontSize: Type.xxl,
+  },
+  calBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.pill,
+  },
+  calBadgeText: {
+    fontSize: Type.sm,
+    fontWeight: "700",
   },
   smallDescription: {
-    fontSize: 10,
+    fontSize: Type.sm,
+    lineHeight: 18,
   },
   statsRow: {
     flexDirection: "row",
-    gap: 16,
+    gap: Spacing.lg,
     alignItems: "center",
   },
   stat: {
     flexDirection: "row",
-    gap: 4,
+    gap: Spacing.xs + 2,
     alignItems: "center",
   },
   statLabel: {
-    fontSize: 12,
-    fontWeight: "semibold",
+    fontSize: Type.xs,
+    fontWeight: "600",
   },
 });

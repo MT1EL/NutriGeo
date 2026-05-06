@@ -1,18 +1,19 @@
-import { Colors } from "@/constants/theme";
+import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { ChevronLeft, Search } from "lucide-react-native";
 import {
   FlatList,
   StyleSheet,
-  Text,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ThemedText } from "../themed-text";
-import Input from "../ui/Input";
+import { GradientView } from "../ui/GradientView";
+import Input from "../ui/inputs/Input";
+import ThemedText from "../ui/ThemedText";
 
 type button = {
+  key: string;
   label: string;
   Icon: React.ComponentType<{ color: string; size: number }>;
 };
@@ -21,72 +22,101 @@ type Props = {
   title: string;
   hasGoBack?: boolean;
   hasInput?: boolean;
+  inputPlaceholder?: string;
   buttons?: button[];
   activeButton?: string;
   onButtonPress?: (button: button) => void;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 };
 
 const Header = ({
   title,
   hasGoBack = false,
   hasInput = true,
+  inputPlaceholder,
   buttons,
   activeButton,
   onButtonPress,
+  searchValue,
+  onSearchChange,
 }: Props) => {
   const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={[styles.header, { backgroundColor: Colors[colorScheme].brand }]}
+    <GradientView
+      colors={[theme.brandDeep, theme.brand]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      borderRadius={Radius.xl}
     >
-      <View style={styles.headerRow}>
-        {hasGoBack && <ChevronLeft color={Colors[colorScheme].text} />}
-        <Text style={styles.title}>{title}</Text>
-        {hasGoBack && <ChevronLeft color={"transparent"} />}
-      </View>
-      <View style={{ gap: 8 }}>
-        {hasInput && <Input Icon={Search} placeholder="მოძებნე რეცეპტი..." />}
-        {buttons && (
-          <FlatList
-            data={buttons}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 6 }}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  {
-                    backgroundColor:
-                      activeButton === item.label
-                        ? Colors[colorScheme].success
-                        : Colors[colorScheme].background,
-                  },
-                ]}
-                onPress={() => onButtonPress?.(item)}
-              >
-                <item.Icon color={Colors[colorScheme].text} size={14} />
-                <ThemedText style={styles.label}>{item.label}</ThemedText>
-              </TouchableOpacity>
-            )}
-          />
-        )}
-      </View>
-    </SafeAreaView>
+      <SafeAreaView edges={["top"]} style={styles.header}>
+        <View style={styles.headerRow}>
+          {hasGoBack && <ChevronLeft color={"#FFF"} />}
+          <ThemedText style={styles.title}>{title}</ThemedText>
+          {hasGoBack && <ChevronLeft color={"transparent"} />}
+        </View>
+        <View>
+          {hasInput && (
+            <Input
+              Icon={Search}
+              placeholder={inputPlaceholder}
+              compact
+              value={searchValue}
+              onChangeText={onSearchChange}
+            />
+          )}
+          {buttons && (
+            <FlatList
+              data={buttons}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: Spacing.sm }}
+              keyExtractor={(item) => item.key}
+              renderItem={({ item }) => {
+                const isActive = activeButton === item.key;
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.button,
+                      {
+                        backgroundColor: isActive
+                          ? "#FFFFFF"
+                          : "rgba(255,255,255,0.18)",
+                      },
+                    ]}
+                    onPress={() => onButtonPress?.(item)}
+                    activeOpacity={0.85}
+                  >
+                    <item.Icon
+                      color={isActive ? theme.brand : "#FFFFFF"}
+                      size={14}
+                    />
+                    <ThemedText
+                      style={styles.label}
+                      color={isActive ? theme.brand : "#FFFFFF"}
+                    >
+                      {item.label}
+                    </ThemedText>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          )}
+        </View>
+      </SafeAreaView>
+    </GradientView>
   );
 };
 
 export default Header;
 const styles = StyleSheet.create({
-  screen: {
-    gap: 16,
-  },
   header: {
-    padding: 20,
-    gap: 20,
-    borderRadius: 20,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.lg,
+    gap: Spacing.md,
   },
   headerRow: {
     flexDirection: "row",
@@ -94,23 +124,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    fontSize: 17,
-    fontWeight: "semibold",
+    fontSize: Type.xl,
+    fontWeight: "700",
     color: "#FFF",
-    textTransform: "uppercase",
     textAlign: "center",
     flex: 1,
+    letterSpacing: 0.2,
   },
   button: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 4,
-    borderRadius: 20,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.xs + 2,
+    borderRadius: Radius.pill,
   },
   label: {
-    fontSize: 12,
-    fontWeight: "semibold",
+    fontSize: Type.xs,
+    fontWeight: "700",
   },
 });

@@ -1,15 +1,21 @@
 import { Colors } from "@/constants/theme";
 import React from "react";
-import { Text, TextStyle, useColorScheme } from "react-native";
+import { Text, TextProps, TextStyle, useColorScheme } from "react-native";
 
-type Props = {
-  style?: TextStyle;
+type Props = TextProps & {
+  style?: TextStyle | TextStyle[];
   children: React.ReactNode;
   type?: "primary" | "secondary" | "text";
   color?: string;
 };
 
-const ThemedText = ({ children, type = "text", color, style }: Props) => {
+const ThemedText = ({
+  children,
+  type = "text",
+  color,
+  style,
+  ...rest
+}: Props) => {
   const colorScheme = useColorScheme() || "light";
 
   let textColor = Colors[colorScheme].text;
@@ -19,7 +25,11 @@ const ThemedText = ({ children, type = "text", color, style }: Props) => {
     textColor = Colors[colorScheme].textSecondary;
   }
 
-  return <Text style={[style, { color: color || textColor }]}>{children}</Text>;
+  return (
+    <Text {...rest} style={[{ color: color || textColor }, style]}>
+      {children}
+    </Text>
+  );
 };
 
 export default ThemedText;

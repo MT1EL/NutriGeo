@@ -3,9 +3,12 @@ import ThemedText from "@/components/ui/ThemedText";
 import { Colors } from "@/constants/theme";
 import { ImageBackground } from "expo-image";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 function SuccessScreen() {
+  const { t } = useTranslation();
   return (
     <ImageBackground
       source={require("@/assets/illustrations/welcome.png")}
@@ -18,18 +21,18 @@ function SuccessScreen() {
         <View />
         <View style={styles.content}>
           <ThemedText style={styles.title} color={Colors.light.background}>
-            გილოცავთ!
+            {t("successScreen.congrats")}
           </ThemedText>
           <ThemedText style={styles.subTitle} color={Colors.light.background}>
-            {`თქვენი პროფილი წარმატებით შეიქმნა!\n ახლა მზად ხარ დაიწყო შენი ჯანსაღი მოგზაურობა`}
+            {t("successScreen.ready")}
           </ThemedText>
         </View>
         <Button
           backgroundColor={Colors.light.background}
           color={Colors.light.text}
-          onPress={() => router.replace("/Login")}
+          onPress={() => router.replace("/(tabs)")}
         >
-          დაწყება
+          {t("successScreen.start")}
         </Button>
       </SafeAreaView>
     </ImageBackground>

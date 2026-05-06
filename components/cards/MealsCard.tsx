@@ -1,7 +1,13 @@
-import { Colors } from "@/constants/theme";
+import type { DayMeals } from "@/api/meals";
+import {
+  MEAL_CONFIGS,
+  MEAL_KEYS,
+  MEAL_KEY_TO_API,
+} from "@/constants/meals";
+import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { router } from "expo-router";
-import { CirclePlus, EggFried, HandPlatter, Salad } from "lucide-react-native";
-import React from "react";
+import { ChevronRight, CirclePlus } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   TouchableOpacity,
@@ -11,70 +17,90 @@ import {
 import ThemedText from "../ui/ThemedText";
 import BaseCard from "./BaseCard";
 
-type Props = {};
-
-const MealsCard = (props: Props) => {
+const MealsCard = ({ data }: { data?: DayMeals }) => {
+  const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
-  const data = [
-    {
-      title: "საუზმე",
-      icon: EggFried,
-      time: "9:00",
-      calories: 500,
-      meals: "კურასანი, ყავა",
-    },
-    {
-      title: "სადილი",
-      icon: Salad,
-      time: "13:00",
-      calories: 500,
-      meals: "კურასანი, ყავა",
-    },
-    {
-      title: "ვახშამი",
-      icon: HandPlatter,
-      time: "17:00",
-      calories: 500,
-      meals: "კურასანი, ყავა",
-    },
-  ];
+  const theme = Colors[colorScheme];
+
   return (
     <BaseCard>
       <View style={[styles.row, styles.spaced]}>
-        <ThemedText style={styles.title}>დღის საკვები</ThemedText>
-        <TouchableOpacity onPress={() => router.navigate("/add")}>
-          <CirclePlus color={Colors[colorScheme].success} />
+        <ThemedText style={styles.title}>{t("home.todaysFood")}</ThemedText>
+        <TouchableOpacity
+          onPress={() => router.navigate("/add")}
+          hitSlop={8}
+          style={[styles.addBtn, { backgroundColor: theme.brandSoft }]}
+        >
+          <CirclePlus size={18} color={theme.brand} />
         </TouchableOpacity>
       </View>
 
-      {data.map((item) => (
-        <View style={[styles.row, { gap: 12 }]} key={item.title}>
-          <View
-            style={[
-              styles.iconWrapper,
-              { backgroundColor: Colors[colorScheme].borderLight },
-            ]}
+      {MEAL_KEYS.map((key) => {
+        const cfg = MEAL_CONFIGS[key];
+        const meal = data?.meals?.find(
+          (m) => m.meal_key === MEAL_KEY_TO_API[key],
+        );
+        const entries = meal?.entries ?? [];
+        const calories = Math.round(meal?.kcal ?? 0);
+        const summary =
+          entries.length === 0
+            ? t("home.noEntriesYet")
+            : entries
+                .map((e) => e.food?.name)
+                .filter(Boolean)
+                .join(", ");
+
+        return (
+          <TouchableOpacity
+            key={key}
+            activeOpacity={0.7}
+            onPress={() =>
+              router.push({ pathname: "/meal/[meal]", params: { meal: key } })
+            }
+            style={[styles.row, { gap: Spacing.md }]}
           >
-            <Salad color={Colors[colorScheme].text} />
-          </View>
-          <View style={[styles.row, { flex: 1 }]}>
-            <View style={{ gap: 8, flex: 1 }}>
+            <View
+              style={[
+                styles.iconWrapper,
+                {
+                  backgroundColor:
+                    colorScheme === "dark" ? cfg.iconTintDark : cfg.iconTint,
+                },
+              ]}
+            >
+              <cfg.Icon color={cfg.iconColor} size={22} />
+            </View>
+            <View style={{ flex: 1, gap: Spacing.xs }}>
               <View style={[styles.row, styles.spaced]}>
-                <View style={[styles.row, { gap: 4 }]}>
-                  <ThemedText style={styles.mealTypeTitle}>სადილი</ThemedText>
+                <View style={[styles.row, { gap: Spacing.sm }]}>
+                  <ThemedText style={styles.mealTypeTitle}>{t(`meal.${MEAL_KEY_TO_API[key]}`)}</ThemedText>
                   <ThemedText style={styles.timelabel} type="secondary">
-                    9:00
+                    {cfg.time}
                   </ThemedText>
                 </View>
-                <ThemedText style={styles.caloriesLabel}>500კალ</ThemedText>
+                <View style={[styles.row, { gap: 2 }]}>
+                  <ThemedText
+                    style={styles.caloriesLabel}
+                    color={
+                      entries.length === 0 ? theme.textSecondary : theme.text
+                    }
+                  >
+                    {calories} {t("macros.kcalShort")}
+                  </ThemedText>
+                  <ChevronRight color={theme.textSecondary} size={16} />
+                </View>
               </View>
-              <ThemedText style={styles.timelabel} type="secondary">
-                კრუასანი, ყავა
+              <ThemedText
+                style={styles.mealsLabel}
+                type="secondary"
+                numberOfLines={1}
+              >
+                {summary}
               </ThemedText>
             </View>
-          </View>
-        </View>
-      ))}
+          </TouchableOpacity>
+        );
+      })}
     </BaseCard>
   );
 };
@@ -88,22 +114,27 @@ const styles = StyleSheet.create({
   spaced: {
     justifyContent: "space-between",
   },
-  title: { fontSize: 16, fontWeight: "bold", lineHeight: 20 },
+  title: { fontSize: Type.lg, fontWeight: "700", lineHeight: 22 },
+  addBtn: {
+    padding: Spacing.sm,
+    borderRadius: Radius.pill,
+  },
   iconWrapper: {
-    padding: 12,
-    borderRadius: 16,
+    padding: Spacing.md,
+    borderRadius: Radius.md,
   },
   mealTypeTitle: {
-    fontSize: 16,
-    fontWeight: "medium",
-    lineHeight: 20,
+    fontSize: Type.base,
+    fontWeight: "600",
   },
   timelabel: {
-    fontSize: 12,
-    lineHeight: 20,
+    fontSize: Type.xs,
   },
   caloriesLabel: {
-    fontSize: 14,
-    fontWeight: "medium",
+    fontSize: Type.sm,
+    fontWeight: "600",
+  },
+  mealsLabel: {
+    fontSize: Type.xs,
   },
 });

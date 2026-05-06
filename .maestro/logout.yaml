@@ -1,0 +1,12 @@
+# Smallest possible auth round-trip: sign in, sign out, see Sign in screen.
+appId: app.forma.tracker
+tags:
+  - smoke
+---
+- runFlow: login.yaml
+
+- tapOn: "Profile"
+- tapOn: "Log out"
+- extendedWaitUntil:
+    visible: "Sign in"
+    timeout: 5000

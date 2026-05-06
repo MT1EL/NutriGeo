@@ -1,6 +1,7 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Design tokens for Forma.
+ * Colors are organized by role (text, background, brand, semantic, macros, navigation).
+ * Spacing / Type / Radius scales replace ad-hoc magic numbers across the app.
  */
 
 import { Platform } from "react-native";
@@ -8,77 +9,128 @@ import { Platform } from "react-native";
 const tintColorLight = "#4A90E2";
 const tintColorDark = "#6AAFF5";
 
-const brandSurfaceLight = "#EFF6FF"; // light background tint
-const brandSurfaceDark = "#1E3A5F"; // darker version for dark mode
+const brandSurfaceLight = "#EFF6FF";
+const brandSurfaceDark = "#1E3A5F";
 
 export const Colors = {
   light: {
-    // Text
-    text: "#121212",
-    textSecondary: "#757575",
+    text: "#0F172A",
+    textSecondary: "#64748B",
+    textOnBrand: "#FFFFFF",
 
-    // Backgrounds
     background: "#FFFFFF",
-    surface: "#F9F9F9",
+    surface: "#F4F7FB",
     card: "#FFFFFF",
 
-    // Brand
     tint: brandSurfaceLight,
     brand: tintColorLight,
+    brandSoft: "#DCE9F9",
+    brandDeep: "#2F6BC4",
 
-    // Semantic
-    success: "#50E3C2",
+    accent: "#50E3C2",
+
+    success: "#34C759",
     warning: "#F5A623",
     error: "#D0021B",
 
-    // Navigation
-    icon: "#757575",
-    tabIconDefault: "#757575",
+    macroProtein: "#7C5CFF",
+    macroCarbs: "#F5A623",
+    macroFat: "#FF6B9D",
+
+    icon: "#64748B",
+    tabIconDefault: "#94A3B8",
     tabIconSelected: tintColorLight,
 
-    // Borders
-    border: "#E0E0E0",
-    borderLight: "#F0F0F0",
+    border: "#E2E8F0",
+    borderLight: "#F1F5F9",
+
+    shadow: "rgba(15, 23, 42, 0.08)",
+    overlay: "rgba(15, 23, 42, 0.55)",
   },
+  // Dark palette v2 — warmer base, visible tracks, slightly lifted card.
+  // To revert, swap the values back to DARK_V1 below.
   dark: {
-    // Text
-    text: "#F0F0F0",
-    textSecondary: "#9E9E9E",
+    text: "#F1F5F9",
+    textSecondary: "#94A3B8",
+    textOnBrand: "#FFFFFF",
 
-    // Backgrounds
-    background: "#121212",
-    surface: "#1E1E1E",
-    card: "#2C2C2C",
+    background: "#0A0E18",
+    surface: "#101626",
+    card: "#1A2236",
 
-    // Brand
     tint: brandSurfaceDark,
     brand: tintColorDark,
+    brandSoft: "#22335A",
+    brandDeep: "#1B4F94",
 
-    // Semantic
-    success: "#50E3C2",
+    accent: "#50E3C2",
+
+    success: "#30D158",
     warning: "#F5A623",
     error: "#FF453A",
 
-    // Navigation
-    icon: "#9E9E9E",
-    tabIconDefault: "#9E9E9E",
+    macroProtein: "#A78BFA",
+    macroCarbs: "#FBBF24",
+    macroFat: "#FB7185",
+
+    icon: "#94A3B8",
+    tabIconDefault: "#64748B",
     tabIconSelected: tintColorDark,
 
-    // Borders
-    border: "#333333",
-    borderLight: "#2C2C2C",
+    border: "#2A3550",
+    borderLight: "#242C46", // visible against card (was #172033 = card → invisible tracks)
+
+    shadow: "rgba(0, 0, 0, 0.5)",
+    overlay: "rgba(0, 0, 0, 0.6)",
   },
+};
+
+export const Spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+  huge: 48,
+};
+
+export const Type = {
+  xs: 13,
+  sm: 14,
+  base: 16,
+  lg: 17,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+  display: 44,
+};
+
+export const LineHeight = {
+  xs: 18,
+  sm: 20,
+  base: 24,
+  lg: 24,
+  xl: 28,
+  xxl: 32,
+  xxxl: 40,
+  display: 52,
+};
+
+export const Radius = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  pill: 999,
 };
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: "system-ui",
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: "ui-serif",
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: "ui-rounded",
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: "ui-monospace",
   },
   default: {

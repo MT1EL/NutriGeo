@@ -1,0 +1,50 @@
+# DESTRUCTIVE: creates a real food-log entry on the test account.
+# Only runs under --include-tags destructive.
+#
+# This flow searches for a food by name (TEST_FOOD_NAME env var) so the
+# selector is deterministic across runs. Default: "Apple". Set the env
+# to a food that actually exists in your test account's database:
+#
+#   maestro test \
+#     --env TEST_EMAIL=... --env TEST_PASSWORD=... \
+#     --env TEST_FOOD_NAME="ვაშლი" \
+#     --include-tags destructive .maestro/log-meal.yaml
+#
+# Alternative selector (no search): add `testID="food-card-${food.id}"` to
+# components/cards/FoodCard.tsx and select by id here. Avoids dependency
+# on database content.
+appId: app.forma.tracker
+tags:
+  - destructive
+---
+- runFlow: login.yaml
+
+- tapOn: "Add"
+- extendedWaitUntil:
+    visible: "Search foods..."
+    timeout: 8000
+
+- tapOn:
+    text: "Search foods..."
+- inputText: ${TEST_FOOD_NAME}
+
+# Wait for the debounced search to settle and results to render.
+- extendedWaitUntil:
+    visible: ${TEST_FOOD_NAME}
+    timeout: 8000
+
+# Tap the first matching food card. This opens the detail sheet, which
+# has a properly labeled primary button — robust without testIDs.
+- tapOn:
+    text: ${TEST_FOOD_NAME}
+    index: 0
+
+- extendedWaitUntil:
+    visible: "Add food"
+    timeout: 5000
+- tapOn: "Add food"
+
+# Toast comes from t("add.added").
+- extendedWaitUntil:
+    visible: "Food added"
+    timeout: 8000
