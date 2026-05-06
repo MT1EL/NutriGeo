@@ -25,7 +25,7 @@ export function useSettings() {
     queryKey: PROFILE_QUERY_KEY,
     queryFn: getProfile,
   });
-  const profile = profileQuery.data?.data;
+  const profile = profileQuery.data?.data?.profile;
   const units = (profile?.units as Units) ?? "metric";
   const themeMode = (profile?.theme as ThemeMode) ?? "system";
   const language = (profile?.language as Language) ?? "ka";

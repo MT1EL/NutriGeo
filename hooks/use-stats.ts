@@ -30,7 +30,7 @@ export function useStats() {
     queryFn: () => getStatsOverview(apiRange),
   });
 
-  const profile = profileQuery.data?.data;
+  const goals = profileQuery.data?.data?.goals;
   const overview = overviewQuery.data?.data;
   const records = overview?.records;
   const summary = overview?.summary;
@@ -60,8 +60,8 @@ export function useStats() {
     [overview, sliceForRange],
   );
 
-  const calGoal = profile?.daily_calorie_target ?? 2000;
-  const weightGoal = profile?.target_weight_kg ?? null;
+  const calGoal = goals?.daily_calorie_target ?? 2000;
+  const weightGoal = goals?.target_weight_kg ?? null;
   const loggedDays = summary?.logged_days ?? 0;
   const onTargetDays = summary?.days_in_target ?? 0;
   const currentStreak = summary?.streak.current ?? 0;
@@ -83,7 +83,7 @@ export function useStats() {
   return {
     range,
     setRange,
-    profile,
+    profile: goals,
     summary,
     overview,
     records,

@@ -12,10 +12,10 @@ import {
   isPremiumActive,
   isPurchasesAvailable,
   isUserCancelledError,
-  type PlanKind,
   presentCustomerCenter,
   purchasePackage,
   restorePurchases,
+  type PlanKind,
 } from "@/lib/purchases";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -28,7 +28,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -226,8 +226,7 @@ export default function PremiumScreen() {
         queryKey: PREMIUM_STATUS_QUERY_KEY,
       });
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : t("common.error");
+      const message = err instanceof Error ? err.message : t("common.error");
       toast.error(message, t("common.error"));
     }
   };
@@ -244,7 +243,6 @@ export default function PremiumScreen() {
       return iso;
     }
   };
-
   return (
     <SubScreenLayout
       title={t("premium.screenTitle")}
@@ -399,10 +397,7 @@ function HeroCard({
   subtitle: string;
 }) {
   return (
-    <BaseCard
-      style={[styles.hero, { backgroundColor: theme.brand }]}
-      flat
-    >
+    <BaseCard style={[styles.hero, { backgroundColor: theme.brand }]} flat>
       <View style={styles.heroIconWrap}>
         <Crown color="#FFFFFF" size={36} />
         <Sparkles
@@ -501,10 +496,7 @@ function PlanCard({
           <ThemedText style={styles.planLabel}>{t(plan.labelKey)}</ThemedText>
           {plan.badgeKey && plan.badgePercent ? (
             <View
-              style={[
-                styles.planBadge,
-                { backgroundColor: theme.brandSoft },
-              ]}
+              style={[styles.planBadge, { backgroundColor: theme.brandSoft }]}
             >
               <ThemedText style={styles.planBadgeText} color={theme.brandDeep}>
                 {t(plan.badgeKey, { percent: plan.badgePercent })}

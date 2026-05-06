@@ -67,7 +67,7 @@ export default function StatisticsPage() {
           <View
             style={[
               styles.body,
-              (isPremium || stats.range === "week") && {
+              (isPremium || stats.range !== "week") && {
                 marginTop: -Spacing.lg,
               },
             ]}

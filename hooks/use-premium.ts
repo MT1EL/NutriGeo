@@ -27,9 +27,9 @@ export function usePremium() {
     staleTime: 60_000,
   });
 
-  const status = query.data?.data?.status;
+  const status = query.data?.data;
   return {
-    isPremium: status === "active",
+    isPremium: status?.status === "active",
     isLoading: query.isLoading,
     status,
     refetch: query.refetch,

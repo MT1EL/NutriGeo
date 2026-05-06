@@ -27,7 +27,7 @@ export function usePersonalForm() {
     queryKey: PROFILE_QUERY_KEY,
     queryFn: getProfile,
   });
-  const profile = profileQuery.data?.data;
+  const profile = profileQuery.data?.data?.profile;
 
   const mutation = useMutation({
     mutationFn: (input: PersonalInput) => updatePersonal(input),

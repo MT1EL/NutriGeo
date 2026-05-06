@@ -4,62 +4,68 @@ import type {
   ApiResponse,
   Diet,
   ExportJob,
-  GoalType,
   Language,
   Sex,
   Theme,
   Units,
 } from "./types";
+export type GoalType = "lose" | "gain" | "maintain";
 
-export type Profile = {
-  id: string;
-  name: string | null;
-  display_name: string | null;
-  avatar_url: string | null;
-  email_verified_at: string | null;
-  last_seen_at: string | null;
-  deleted_at: string | null;
-  created_at: string;
-  updated_at: string;
-  onboarded_at: string | null;
+export type WeeklyPaceOptions = {
+  min: number;
+  max: number;
+  presets: number[];
+};
 
-  birth_date: string;
-  age: number;
-  biological_sex: Sex;
-  height_cm: number;
-  weight_kg: number;
-  height: number;
-  weight: number;
-
-  activity_level: ActivityLevel;
+export type Goals = {
   goal_type: GoalType;
-  goal_weight: number | null;
-  goal_body_fat: number | null;
-  target_weight_kg: number | null;
+  target_weight_kg: number;
   weekly_pace_kg: number;
-  goal_baseline_weight_kg: number | null;
 
   daily_calorie_target: number;
+
+  bmr_kcal: number | null;
+  tdee_kcal: number | null;
+  activity_kcal: number | null;
+  calorie_adjustment_kcal: number | null;
+
   protein_pct: number;
   carbs_pct: number;
   fat_pct: number;
-  protein_g_goal: number;
-  carbs_g_goal: number;
-  fat_g_goal: number;
 
-  diet: Diet;
-  allergies: string[];
-  restrictions: string[];
+  protein_g_goal: number | null;
+  carbs_g_goal: number | null;
+  fat_g_goal: number | null;
 
-  chest: number | null;
-  waist: number | null;
-  hips: number | null;
-  body_fat: number | null;
+  weekly_pace_options: WeeklyPaceOptions;
+};
+
+export type Profile = {
+  name: string;
+  avatar_url: string | null;
+
+  biological_sex: "male" | "female";
+  birth_date: string; // ISO string
+  age: number;
+
+  height_cm: number;
+  weight_kg: number;
 
   language: Language;
-  units: Units;
-  theme: Theme;
+  units: "metric" | "imperial";
+  theme: "light" | "dark" | "system";
   timezone: string;
+
+  onboarded_at: string; // ISO string
+};
+
+export type User = {
+  id: string;
+  email: string;
+  email_verified: boolean;
+
+  profile: Profile;
+  goals: Goals;
 };
 
 export type PersonalInput = {
@@ -95,7 +101,7 @@ export type SettingsInput = {
 };
 
 export function getProfile() {
-  return api.get<ApiResponse<Profile>>("/v1/profile");
+  return api.get<ApiResponse<User>>("/v1/profile");
 }
 
 export function updatePersonal(input: PersonalInput) {

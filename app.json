@@ -12,7 +12,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "app.forma.tracker",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserTrackingUsageDescription": "Forma uses this to understand how the app is used so we can improve features and personalize your experience. Your data is never sold."
       }
     },
     "android": {
@@ -35,7 +36,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/favicon.png",
+          "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -56,7 +57,9 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow camera access to scan product barcodes."
+          "cameraPermission": "Allow camera access to scan product barcodes.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       "expo-localization",

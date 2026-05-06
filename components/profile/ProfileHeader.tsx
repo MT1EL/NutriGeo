@@ -39,8 +39,7 @@ export default function ProfileHeader({
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const avatarUrl = profile?.avatar_url;
-  const initial = profile?.display_name?.split(" ")[0]?.[0] ?? "?";
-
+  const initial = profile?.name?.split(" ")[0]?.[0] ?? "?";
   const streak = summary?.streak.current ?? 0;
   const weightChange = summary?.weight_change_kg;
   const goalPct = summary?.goal_pct ?? null;
@@ -105,7 +104,7 @@ export default function ProfileHeader({
           )}
         </TouchableOpacity>
         <ThemedText style={styles.name} color="#FFFFFF">
-          {profile?.display_name}
+          {profile?.name}
         </ThemedText>
 
         <View style={styles.statsStrip}>

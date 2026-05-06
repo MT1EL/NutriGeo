@@ -6,8 +6,17 @@ function detectDeviceTimezone(): string {
   }
 }
 
+function resolveBaseUrl(): string {
+  const url = process.env.EXPO_PUBLIC_API_URL;
+  if (url && url.length > 0) return url;
+  if (__DEV__) return 'http://localhost:3000';
+  throw new Error(
+    'EXPO_PUBLIC_API_URL is not set. Configure it via `eas env:create EXPO_PUBLIC_API_URL` for the build profile.',
+  );
+}
+
 export const API_CONFIG = {
-  baseUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000',
+  baseUrl: resolveBaseUrl(),
   defaultTimezone: detectDeviceTimezone(),
 };
 

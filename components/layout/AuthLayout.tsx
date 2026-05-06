@@ -113,10 +113,10 @@ export default AuthLayout;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
   },
   scrollContent: {
     flexGrow: 1,
+    paddingTop: 60,
   },
   headerContainer: {
     alignItems: "center",

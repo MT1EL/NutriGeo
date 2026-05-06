@@ -97,7 +97,8 @@ const ProfilePage = () => {
     } catch (err) {
       setUploadingAvatar(false);
       console.warn("[avatar] picker failed", err);
-      const message = err instanceof Error ? err.message : t("common.errorGeneric");
+      const message =
+        err instanceof Error ? err.message : t("common.errorGeneric");
       toast.error(message, t("common.error"));
     }
   };
@@ -112,14 +113,16 @@ const ProfilePage = () => {
         showsVerticalScrollIndicator={false}
       >
         <ProfileHeader
-          profile={data?.data}
+          profile={data?.data?.profile}
           summary={overviewQuery.data?.data.summary}
           onAvatarPress={openAvatarMenu}
           uploadingAvatar={uploadingAvatar}
         />
 
         <View style={styles.body}>
-          <ThemedText style={styles.sectionTitle}>{t("profile.account")}</ThemedText>
+          <ThemedText style={styles.sectionTitle}>
+            {t("profile.account")}
+          </ThemedText>
           <BaseCard style={styles.cardList}>
             <ProfileMenuRow
               Icon={User}
@@ -147,7 +150,9 @@ const ProfilePage = () => {
             />
           </BaseCard>
 
-          <ThemedText style={styles.sectionTitle}>{t("profile.library")}</ThemedText>
+          <ThemedText style={styles.sectionTitle}>
+            {t("profile.library")}
+          </ThemedText>
           <BaseCard style={styles.cardList}>
             <ProfileMenuRow
               Icon={Bookmark}
@@ -179,7 +184,9 @@ const ProfilePage = () => {
             />
           </BaseCard>
 
-          <ThemedText style={styles.sectionTitle}>{t("profile.appSection")}</ThemedText>
+          <ThemedText style={styles.sectionTitle}>
+            {t("profile.appSection")}
+          </ThemedText>
           <BaseCard style={styles.cardList}>
             <ProfileMenuRow
               Icon={Crown}
