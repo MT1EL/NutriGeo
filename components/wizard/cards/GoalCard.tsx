@@ -22,19 +22,21 @@ type Props = {
   };
   isActive: boolean;
   onPress: () => void;
+  isError?: boolean;
 };
 
-const GoalCard = ({ goal, isActive, onPress }: Props) => {
+const GoalCard = ({ goal, isActive, onPress, isError }: Props) => {
   const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
   const { Icon, title, subtitle, tintColor, iconColor } = goal;
   return (
     <TouchableOpacity onPress={onPress}>
       <ThemedView
-        backgroundColor={isActive ? Colors[colorScheme].tint : undefined}
+        backgroundColor={isActive ? theme.tint : undefined}
         style={[
           styles.card,
-          isActive && {
-            borderColor: Colors[colorScheme].brand,
+          (isActive || isError) && {
+            borderColor: isError ? theme.error : theme.brand,
           },
         ]}
       >

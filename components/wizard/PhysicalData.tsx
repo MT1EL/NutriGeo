@@ -1,8 +1,8 @@
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { useWizard } from "@/contexts/WizardContext";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { FormikProps } from "formik";
 import { Calendar, Ruler, Weight } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,6 +16,8 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+
+import { WizardData } from "@/contexts/WizardContext";
 import Input from "../ui/inputs/Input";
 import ThemedText from "../ui/ThemedText";
 import WizzardContentLayout from "./layout";
@@ -43,9 +45,8 @@ function formatBirthDate(iso: string): string {
   return `${dd}.${mm}.${d.getFullYear()}`;
 }
 
-const PhysicalData = () => {
+const PhysicalData = ({ formik }: { formik: FormikProps<WizardData> }) => {
   const { t } = useTranslation();
-  const { data, setField } = useWizard();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -56,37 +57,40 @@ const PhysicalData = () => {
     today.getMonth(),
     today.getDate(),
   );
+
   const minDate = new Date(
     today.getFullYear() - MAX_AGE,
     today.getMonth(),
     today.getDate(),
   );
+
   const initialDate = useMemo(() => {
-    if (data.birth_date) {
-      const d = new Date(data.birth_date);
+    if (formik.values.birth_date) {
+      const d = new Date(formik.values.birth_date);
       if (!Number.isNaN(d.getTime())) return d;
     }
-    // Default cursor: 25 years ago
     return new Date(
       today.getFullYear() - 25,
       today.getMonth(),
       today.getDate(),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.birth_date]);
+  }, [formik.values.birth_date]);
 
-  const age = ageFromBirthDate(data.birth_date);
+  const age = ageFromBirthDate(formik.values.birth_date);
 
   const onChange = (event: DateTimePickerEvent, selected?: Date) => {
     if (Platform.OS === "android") {
       setPickerOpen(false);
       if (event.type === "set" && selected) {
-        setField("birth_date", selected.toISOString().slice(0, 10));
+        const value = selected.toISOString().slice(0, 10);
+        formik.setFieldValue("birth_date", value);
       }
       return;
     }
+
     if (selected) {
-      setField("birth_date", selected.toISOString().slice(0, 10));
+      const value = selected.toISOString().slice(0, 10);
+      formik.setFieldValue("birth_date", value);
     }
   };
 
@@ -100,26 +104,42 @@ const PhysicalData = () => {
         style={styles.container}
       >
         <Input
+          name="height_cm"
           Icon={Ruler}
-          placeholder={"175"}
+          placeholder={t("common.for_example") + " 175"}
           label={t("wizard.physical.heightCm")}
           keyboardType="numeric"
-          value={data.height_cm}
-          onChangeText={(text) => setField("height_cm", text)}
+          value={formik.values.height_cm}
+          onChangeText={(text) => {
+            formik.setFieldValue("height_cm", text);
+          }}
+          setFieldTouched={formik.setFieldTouched}
+          errorText={
+            formik.touched.height_cm && formik.errors.height_cm
+              ? formik.errors.height_cm
+              : undefined
+          }
         />
+
         <Input
+          name="weight_kg"
           Icon={Weight}
-          placeholder={"66.5"}
+          placeholder={t("common.for_example") + " 66.5"}
           label={t("wizard.physical.weightKg")}
           keyboardType="decimal-pad"
-          value={data.weight_kg}
-          onChangeText={(text) => setField("weight_kg", text)}
+          value={formik.values.weight_kg}
+          onChangeText={(text) => {
+            formik.setFieldValue("weight_kg", text);
+          }}
+          setFieldTouched={formik.setFieldTouched}
+          errorText={formik.errors.weight_kg}
         />
 
         <View style={{ gap: Spacing.xs }}>
           <ThemedText style={styles.fieldLabel} type="secondary">
             {t("wizard.physical.birthDate")}
           </ThemedText>
+
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setPickerOpen(true)}
@@ -127,23 +147,41 @@ const PhysicalData = () => {
               styles.pickerTrigger,
               {
                 backgroundColor: theme.background,
-                borderColor: theme.border,
+                borderColor:
+                  formik.touched.birth_date && formik.errors.birth_date
+                    ? theme.error
+                    : theme.border,
               },
             ]}
           >
-            <Calendar color={theme.textSecondary} />
+            <Calendar
+              color={
+                formik.touched.birth_date && formik.errors.birth_date
+                  ? theme.error
+                  : theme.textSecondary
+              }
+            />
+
             <ThemedText
               style={styles.pickerValue}
-              color={data.birth_date ? theme.text : theme.textSecondary}
+              color={
+                formik.values.birth_date ? theme.text : theme.textSecondary
+              }
             >
-              {data.birth_date
-                ? formatBirthDate(data.birth_date)
+              {formik.values.birth_date
+                ? formatBirthDate(formik.values.birth_date)
                 : "DD.MM.YYYY"}
             </ThemedText>
           </TouchableOpacity>
+
           {age != null && (
             <ThemedText type="secondary" style={styles.ageHint}>
               {t("wizard.physical.ageLabel")} {age}
+            </ThemedText>
+          )}
+          {formik.touched.birth_date && formik.errors.birth_date && (
+            <ThemedText type="error" style={styles.ageHint}>
+              {formik.errors.birth_date}
             </ThemedText>
           )}
         </View>
@@ -186,6 +224,7 @@ const PhysicalData = () => {
                 textColor={theme.text}
                 style={styles.iosPicker}
               />
+
               <TouchableOpacity
                 onPress={() => setPickerOpen(false)}
                 style={[styles.modalDone, { backgroundColor: theme.brand }]}

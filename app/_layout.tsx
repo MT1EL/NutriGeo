@@ -3,17 +3,16 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Appearance, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { registerPushToken } from "@/api/notifications";
-import { Colors } from "@/constants/theme";
 import { ActiveDateProvider } from "@/contexts/ActiveDateContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
@@ -182,55 +181,62 @@ function ProfileLanguageSync() {
   return null;
 }
 
-// Routes that an unauthenticated user is allowed to land on.
-const PUBLIC_AUTH_SCREENS = new Set([
-  "Login",
-  "Register",
-  "ForgotPassword",
-  "ResetPassword",
-]);
-
 // Routes inside (auth) that an authenticated user is allowed to stay on
 // (rest of (auth) bounces them to the tabs).
-const AUTHENTICATED_AUTH_SCREENS = new Set(["Wizard", "Success"]);
 
+const FIRST_LAUNCH_KEY = "app.first_launch_done";
+
+async function markFirstLaunchDone() {
+  await SecureStore.setItemAsync(FIRST_LAUNCH_KEY, "true");
+}
+
+/* =========================
+   AUTH GATE (NEW LOGIC)
+========================= */
 function AuthGate({ children }: { children: React.ReactNode }) {
-  const { status } = useAuth();
-  const segments = useSegments();
+  const { status, user } = useAuth();
   const router = useRouter();
-  const colorScheme = useColorScheme() || "light";
-
-  const inAuthGroup = segments[0] === "(auth)";
-  const currentLeaf = segments[segments.length - 1];
-  const allowedHere =
-    status === "unauthenticated"
-      ? inAuthGroup && PUBLIC_AUTH_SCREENS.has(currentLeaf)
-      : status === "authenticated"
-        ? !inAuthGroup || AUTHENTICATED_AUTH_SCREENS.has(currentLeaf)
-        : false;
+  const [firstLaunch, setFirstLaunch] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (status === "loading" || allowedHere) return;
+    (async () => {
+      const value = await SecureStore.getItemAsync(FIRST_LAUNCH_KEY);
+      setFirstLaunch(value == null);
+    })();
+  }, []);
+
+  const hasFinishedSurvey = Boolean(user?.profile?.onboarded_at);
+
+  useEffect(() => {
+    if (status === "loading" || firstLaunch === null) return;
+
+    // 1. FIRST LAUNCH → index (only once)
+    if (firstLaunch) {
+      markFirstLaunchDone();
+      router.replace("/");
+      return;
+    }
+
+    // 2. NOT AUTH → login
     if (status === "unauthenticated") {
       router.replace("/Login");
-    } else if (inAuthGroup && currentLeaf === "Register") {
-      router.replace("/Wizard");
-    } else {
-      router.replace("/(tabs)");
+      return;
     }
-  }, [status, allowedHere, inAuthGroup, currentLeaf, router]);
 
-  if (status === "loading" || !allowedHere) {
+    // 3. AUTH BUT NOT FINISHED SURVEY → wizard
+    if (!hasFinishedSurvey) {
+      router.replace("/Wizard");
+      return;
+    }
+
+    // 4. DONE → app
+    router.replace("/(tabs)");
+  }, [status, firstLaunch, hasFinishedSurvey]);
+
+  if (status === "loading" || firstLaunch === null) {
     return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: Colors[colorScheme].surface,
-        }}
-      >
-        <ActivityIndicator color={Colors[colorScheme].brand} />
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator />
       </View>
     );
   }
@@ -277,6 +283,14 @@ function RootLayout() {
                 <ActiveDateProvider>
                   <AuthGate>
                     <Stack>
+                      <Stack.Screen
+                        name="index"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="terms"
+                        options={{ headerShown: false }}
+                      />
                       <Stack.Screen
                         name="(auth)"
                         options={{ headerShown: false }}

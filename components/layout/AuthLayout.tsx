@@ -27,6 +27,11 @@ type Props = {
   footerLinkText?: string;
   footerLinkLabel?: string;
   footerLinkAction?: () => void;
+  setFieldTouched?: (
+    field: string,
+    touched?: boolean,
+    shouldValidate?: boolean,
+  ) => void;
 };
 
 const AuthLayout = ({
@@ -40,6 +45,7 @@ const AuthLayout = ({
   footerLinkText,
   footerLinkLabel,
   footerLinkAction,
+  setFieldTouched,
 }: Props) => {
   const colorScheme = useColorScheme() || "light";
 
@@ -82,7 +88,11 @@ const AuthLayout = ({
               </View>
               <View style={styles.inputsContainer}>
                 {inputs.map((input, index) => (
-                  <Input key={index} {...input} />
+                  <Input
+                    key={index}
+                    {...input}
+                    setFieldTouched={setFieldTouched}
+                  />
                 ))}
               </View>
             </View>

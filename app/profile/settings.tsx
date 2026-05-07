@@ -169,7 +169,7 @@ export default function SettingsScreen() {
         <SettingsRow
           Icon={FileText}
           label={t("terms.title")}
-          onPress={() => router.push("/profile/terms")}
+          onPress={() => router.push("/terms")}
         />
         <SettingsRow
           Icon={Info}

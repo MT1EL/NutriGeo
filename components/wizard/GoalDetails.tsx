@@ -1,6 +1,7 @@
 import BaseCard from "@/components/cards/BaseCard";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { useWizard } from "@/contexts/WizardContext";
+import { WizardData } from "@/contexts/WizardContext";
+import { FormikProps } from "formik";
 import { Scale, Target, TrendingDown } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import {
@@ -13,9 +14,8 @@ import Input from "../ui/inputs/Input";
 import ThemedText from "../ui/ThemedText";
 import WizzardContentLayout from "./layout";
 
-const GoalDetails = () => {
+const GoalDetails = ({ formik }: { formik: FormikProps<WizardData> }) => {
   const { t } = useTranslation();
-  const { data, setField } = useWizard();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -44,7 +44,7 @@ const GoalDetails = () => {
     return `~${Math.round(weeks / 4.345)} ${t("wizard.suggestion.monthsApprox")}`;
   }
 
-  if (data.goal_type === "maintain") {
+  if (formik.values.goal_type === "maintain") {
     return (
       <WizzardContentLayout
         title={t("wizard.goalDetails.title")}
@@ -64,20 +64,16 @@ const GoalDetails = () => {
     );
   }
 
-  const targetNum = Number(data.target_weight_kg);
-  const currentNum = Number(data.weight_kg);
-  let targetError: string | undefined;
-  if (data.target_weight_kg && targetNum > 0 && currentNum > 0) {
-    if (data.goal_type === "lose" && targetNum >= currentNum) {
-      targetError = t("wizard.goalDetails.mustBeLessThan", { kg: currentNum });
-    } else if (data.goal_type === "gain" && targetNum <= currentNum) {
-      targetError = t("wizard.goalDetails.mustBeMoreThan", { kg: currentNum });
-    }
-  }
+  const targetNum = Number(formik.values.target_weight_kg);
+  const currentNum = Number(formik.values.weight_kg);
+  const targetError =
+    formik.touched.target_weight_kg && formik.errors.target_weight_kg
+      ? formik.errors.target_weight_kg
+      : undefined;
 
   let etaCaption = t("wizard.goalDetails.targetWeightAndPace");
   if (targetNum > 0 && currentNum > 0 && !targetError) {
-    const pace = Number(data.weekly_pace_kg) || 0.5;
+    const pace = Number(formik.values.weekly_pace_kg) || 0.5;
     const delta = Math.abs(targetNum - currentNum);
     if (delta >= 0.1) {
       etaCaption = t("wizard.goalDetails.currentPace", {
@@ -112,8 +108,10 @@ const GoalDetails = () => {
           Icon={Target}
           label={t("wizard.goalDetails.targetWeight")}
           placeholder="65"
-          value={data.target_weight_kg}
-          onChangeText={(text) => setField("target_weight_kg", text)}
+          value={formik.values.target_weight_kg}
+          onChangeText={(text) =>
+            formik.setFieldValue("target_weight_kg", text)
+          }
           keyboardType="decimal-pad"
           errorText={targetError}
         />
@@ -124,11 +122,13 @@ const GoalDetails = () => {
           </ThemedText>
           <View style={styles.paceRow}>
             {PACE_OPTIONS.map((opt) => {
-              const isActive = opt.value === data.weekly_pace_kg;
+              const isActive = opt.value === formik.values.weekly_pace_kg;
               return (
                 <TouchableOpacity
                   key={opt.value}
-                  onPress={() => setField("weekly_pace_kg", opt.value)}
+                  onPress={() =>
+                    formik.setFieldValue("weekly_pace_kg", opt.value)
+                  }
                   activeOpacity={0.85}
                   style={[
                     styles.paceCard,

@@ -5,7 +5,7 @@ import { Text, TextProps, TextStyle, useColorScheme } from "react-native";
 type Props = TextProps & {
   style?: TextStyle | TextStyle[];
   children: React.ReactNode;
-  type?: "primary" | "secondary" | "text";
+  type?: "primary" | "secondary" | "text" | "error";
   color?: string;
 };
 
@@ -23,6 +23,8 @@ const ThemedText = ({
     textColor = Colors[colorScheme].text;
   } else if (type === "secondary") {
     textColor = Colors[colorScheme].textSecondary;
+  } else if (type === "error") {
+    textColor = Colors[colorScheme].error;
   }
 
   return (

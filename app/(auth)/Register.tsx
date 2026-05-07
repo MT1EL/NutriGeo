@@ -26,16 +26,19 @@ function RegisterScreen() {
     if (!values.fullName.trim()) {
       errors.fullName = t("validation.enterName");
     }
+
     if (!values.email.trim()) {
       errors.email = t("validation.enterEmail");
     } else if (!isValidEmail(values.email)) {
       errors.email = t("validation.invalidEmail");
     }
+    const PASSWORD_RE = /^.{8,72}$/;
     if (!values.password) {
       errors.password = t("validation.enterPassword");
-    } else if (values.password.length < 8) {
+    } else if (!PASSWORD_RE.test(values.password)) {
       errors.password = t("validation.passwordMin");
     }
+
     if (!values.confirmPassword) {
       errors.confirmPassword = t("auth.register.repeatPassword");
     } else if (values.confirmPassword !== values.password) {
@@ -84,6 +87,7 @@ function RegisterScreen() {
 
   const inputs = [
     {
+      name: "fullName",
       Icon: User,
       placeholder: t("auth.register.fullName"),
       value: form.values.fullName,
@@ -91,6 +95,7 @@ function RegisterScreen() {
       errorText: errorOf("fullName"),
     },
     {
+      name: "email",
       Icon: Mail,
       placeholder: t("common.email"),
       value: form.values.email,
@@ -99,6 +104,7 @@ function RegisterScreen() {
       keyboardType: "email-address" as const,
     },
     {
+      name: "password",
       Icon: Lock,
       placeholder: t("common.password"),
       value: form.values.password,
@@ -107,6 +113,7 @@ function RegisterScreen() {
       secure: true,
     },
     {
+      name: "confirmPassword",
       Icon: Eye,
       placeholder: t("auth.register.repeatPassword"),
       value: form.values.confirmPassword,
@@ -115,7 +122,7 @@ function RegisterScreen() {
       secure: true,
     },
   ];
-
+  console.log(errorOf("password"));
   return (
     <AuthLayout
       illustrationSource={require("@/assets/images/logo.png")}
@@ -125,6 +132,7 @@ function RegisterScreen() {
         form.isSubmitting ? t("common.loading") : t("auth.register.submit")
       }
       inputs={inputs}
+      setFieldTouched={form.setFieldTouched}
       footerLinkText={t("auth.register.haveAccount")}
       footerLinkLabel={t("auth.login.submit")}
       footerLinkAction={() => {

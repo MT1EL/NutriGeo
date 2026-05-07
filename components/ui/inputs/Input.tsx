@@ -24,6 +24,12 @@ type Props = {
   disabled?: boolean;
   compact?: boolean;
   secure?: boolean;
+  name?: string;
+  setFieldTouched?: (
+    field: string,
+    touched?: boolean,
+    shouldValidate?: boolean,
+  ) => void;
 };
 
 const Input = ({
@@ -40,6 +46,8 @@ const Input = ({
   disabled,
   compact,
   secure,
+  name,
+  setFieldTouched,
 }: Props) => {
   const [isFocused, setIsFocused] = React.useState(false);
   const colorScheme = useColorScheme() || "light";
@@ -90,7 +98,12 @@ const Input = ({
           placeholderTextColor={theme.textSecondary}
           style={[styles.input, { color: theme.text }]}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={() => {
+            setIsFocused(false);
+            if (name) {
+              setFieldTouched?.(name, true);
+            }
+          }}
           defaultValue={defaultValue?.toString()}
           value={value}
           onChangeText={onChangeText}

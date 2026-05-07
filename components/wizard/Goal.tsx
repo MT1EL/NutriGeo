@@ -1,15 +1,14 @@
 import type { GoalType } from "@/api/types";
-import { useWizard } from "@/contexts/WizardContext";
+import { WizardData } from "@/contexts/WizardContext";
+import { FormikProps } from "formik";
 import { Dumbbell, Scale, TrendingDown } from "lucide-react-native";
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import GoalCard from "./cards/GoalCard";
 import WizzardContentLayout from "./layout";
 
-const Goal = () => {
+const Goal = ({ formik }: { formik: FormikProps<WizardData> }) => {
   const { t } = useTranslation();
-  const { data, setField } = useWizard();
 
   const OPTIONS = [
     {
@@ -48,8 +47,11 @@ const Goal = () => {
           <GoalCard
             key={item.key}
             goal={item}
-            isActive={data.goal_type === item.key}
-            onPress={() => setField("goal_type", item.key)}
+            isActive={formik.values.goal_type === item.key}
+            onPress={() => formik.setFieldValue("goal_type", item.key)}
+            isError={Boolean(
+              formik.touched.goal_type && formik.errors.goal_type,
+            )}
           />
         ))}
       </View>

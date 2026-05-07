@@ -1,6 +1,7 @@
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { useWizard } from "@/contexts/WizardContext";
+import { WizardData } from "@/contexts/WizardContext";
 import { calculateMacroTargets } from "@/utils/nutrition";
+import { FormikProps } from "formik";
 import {
   Beef,
   CalendarClock,
@@ -32,9 +33,10 @@ function ageFromBirthDate(iso: string): number | null {
   return age;
 }
 
-const Suggestion = () => {
+const Suggestion = ({ formik }: { formik: FormikProps<WizardData> }) => {
   const { t } = useTranslation();
-  const { data, setField } = useWizard();
+  const data = formik.values;
+  const setField = formik.setFieldValue;
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 

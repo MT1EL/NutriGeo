@@ -55,6 +55,7 @@
   },
 
   "common": {
+    "for_example": "e.g",
     "cancel": "Cancel",
     "save": "Save",
     "delete": "Delete",
@@ -116,7 +117,19 @@
     "minOneUppercase": "At least one uppercase letter",
     "min8Chars": "Min. 8 characters"
   },
-
+  "welcome": {
+    "app_name": "Forma",
+    "app_tagline": "meal journal",
+    "title": "Your health, your victory",
+    "subtitle": "Track your nutrition, reach your goals.\nWith Georgian foods, in Georgian.",
+    "create_account": "Create account",
+    "login": "Login",
+    "or_sign_in_with": "Or sign in with",
+    "continue_with_google": "Google",
+    "continue_with_apple": "Apple",
+    "google_message": "Google authentication is coming soon.",
+    "apple_message": "Apple authentication is coming soon."
+  },
   "auth": {
     "login": {
       "title": "Hello! Sign in to your account",

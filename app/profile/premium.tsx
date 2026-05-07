@@ -365,7 +365,7 @@ export default function PremiumScreen() {
           {t("premium.footerLegal")}
         </ThemedText>
         <View style={styles.legalLinks}>
-          <Pressable onPress={() => router.push("/profile/terms")} hitSlop={6}>
+          <Pressable onPress={() => router.push("/terms")} hitSlop={6}>
             <ThemedText style={styles.legalLink} color={theme.brand}>
               {t("premium.termsLink")}
             </ThemedText>

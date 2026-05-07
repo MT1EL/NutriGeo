@@ -8,7 +8,7 @@ import {
   ViewStyle,
 } from "react-native";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "outline";
 
 type Props = {
   onPress: () => void;
@@ -36,11 +36,14 @@ const Button = ({
     primary: theme.brand,
     secondary: theme.brandSoft,
     ghost: "transparent",
+    outline: "transparent",
   };
+
   const variantText: Record<Variant, string> = {
     primary: theme.textOnBrand,
     secondary: theme.brand,
     ghost: theme.brand,
+    outline: theme.text,
   };
 
   const bg = backgroundColor ?? variantBg[variant];
@@ -53,6 +56,7 @@ const Button = ({
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: bg },
+
         variant === "primary" && {
           shadowColor: theme.brand,
           shadowOpacity: 0.25,
@@ -60,17 +64,34 @@ const Button = ({
           shadowOffset: { width: 0, height: 6 },
           elevation: 3,
         },
+
+        variant === "outline" && {
+          borderWidth: 1,
+          borderColor: theme.border,
+        },
+
         disabled && { opacity: 0.4 },
-        pressed && !disabled && { transform: [{ scale: 0.97 }] },
+
+        pressed &&
+          !disabled && {
+            transform: [{ scale: 0.97 }],
+            opacity: 0.9,
+          },
+
         style,
       ]}
     >
-      <Text style={[styles.buttonLabel, { color: fg }]}>{children}</Text>
+      {typeof children === "string" ? (
+        <Text style={[styles.buttonLabel, { color: fg }]}>{children}</Text>
+      ) : (
+        children
+      )}
     </Pressable>
   );
 };
 
 export default Button;
+
 const styles = StyleSheet.create({
   button: {
     paddingVertical: Spacing.lg,
@@ -79,6 +100,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
   buttonLabel: {
     fontSize: Type.lg,
     fontWeight: "600",

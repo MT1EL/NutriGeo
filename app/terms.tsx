@@ -2,7 +2,6 @@ import { SubScreenLayout } from "@/components/layout/SubScreenLayout";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { FileText } from "lucide-react-native";
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, useColorScheme, View } from "react-native";
 

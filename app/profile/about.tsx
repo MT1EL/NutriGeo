@@ -64,7 +64,7 @@ export default function AboutScreen() {
           iconColor="#5B6CE0"
           iconTint={colorScheme === "dark" ? "#222B4A" : "#EEF0FB"}
           label={t("terms.title")}
-          onPress={() => router.push("/profile/terms")}
+          onPress={() => router.push("/terms")}
         />
       </SettingsGroup>
 

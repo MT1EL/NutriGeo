@@ -53,6 +53,7 @@ function LoginScreen() {
 
   const inputs = [
     {
+      name: "email",
       Icon: Mail,
       placeholder: t("common.email"),
       value: form.values.email,
@@ -61,6 +62,7 @@ function LoginScreen() {
       keyboardType: "email-address" as const,
     },
     {
+      name: "password",
       Icon: Eye,
       placeholder: t("common.password"),
       value: form.values.password,
@@ -71,7 +73,6 @@ function LoginScreen() {
       onActionTextPress: () => router.push("/ForgotPassword"),
     },
   ];
-
   return (
     <AuthLayout
       illustrationSource={require("@/assets/images/logo.png")}
@@ -79,6 +80,7 @@ function LoginScreen() {
       subtitle={t("auth.login.title")}
       label={form.isSubmitting ? t("common.loading") : t("auth.login.submit")}
       inputs={inputs}
+      setFieldTouched={form.setFieldTouched}
       footerLinkText={t("auth.login.noAccount")}
       footerLinkLabel={t("auth.register.submit")}
       footerLinkAction={() => {

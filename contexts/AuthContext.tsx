@@ -1,4 +1,8 @@
-import { login as apiLogin, logout as apiLogout, register as apiRegister } from "@/api/auth";
+import {
+  login as apiLogin,
+  logout as apiLogout,
+  register as apiRegister,
+} from "@/api/auth";
 import { HttpError } from "@/api/client";
 import { getMe } from "@/api/me";
 import { clearTokens, hydrateTokens } from "@/api/tokenStore";
@@ -24,7 +28,11 @@ type AuthApi = {
   isAuthenticated: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<User>;
-  signUp: (input: { email: string; password: string; name?: string }) => Promise<User | null>;
+  signUp: (input: {
+    email: string;
+    password: string;
+    name?: string;
+  }) => Promise<User | null>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<User | null>;
 };
@@ -89,8 +97,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(
     async (email: string, password: string) => {
-      const session = await apiLogin({ email, password });
-      const nextUser = session.user ?? (await fetchUser());
+      await apiLogin({ email, password });
+      const nextUser = await fetchUser();
       if (!nextUser) {
         throw new Error("Failed to load user profile");
       }

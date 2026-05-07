@@ -1,7 +1,7 @@
 import type { Diet } from "@/api/types";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { useWizard } from "@/contexts/WizardContext";
-import React from "react";
+import { WizardData } from "@/contexts/WizardContext";
+import { FormikProps } from "formik";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
@@ -38,12 +38,22 @@ const RESTRICTION_OPTIONS: { value: string; labelKey: string }[] = [
   { value: "kosher", labelKey: "diet.kosher" },
 ];
 
-const DietPreferences = () => {
+const DietPreferences = ({ formik }: { formik: FormikProps<WizardData> }) => {
   const { t } = useTranslation();
-  const { data, setField, toggleInArray } = useWizard();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
+  const toggleInArray = (
+    field: "allergies" | "restrictions",
+    value: string,
+  ) => {
+    const current = formik.values[field] ?? [];
 
+    const next = current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+
+    formik.setFieldValue(field, next);
+  };
   return (
     <WizzardContentLayout
       title={t("wizard.diet.title")}
@@ -59,13 +69,13 @@ const DietPreferences = () => {
           </ThemedText>
           <View style={styles.chipRow}>
             {DIET_OPTIONS.map((opt) => {
-              const active = data.diet === opt.key;
+              const active = formik.values.diet === opt.key;
               return (
                 <Chip
                   key={opt.key}
                   label={t(opt.labelKey)}
                   active={active}
-                  onPress={() => setField("diet", opt.key)}
+                  onPress={() => formik.setFieldValue("diet", opt.key)}
                   theme={theme}
                 />
               );
@@ -82,7 +92,7 @@ const DietPreferences = () => {
               <Chip
                 key={value}
                 label={t(labelKey)}
-                active={data.allergies.includes(value)}
+                active={formik.values.allergies.includes(value)}
                 onPress={() => toggleInArray("allergies", value)}
                 theme={theme}
               />
@@ -99,7 +109,7 @@ const DietPreferences = () => {
               <Chip
                 key={value}
                 label={t(labelKey)}
-                active={data.restrictions.includes(value)}
+                active={formik.values.restrictions.includes(value)}
                 onPress={() => toggleInArray("restrictions", value)}
                 theme={theme}
               />

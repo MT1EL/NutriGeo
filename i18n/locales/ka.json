@@ -55,6 +55,7 @@
   },
 
   "common": {
+    "for_example": "მაგ:",
     "cancel": "გაუქმება",
     "save": "შენახვა",
     "delete": "წაშლა",
@@ -116,7 +117,19 @@
     "minOneUppercase": "ერთი დიდი ასო მაინც",
     "min8Chars": "მინ. 8 სიმბოლო"
   },
-
+  "welcome": {
+    "app_name": "ფორმა",
+    "app_tagline": "კვების ჟურნალი",
+    "title": "შენი ჯანმრთელობა,\nშენი გამარჯვება",
+    "subtitle": "თვალი ადევნე კვებას, მიაღწიე მიზანს.\nქართული საკვებით, ქართულად.",
+    "create_account": "ანგარიშის შექმნა",
+    "login": "შესვლა",
+    "or_sign_in_with": "ან გაიარე ავტორიზაცია",
+    "continue_with_google": "Google",
+    "continue_with_apple": "Apple",
+    "google_message": "Google-ით ავტორიზაცია მალე დაემატება.",
+    "apple_message": "Apple-ით ავტორიზაცია მალე დაემატება."
+  },
   "auth": {
     "login": {
       "title": "გამარჯობა! შედი ანგარიშში",

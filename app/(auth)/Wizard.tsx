@@ -12,9 +12,11 @@ import Suggestion from "@/components/wizard/Suggestion";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import { WizardProvider, useWizard, type WizardData } from "@/contexts/WizardContext";
+import { WizardProvider, type WizardData } from "@/contexts/WizardContext";
 import { track } from "@/lib/analytics";
+import { getStepSchema, validateStep } from "@/utils/validations/physicalData";
 import { router, useFocusEffect } from "expo-router";
+import { FormikProps, useFormik } from "formik";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import React, { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -34,22 +36,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 type WizardStep = {
-  // Stable analytics name for the step. Don't translate or re-style: the
-  // dashboard groups by these strings.
   name: string;
-  component: React.ReactElement;
+  component: React.ComponentType<{ formik: FormikProps<WizardData> }>;
   validate: (data: WizardData) => string | null;
 };
-
-const STEPS: WizardStep[] = [
-  { name: "sex", component: <SexPage />, validate: validateSex },
-  { name: "physical", component: <PhysicalData />, validate: validatePhysical },
-  { name: "goal", component: <Goal />, validate: validateGoal },
-  { name: "goal_details", component: <GoalDetails />, validate: validateGoalDetails },
-  { name: "activity", component: <ActivityLevel />, validate: validateActivity },
-  { name: "diet", component: <DietPreferences />, validate: () => null },
-  { name: "suggestion", component: <Suggestion />, validate: validateSuggestion },
-];
 
 function validateSex(d: WizardData) {
   return d.biological_sex ? null : "wizard.sex.selectError";
@@ -93,8 +83,7 @@ function validateActivity(d: WizardData) {
   return d.activity_level ? null : "wizard.activity.selectError";
 }
 function validateSuggestion(d: WizardData) {
-  if (!Number(d.daily_calorie_target))
-    return "wizard.suggestion.enterKcalGoal";
+  if (!Number(d.daily_calorie_target)) return "wizard.suggestion.enterKcalGoal";
   if (!Number(d.protein_g)) return "wizard.suggestion.enterProtein";
   if (!Number(d.carbs_g)) return "wizard.suggestion.enterCarbs";
   if (!Number(d.fat_g)) return "wizard.suggestion.enterFat";
@@ -109,7 +98,10 @@ function getDeviceTimezone() {
   }
 }
 
-function buildOnboardingPayload(data: WizardData, name: string): OnboardingInput {
+function buildOnboardingPayload(
+  data: WizardData,
+  name: string,
+): OnboardingInput {
   const isMaintain = data.goal_type === "maintain";
   return {
     name,
@@ -167,61 +159,120 @@ function buildGoalsPayload(data: WizardData): GoalsInput {
 
 function WizardScreen() {
   const { t } = useTranslation();
-  const { data } = useWizard();
   const { refreshUser, user } = useAuth();
   const toast = useToast();
   const flatListRef = useRef<FlatList<WizardStep>>(null);
   const [activeStep, setActiveStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
+  const STEPS: WizardStep[] = [
+    {
+      name: "sex",
+      component: SexPage,
+      validate: validateSex,
+    },
+    {
+      name: "physical",
+      component: PhysicalData,
+      validate: validatePhysical,
+    },
+    {
+      name: "goal",
+      component: Goal,
+      validate: validateGoal,
+    },
+    {
+      name: "goal_details",
+      component: GoalDetails,
+      validate: validateGoalDetails,
+    },
+    {
+      name: "activity",
+      component: ActivityLevel,
+      validate: validateActivity,
+    },
+    {
+      name: "diet",
+      component: DietPreferences,
+      validate: () => null,
+    },
+    {
+      name: "suggestion",
+      component: Suggestion,
+      validate: validateSuggestion,
+    },
+  ];
+  const formik = useFormik<WizardData>({
+    initialValues: {
+      biological_sex: null,
+      height_cm: "",
+      weight_kg: "",
+      birth_date: "",
+      goal_type: null,
+      target_weight_kg: "",
+      activity_level: null,
+      diet: "none",
+      allergies: [],
+      restrictions: [],
+      daily_calorie_target: "",
+      protein_g: "",
+      carbs_g: "",
+      fat_g: "",
+      weekly_pace_kg: "0.5",
+    },
+
+    validationSchema: getStepSchema(STEPS[0].name),
+
+    onSubmit: async (values) => {
+      if (submitting) return;
+      setSubmitting(true);
+      try {
+        await submitOnboarding(
+          buildOnboardingPayload(values, user?.profile?.name ?? ""),
+        );
+        let goalsSaved = true;
+        try {
+          await updateGoals(buildGoalsPayload(values));
+        } catch {
+          goalsSaved = false;
+        }
+        await refreshUser();
+        track("wizard_completed", { goals_saved: goalsSaved });
+        if (goalsSaved) {
+          toast.success(t("wizard.steps.savedSuccess"));
+        } else {
+          toast.info(t("wizard.steps.savedNoMacros"));
+        }
+        router.replace("/Success");
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : t("wizard.steps.saveFailed");
+        toast.error(message, t("common.error"));
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
   const goTo = (index: number) => {
     setActiveStep(index);
     flatListRef.current?.scrollToIndex({ index, animated: true });
   };
 
-  const handleSubmit = async () => {
-    if (submitting) return;
-    setSubmitting(true);
-    try {
-      await submitOnboarding(buildOnboardingPayload(data, user?.profile?.name ?? ""));
-      let goalsSaved = true;
-      try {
-        await updateGoals(buildGoalsPayload(data));
-      } catch {
-        goalsSaved = false;
-      }
-      await refreshUser();
-      track("wizard_completed", { goals_saved: goalsSaved });
-      if (goalsSaved) {
-        toast.success(t("wizard.steps.savedSuccess"));
-      } else {
-        toast.info(t("wizard.steps.savedNoMacros"));
-      }
-      router.replace("/Success");
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : t("wizard.steps.saveFailed");
-      toast.error(message, t("common.error"));
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const handleNextPage = async () => {
+    const isValid = await validateStep(formik, activeStep);
 
-  const handleNextPage = () => {
-    const errorKey = STEPS[activeStep].validate(data);
-    if (errorKey) {
-      toast.error(t(errorKey));
+    if (!isValid) {
+      toast.error(t("wizard.fix_errors"));
       return;
     }
-    track("wizard_step_completed", {
-      step: STEPS[activeStep].name,
-      step_index: activeStep,
-    });
-    if (activeStep < STEPS.length - 1) {
-      goTo(activeStep + 1);
-    } else {
-      void handleSubmit();
+
+    if (activeStep + 1 === STEPS.length) {
+      formik.handleSubmit();
+      return;
     }
+
+    goTo(activeStep + 1);
   };
 
   const handlePreviousPage = () => {
@@ -229,24 +280,20 @@ function WizardScreen() {
   };
 
   const confirmExit = useCallback(() => {
-    Alert.alert(
-      t("wizard.exitConfirmTitle"),
-      t("wizard.exitConfirmMessage"),
-      [
-        { text: t("common.continue"), style: "cancel" },
-        {
-          text: t("wizard.exit"),
-          style: "destructive",
-          onPress: () => {
-            track("wizard_abandoned", {
-              last_step: STEPS[activeStep].name,
-              last_step_index: activeStep,
-            });
-            router.back();
-          },
+    Alert.alert(t("wizard.exitConfirmTitle"), t("wizard.exitConfirmMessage"), [
+      { text: t("common.continue"), style: "cancel" },
+      {
+        text: t("wizard.exit"),
+        style: "destructive",
+        onPress: () => {
+          track("wizard_abandoned", {
+            last_step: STEPS[activeStep].name,
+            last_step_index: activeStep,
+          });
+          router.back();
         },
-      ],
-    );
+      },
+    ]);
   }, [t, activeStep]);
 
   useFocusEffect(
@@ -269,13 +316,21 @@ function WizardScreen() {
         style={styles.kav}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ThemedText style={styles.title}>{t("wizard.createProfile")}</ThemedText>
+        <ThemedText style={styles.title}>
+          {t("wizard.createProfile")}
+        </ThemedText>
 
-          <FlatList
+        <FlatList
           data={STEPS}
-          renderItem={({ item }) => (
-            <View style={{ width: SCREEN_WIDTH - 40 }}>{item.component}</View>
-          )}
+          renderItem={({ item }) => {
+            const StepComponent = STEPS[activeStep].component;
+
+            return (
+              <View style={{ width: SCREEN_WIDTH - 40 }}>
+                <StepComponent formik={formik} />
+              </View>
+            );
+          }}
           horizontal
           pagingEnabled
           scrollEnabled={false}

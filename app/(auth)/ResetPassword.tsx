@@ -14,8 +14,7 @@ function ResetPasswordScreen() {
 
   const validate = (values: FormValues) => {
     const errors: Partial<Record<keyof FormValues, string>> = {};
-    if (!values.newPassword)
-      errors.newPassword = t("auth.reset.newPassword");
+    if (!values.newPassword) errors.newPassword = t("auth.reset.newPassword");
     else if (values.newPassword.length < 8)
       errors.newPassword = t("validation.passwordMin");
     if (!values.confirmPassword)
@@ -48,6 +47,7 @@ function ResetPasswordScreen() {
 
   const inputs = [
     {
+      name: "newPassword",
       Icon: Lock,
       placeholder: t("changePassword.new"),
       value: form.values.newPassword,
@@ -56,6 +56,7 @@ function ResetPasswordScreen() {
       secure: true,
     },
     {
+      name: "confirmPassword",
       Icon: Eye,
       placeholder: t("auth.reset.repeatNew"),
       value: form.values.confirmPassword,

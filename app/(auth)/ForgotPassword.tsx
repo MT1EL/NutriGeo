@@ -44,6 +44,7 @@ function ForgotPasswordScreen() {
 
   const inputs = [
     {
+      name: "email",
       Icon: Mail,
       placeholder: t("common.email"),
       value: form.values.email,
@@ -61,6 +62,7 @@ function ForgotPasswordScreen() {
       subtitle={t("auth.forgot.subtitle")}
       label={form.isSubmitting ? t("common.loading") : t("auth.forgot.submit")}
       inputs={inputs}
+      setFieldTouched={form.setFieldTouched}
       onPress={() => {
         if (form.isSubmitting) return;
         form.handleSubmit();

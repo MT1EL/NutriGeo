@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/theme";
-import { useWizard } from "@/contexts/WizardContext";
+import { WizardData } from "@/contexts/WizardContext";
 import { Image } from "expo-image";
-import React from "react";
+import { FormikProps } from "formik";
 import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
@@ -12,11 +12,14 @@ import {
 import ThemedText from "../ui/ThemedText";
 import WizzardContentLayout from "./layout";
 
-const SexPage = () => {
+const SexPage = ({ formik }: { formik: FormikProps<WizardData> }) => {
   const { t } = useTranslation();
-  const { data, setField } = useWizard();
   const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
   const options: ("female" | "male")[] = ["female", "male"];
+
+  const showError =
+    formik.touched.biological_sex && Boolean(formik.errors.biological_sex);
   return (
     <WizzardContentLayout
       title={t("common.sex")}
@@ -27,14 +30,14 @@ const SexPage = () => {
           <TouchableOpacity
             style={[
               styles.card,
-              { backgroundColor: Colors[colorScheme].background },
-              data.biological_sex === item && {
+              { backgroundColor: theme.background },
+              (formik.values.biological_sex === item || showError) && {
                 borderWidth: 1,
-                borderColor: Colors[colorScheme].brand,
-                backgroundColor: Colors[colorScheme].tint,
+                borderColor: showError ? theme.error : theme.brand,
+                backgroundColor: showError ? theme.background : theme.tint,
               },
             ]}
-            onPress={() => setField("biological_sex", item)}
+            onPress={() => formik.setFieldValue("biological_sex", item)}
             key={item}
           >
             <Image

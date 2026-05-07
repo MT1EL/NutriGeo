@@ -1,15 +1,17 @@
 import type { ActivityLevel as ActivityLevelType } from "@/api/types";
-import { useWizard } from "@/contexts/WizardContext";
+import { WizardData } from "@/contexts/WizardContext";
+import { FormikProps } from "formik";
 import { Bike, Dumbbell, Footprints, Sofa } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import GoalCard from "./cards/GoalCard";
 import WizzardContentLayout from "./layout";
 
-const ActivityLevel = () => {
+const ActivityLevel = ({ formik }: { formik: FormikProps<WizardData> }) => {
   const { t } = useTranslation();
-  const { data, setField } = useWizard();
-
+  const isError = Boolean(
+    formik.errors.activity_level && formik.touched.activity_level,
+  );
   const OPTIONS = [
     {
       key: "sedentary" as ActivityLevelType,
@@ -63,8 +65,9 @@ const ActivityLevel = () => {
           <GoalCard
             key={item.key}
             goal={item}
-            isActive={data.activity_level === item.key}
-            onPress={() => setField("activity_level", item.key)}
+            isActive={formik.values.activity_level === item.key}
+            onPress={() => formik.setFieldValue("activity_level", item.key)}
+            isError={isError}
           />
         ))}
       </View>
