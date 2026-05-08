@@ -34,11 +34,6 @@ export default function ChangePasswordScreen() {
       label: t("validation.minOneDigit"),
       test: (s: string) => /\d/.test(s),
     },
-    {
-      key: "case",
-      label: t("validation.minOneUppercase"),
-      test: (s: string) => /[A-Z]/.test(s),
-    },
   ];
 
   const checks = useMemo(
