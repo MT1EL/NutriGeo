@@ -5,7 +5,7 @@ import { track } from "@/lib/analytics";
 import { isValidEmail } from "@/utils/validation";
 import { router } from "expo-router";
 import { useFormik } from "formik";
-import { Eye, Mail } from "lucide-react-native";
+import { Lock, Mail } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 type FormValues = { email: string; password: string };
@@ -63,7 +63,7 @@ function LoginScreen() {
     },
     {
       name: "password",
-      Icon: Eye,
+      Icon: Lock,
       placeholder: t("common.password"),
       value: form.values.password,
       onChangeText: form.handleChange("password"),

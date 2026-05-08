@@ -3,7 +3,7 @@ import AuthLayout from "@/components/layout/AuthLayout";
 import { useToast } from "@/contexts/ToastContext";
 import { router } from "expo-router";
 import { useFormik } from "formik";
-import { Eye, Lock } from "lucide-react-native";
+import { Lock } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 type FormValues = { newPassword: string; confirmPassword: string };
@@ -57,7 +57,7 @@ function ResetPasswordScreen() {
     },
     {
       name: "confirmPassword",
-      Icon: Eye,
+      Icon: Lock,
       placeholder: t("auth.reset.repeatNew"),
       value: form.values.confirmPassword,
       onChangeText: form.handleChange("confirmPassword"),

@@ -10,9 +10,12 @@ import {
 } from "react-native";
 import ThemedText from "../ThemedText";
 
+// Import eye icons (adjust import based on your icon library)
+import { Eye, EyeOff } from "lucide-react-native"; // ← Change if you use different icons
+
 type Props = {
   label?: string;
-  Icon: React.ComponentType<{ color: string }>;
+  Icon: React.ComponentType<{ color: string; size?: number }>;
   placeholder?: string;
   onActionTextPress?: () => void;
   actionText?: string;
@@ -23,7 +26,7 @@ type Props = {
   keyboardType?: KeyboardTypeOptions;
   disabled?: boolean;
   compact?: boolean;
-  secure?: boolean;
+  secure?: boolean; // ← Password field
   name?: string;
   setFieldTouched?: (
     field: string,
@@ -45,11 +48,13 @@ const Input = ({
   keyboardType,
   disabled,
   compact,
-  secure,
+  secure = false,
   name,
   setFieldTouched,
 }: Props) => {
   const [isFocused, setIsFocused] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
+
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
@@ -59,6 +64,9 @@ const Input = ({
       ? theme.brand
       : theme.border;
 
+  const isPasswordField = !!secure;
+  const secureTextEntry = isPasswordField && !showPassword;
+
   return (
     <View style={{ gap: Spacing.xs }}>
       {label && (
@@ -66,6 +74,7 @@ const Input = ({
           {label}
         </ThemedText>
       )}
+
       <View
         style={[
           styles.inputContainer,
@@ -74,14 +83,6 @@ const Input = ({
             backgroundColor: theme.background,
             borderColor,
           },
-          // isFocused &&
-          //   !errorText && {
-          //     shadowColor: theme.brand,
-          //     shadowOpacity: 0.18,
-          //     shadowRadius: 12,
-          //     shadowOffset: { width: 0, height: 4 },
-          //     elevation: 2,
-          //   },
         ]}
       >
         <Icon
@@ -92,7 +93,9 @@ const Input = ({
                 ? theme.error
                 : theme.textSecondary
           }
+          size={20}
         />
+
         <TextInput
           placeholder={placeholder}
           placeholderTextColor={theme.textSecondary}
@@ -109,17 +112,42 @@ const Input = ({
           onChangeText={onChangeText}
           keyboardType={keyboardType}
           editable={!disabled}
-          secureTextEntry={!!secure}
+          secureTextEntry={secureTextEntry}
           autoCapitalize={
-            secure || keyboardType === "email-address" ? "none" : undefined
+            secure || keyboardType === "email-address" ? "none" : "sentences"
           }
           autoCorrect={!secure}
         />
+
+        {/* Password Visibility Toggle */}
+        {isPasswordField && (
+          <TouchableOpacity
+            onPress={() => setShowPassword((prev) => !prev)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityLabel={
+              showPassword ? "Hide password" : "Show password"
+            }
+          >
+            {showPassword ? (
+              <EyeOff
+                color={isFocused ? theme.brand : theme.textSecondary}
+                size={20}
+              />
+            ) : (
+              <Eye
+                color={isFocused ? theme.brand : theme.textSecondary}
+                size={20}
+              />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
+
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <ThemedText style={styles.errorText} color={theme.error}>
           {errorText}
         </ThemedText>
+
         {actionText && !errorText && (
           <TouchableOpacity onPress={onActionTextPress}>
             <ThemedText style={styles.forgotPasswordText} type="secondary">

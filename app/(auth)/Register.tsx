@@ -5,7 +5,7 @@ import { track } from "@/lib/analytics";
 import { isValidEmail } from "@/utils/validation";
 import { router } from "expo-router";
 import { useFormik } from "formik";
-import { Eye, Lock, Mail, User } from "lucide-react-native";
+import { Lock, Mail, User } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 type FormValues = {
@@ -114,7 +114,7 @@ function RegisterScreen() {
     },
     {
       name: "confirmPassword",
-      Icon: Eye,
+      Icon: Lock,
       placeholder: t("auth.register.repeatPassword"),
       value: form.values.confirmPassword,
       onChangeText: form.handleChange("confirmPassword"),

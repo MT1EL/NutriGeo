@@ -1,17 +1,25 @@
 function detectDeviceTimezone(): string {
   try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   } catch {
-    return 'UTC';
+    return "UTC";
   }
 }
 
 function resolveBaseUrl(): string {
-  const url = process.env.EXPO_PUBLIC_API_URL;
-  if (url && url.length > 0) return url;
-  if (__DEV__) return 'http://localhost:3000';
+  // 1. Highest priority: EAS injected env var
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+
+  // 2. Fallback for local development
+  if (__DEV__) {
+    return "http://localhost:3000"; // or your machine IP: e.g. http://192.168.1.XX:3000
+  }
+
+  // 3. Safety net
   throw new Error(
-    'EXPO_PUBLIC_API_URL is not set. Configure it via `eas env:create EXPO_PUBLIC_API_URL` for the build profile.',
+    "EXPO_PUBLIC_API_URL is not configured. Please set it in EAS Environment Variables.",
   );
 }
 
