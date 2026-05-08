@@ -17,10 +17,10 @@ import { MEAL_KEY_TO_API, MealKey as UiMealKey } from "@/constants/meals";
 import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
 import i18n from "@/i18n";
+import { track } from "@/lib/analytics";
 import { loggedAtForDate } from "@/utils/date";
 import { entryMacros } from "@/utils/foodMath";
 import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
-import { track } from "@/lib/analytics";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -111,7 +111,7 @@ export function useAddScreen(activeMeal: UiMealKey) {
         food_id: food.id,
         meal_key: apiMealKey,
         quantity: 1,
-        logged_at: loggedAtForDate(today),
+        logged_at: new Date().toISOString(),
       }),
     onMutate: async ({ food }) => {
       await queryClient.cancelQueries({ queryKey: ["food-log", today] });
