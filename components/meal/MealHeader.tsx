@@ -43,9 +43,11 @@ export default function MealHeader({ mealKey, config, count }: Props) {
             <config.Icon color={config.iconColor} size={24} />
           </View>
           <View style={{ gap: 2 }}>
-            <ThemedText style={styles.title}>{t(MEAL_KEY_TO_I18N[mealKey])}</ThemedText>
+            <ThemedText style={styles.title}>
+              {t(MEAL_KEY_TO_I18N[mealKey])}
+            </ThemedText>
             <ThemedText type="secondary" style={styles.subtitle}>
-              {config.time} · {t("meal.foodCount", { count })}
+              {t("meal.foodCount", { count })}
             </ThemedText>
           </View>
         </View>

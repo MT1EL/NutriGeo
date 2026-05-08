@@ -21,9 +21,9 @@ export default function MealSummaryCard({ summary, config }: Props) {
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
 
-  const remaining = Math.max(config.goal - summary.consumed, 0);
-  const overGoal = summary.consumed > config.goal;
-  const pct = Math.min(summary.consumed / config.goal, 1);
+  const remaining = config?.goal && Math.max(config.goal - summary.consumed, 0);
+  const overGoal = config?.goal && summary.consumed > config.goal;
+  const pct = config.goal && Math.min(summary.consumed / config.goal, 1);
 
   const macros = [
     {
@@ -62,22 +62,26 @@ export default function MealSummaryCard({ summary, config }: Props) {
             <ThemedText style={styles.consumedValue}>
               {summary.consumed}
             </ThemedText>
-            <ThemedText style={styles.consumedGoal} type="secondary">
-              / {config.goal} {t("macros.kcalShort")}
-            </ThemedText>
+            {config.goal && (
+              <ThemedText style={styles.consumedGoal} type="secondary">
+                / {config.goal} {t("macros.kcalShort")}
+              </ThemedText>
+            )}
           </View>
         </View>
-        <View style={{ alignItems: "flex-end" }}>
-          <ThemedText
-            style={styles.remainingValue}
-            color={overGoal ? theme.warning : theme.brand}
-          >
-            {overGoal ? `+${summary.consumed - config.goal}` : remaining}
-          </ThemedText>
-          <ThemedText style={styles.remainingLabel} type="secondary">
-            {overGoal ? t("macros.exceeded") : t("macros.remaining")}
-          </ThemedText>
-        </View>
+        {config.goal && (
+          <View style={{ alignItems: "flex-end" }}>
+            <ThemedText
+              style={styles.remainingValue}
+              color={overGoal ? theme.warning : theme.brand}
+            >
+              {overGoal ? `+${summary.consumed - config.goal}` : remaining}
+            </ThemedText>
+            <ThemedText style={styles.remainingLabel} type="secondary">
+              {overGoal ? t("macros.exceeded") : t("macros.remaining")}
+            </ThemedText>
+          </View>
+        )}
       </View>
 
       <View style={[styles.track, { backgroundColor: theme.borderLight }]}>
@@ -85,7 +89,7 @@ export default function MealSummaryCard({ summary, config }: Props) {
           style={[
             styles.fill,
             {
-              width: `${pct * 100}%`,
+              width: pct ? `${pct * 100}%` : "100%",
               backgroundColor: overGoal ? theme.warning : theme.brand,
             },
           ]}
@@ -105,21 +109,33 @@ export default function MealSummaryCard({ summary, config }: Props) {
                 style={[
                   styles.macroFill,
                   {
-                    width: `${Math.min(m.consumed / m.goal, 1) * 100}%`,
+                    width: m.goal
+                      ? `${Math.min(m.consumed / m.goal, 1) * 100}%`
+                      : "100%",
                     backgroundColor: m.color,
                   },
                 ]}
               />
             </View>
-            <ThemedText style={styles.macroLabel} type="secondary">
-              {m.label}
-            </ThemedText>
-            <ThemedText style={styles.macroValue}>
-              {m.consumed}
-              <ThemedText style={styles.macroValueGoal} type="secondary">
-                /{m.goal}{t("macros.g")}
+            <View
+              style={
+                !m.goal && {
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }
+              }
+            >
+              <ThemedText style={styles.macroLabel} type="secondary">
+                {m.label}
               </ThemedText>
-            </ThemedText>
+              <ThemedText style={styles.macroValue}>
+                {m.consumed}
+                <ThemedText style={styles.macroValueGoal} type="secondary">
+                  {m.goal && `/${m.goal}`}
+                  {" " + t("macros.g")}
+                </ThemedText>
+              </ThemedText>
+            </View>
           </View>
         ))}
       </View>

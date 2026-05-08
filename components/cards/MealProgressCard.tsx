@@ -1,32 +1,36 @@
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { LucideIcon } from "lucide-react-native";
-import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, useColorScheme, View } from "react-native";
+import { DimensionValue, StyleSheet, useColorScheme, View } from "react-native";
+import { CombinedMacroBar } from "../macros/CombinedMacroBar";
+import { MacroGoalRow } from "../macros/MacroGoalRow";
+import { MacroPill } from "../macros/MacroPill";
 import ThemedText from "../ui/ThemedText";
 import BaseCard from "./BaseCard";
 
-type Macro = {
+export type MacroItem = {
   label: string;
   consumed: number;
-  goal: number;
+  goal?: number;
   color: string;
+  tintColor: string;
+  textColor: string;
 };
 
 type Props = {
-  Icon: LucideIcon;
-  iconColor: string;
-  iconTint: string;
+  config: {
+    Icon: LucideIcon;
+    iconColor: string;
+    iconTint: string;
+  };
   mealLabel: string;
   consumed: number;
-  goal: number;
-  macros: Macro[];
+  goal?: number;
+  macros: MacroItem[];
 };
 
 export const MealProgressCard = ({
-  Icon,
-  iconColor,
-  iconTint,
+  config,
   mealLabel,
   consumed,
   goal,
@@ -35,12 +39,18 @@ export const MealProgressCard = ({
   const { t } = useTranslation();
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
-  const remaining = Math.max(goal - consumed, 0);
-  const pct = Math.min(consumed / goal, 1);
-  const overGoal = consumed > goal;
+
+  const hasGoals = macros.every((m) => m.goal && m.goal > 0);
+  const overGoal = goal ? consumed > goal : false;
+  const remaining = Math.max((goal ?? 0) - consumed, 0);
+  const caloriePct: DimensionValue =
+    goal && goal > 0 ? `${Math.min(consumed / goal, 1) * 100}%` : "0%";
+
+  const { Icon, iconColor, iconTint } = config;
 
   return (
-    <BaseCard>
+    <BaseCard style={{ gap: 8 }}>
+      {/* Header row */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
           <View style={[styles.iconWrap, { backgroundColor: iconTint }]}>
@@ -50,72 +60,77 @@ export const MealProgressCard = ({
             <ThemedText style={styles.mealLabel}>{mealLabel}</ThemedText>
             <ThemedText type="secondary" style={styles.subLabel}>
               {consumed > 0
-                ? `${consumed} / ${goal} ${t("macros.kcalShort")}`
-                : `${t("profile.stats.goal")} ${goal} ${t("macros.kcalShort")}`}
+                ? goal
+                  ? `${consumed} / ${goal} ${t("macros.kcalShort")}`
+                  : `${consumed} ${t("macros.kcalShort")}`
+                : goal
+                  ? `${t("profile.stats.goal")} ${goal} ${t("macros.kcalShort")}`
+                  : t("add.nothingLogged")}
             </ThemedText>
           </View>
         </View>
-        <View style={{ alignItems: "flex-end" }}>
-          <ThemedText
-            style={styles.bigValue}
-            color={overGoal ? theme.warning : theme.brand}
-          >
-            {overGoal ? `+${consumed - goal}` : remaining}
-          </ThemedText>
-          <ThemedText type="secondary" style={styles.subLabel}>
-            {overGoal ? t("macros.exceeded") : t("macros.remaining")}
-          </ThemedText>
-        </View>
-      </View>
 
-      <View
-        style={[
-          styles.track,
-          { backgroundColor: theme.borderLight },
-        ]}
-      >
-        <View
-          style={[
-            styles.fill,
-            {
-              width: `${pct * 100}%`,
-              backgroundColor: overGoal ? theme.warning : theme.brand,
-            },
-          ]}
-        />
-      </View>
-
-      <View style={styles.macros}>
-        {macros.map((m) => (
-          <View key={m.label} style={styles.macroCol}>
-            <View
-              style={[
-                styles.macroTrack,
-                { backgroundColor: theme.borderLight },
-              ]}
+        {goal && (
+          <View style={{ alignItems: "flex-end" }}>
+            <ThemedText
+              style={styles.bigValue}
+              color={overGoal ? theme.warning : theme.brand}
             >
-              <View
-                style={[
-                  styles.macroFill,
-                  {
-                    width: `${Math.min(m.consumed / m.goal, 1) * 100}%`,
-                    backgroundColor: m.color,
-                  },
-                ]}
-              />
-            </View>
-            <ThemedText style={styles.macroLabel} type="secondary">
-              {m.label}
+              {overGoal ? `+${consumed - goal}` : remaining}
             </ThemedText>
-            <ThemedText style={styles.macroValue}>
-              {m.consumed}
-              <ThemedText style={styles.macroValueGoal} type="secondary">
-                /{m.goal}{t("macros.g")}
-              </ThemedText>
+            <ThemedText type="secondary" style={styles.subLabel}>
+              {overGoal ? t("macros.exceeded") : t("macros.remaining")}
             </ThemedText>
           </View>
-        ))}
+        )}
       </View>
+
+      {/* Calorie progress bar — only when goal is set */}
+      {goal && goal > 0 && (
+        <View
+          style={[styles.calorieTrack, { backgroundColor: theme.borderLight }]}
+        >
+          <View
+            style={[
+              styles.calorieFill,
+              {
+                width: caloriePct,
+                backgroundColor: overGoal ? theme.warning : theme.brand,
+              },
+            ]}
+          />
+        </View>
+      )}
+
+      {/* Macro visualization */}
+      {hasGoals ? (
+        <MacroGoalRow
+          macros={
+            macros as Required<
+              Pick<MacroItem, "label" | "consumed" | "goal" | "color">
+            >[]
+          }
+          unit={t("macros.g")}
+        />
+      ) : (
+        <>
+          <CombinedMacroBar macros={macros} />
+          <View style={styles.pillRow}>
+            {macros.map((m) => (
+              <MacroPill
+                key={m.label}
+                label={m.label}
+                consumed={m.consumed}
+                goal={m.goal}
+                color={m.color}
+                tintColor={theme.borderLight}
+                textColor={theme.text}
+                unit={t("macros.g")}
+              />
+            ))}
+          </View>
+        </>
+      )}
     </BaseCard>
   );
 };
@@ -124,12 +139,12 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   headerLeft: {
     flexDirection: "row",
-    alignItems: "center",
     gap: Spacing.md,
+    flex: 1,
   },
   iconWrap: {
     width: 44,
@@ -150,45 +165,17 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: -0.5,
   },
-  track: {
+  calorieTrack: {
     height: 8,
     borderRadius: Radius.pill,
     overflow: "hidden",
   },
-  fill: {
+  calorieFill: {
     height: "100%",
     borderRadius: Radius.pill,
   },
-  macros: {
+  pillRow: {
     flexDirection: "row",
-    gap: Spacing.md,
-  },
-  macroCol: {
-    flex: 1,
-    gap: 4,
-  },
-  macroTrack: {
-    height: 4,
-    borderRadius: Radius.pill,
-    overflow: "hidden",
-  },
-  macroFill: {
-    height: "100%",
-    borderRadius: Radius.pill,
-  },
-  macroLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
-    marginTop: 2,
-  },
-  macroValue: {
-    fontSize: Type.xs,
-    fontWeight: "700",
-  },
-  macroValueGoal: {
-    fontSize: 10,
-    fontWeight: "500",
+    gap: Spacing.sm,
   },
 });

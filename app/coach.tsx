@@ -1,7 +1,6 @@
 import { HttpError } from "@/api/client";
 import type { CoachCompare, CoachTrajectory, CoachWeekly } from "@/api/coach";
 import { getCoachWeekly, refreshCoach } from "@/api/coach";
-import { getRecipeById } from "@/api/recipes";
 import type { Recipe } from "@/api/types";
 import BaseCard from "@/components/cards/BaseCard";
 import { LineChart } from "@/components/charts/LineChart";
@@ -65,23 +64,7 @@ export default function CoachScreen() {
   const meta = coachQuery.data?.meta;
   const isSynth = meta?.synthesized === true;
 
-  const pickIds = coach?.recipe_picks?.ids ?? [];
-  // Hydrate up-to-5 recipe IDs in parallel; per-id 404s are silently dropped
-  // so a stale catalog entry doesn't kill the whole row.
-  const picksQuery = useQuery({
-    queryKey: ["coach", "picks", pickIds.join(",")],
-    queryFn: async () => {
-      const results = await Promise.all(
-        pickIds.map((id) => getRecipeById(id).catch(() => null)),
-      );
-      return results
-        .filter((r): r is NonNullable<typeof r> => r !== null)
-        .map((r) => r.data);
-    },
-    enabled: pickIds.length > 0,
-    staleTime: 60 * 60_000,
-  });
-  const recipes: Recipe[] = picksQuery.data ?? [];
+  const recipes: Recipe[] = coach?.recipe_picks?.items ?? [];
 
   const refreshMutation = useMutation({
     mutationFn: () => refreshCoach(),

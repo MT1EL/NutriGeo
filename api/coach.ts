@@ -1,6 +1,6 @@
 import { makeIdempotencyKey } from "@/utils/idempotency";
 import { api } from "./client";
-import type { ApiResponse } from "./types";
+import { Recipe } from "./types";
 
 export type CoachMetrics = {
   streak_days: number;
@@ -44,7 +44,7 @@ export type CoachWeekly = {
   compare: CoachCompare;
   trajectory: CoachTrajectory;
   insights: CoachInsights;
-  recipe_picks: { ids: string[] }; // up to 5
+  recipe_picks: { items: Recipe[] }; // up to 5
   actions: string[]; // [] when synthesized
   next_refresh_available_at: string;
 };

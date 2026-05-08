@@ -37,6 +37,14 @@ export const Colors = {
     macroCarbs: "#F5A623",
     macroFat: "#FF6B9D",
 
+    macroProteinTint: "#EDE9FE",
+    macroCarbsTint: "#FEF3C7",
+    macroFatTint: "#FFE4E6",
+
+    macroProteinText: "#6D28D9",
+    macroCarbsText: "#B45309",
+    macroFatText: "#BE123C",
+
     icon: "#64748B",
     tabIconDefault: "#94A3B8",
     tabIconSelected: tintColorLight,
@@ -72,6 +80,14 @@ export const Colors = {
     macroProtein: "#A78BFA",
     macroCarbs: "#FBBF24",
     macroFat: "#FB7185",
+
+    macroProteinTint: "#3B1F6B",
+    macroCarbsTint: "#451A03",
+    macroFatTint: "#4C0519",
+
+    macroProteinText: "#C4B5FD",
+    macroCarbsText: "#FCD34D",
+    macroFatText: "#FDA4AF",
 
     icon: "#94A3B8",
     tabIconDefault: "#64748B",

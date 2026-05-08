@@ -99,11 +99,7 @@ export default function AddScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <MealProgressCard
-          Icon={config.Icon}
-          iconColor={config.iconColor}
-          iconTint={
-            colorScheme === "dark" ? config.iconTintDark : config.iconTint
-          }
+          config={config}
           mealLabel={t(MEAL_KEY_TO_I18N[activeMeal])}
           consumed={summary.consumed}
           goal={config.goal}
@@ -113,18 +109,24 @@ export default function AddScreen() {
               consumed: summary.protein,
               goal: config.proteinGoal,
               color: theme.macroProtein,
+              tintColor: theme.macroProteinTint,
+              textColor: theme.macroProteinText,
             },
             {
-              label: t("macros.carbsShort"),
+              label: t("macros.carbsShorter"),
               consumed: summary.carbs,
               goal: config.carbsGoal,
               color: theme.macroCarbs,
+              tintColor: theme.macroCarbsTint,
+              textColor: theme.macroCarbsText,
             },
             {
               label: t("macros.fat"),
               consumed: summary.fat,
               goal: config.fatGoal,
               color: theme.macroFat,
+              tintColor: theme.macroFatTint,
+              textColor: theme.macroFatText,
             },
           ]}
         />
