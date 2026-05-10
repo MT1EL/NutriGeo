@@ -9,13 +9,7 @@ import CustomFoodSheet from "@/components/sheets/CustomFoodSheet";
 import FoodDetailSheet from "@/components/sheets/FoodDetailSheet";
 import QuickAddSheet from "@/components/sheets/QuickAddSheet";
 import Button from "@/components/ui/Button";
-import {
-  isMealKey,
-  MEAL_CONFIGS,
-  MEAL_KEY_TO_I18N,
-  MEAL_KEYS,
-  MealKey,
-} from "@/constants/meals";
+import { isMealKey, MEAL_CONFIGS, MEAL_KEYS, MealKey } from "@/constants/meals";
 import { Colors, Spacing } from "@/constants/theme";
 import { useAddScreen } from "@/hooks/use-add-screen";
 import { useLocalSearchParams } from "expo-router";
@@ -37,7 +31,7 @@ export default function AddScreen() {
   const { meal } = useLocalSearchParams<{ meal?: string }>();
 
   const [activeMeal, setActiveMeal] = useState<MealKey>(
-    isMealKey(meal) ? meal : "საუზმე",
+    isMealKey(meal) ? meal : "breakfast",
   );
   useEffect(() => {
     if (isMealKey(meal)) setActiveMeal(meal);
@@ -69,12 +63,12 @@ export default function AddScreen() {
     decrementEntry,
     removeEntry,
   } = useAddScreen(activeMeal);
-
   const config = MEAL_CONFIGS[activeMeal];
   const mealButtons = MEAL_KEYS.map((m) => ({
     key: m,
+
     Icon: MEAL_CONFIGS[m].Icon,
-    label: t(MEAL_KEY_TO_I18N[m]),
+    label: t(`meal.${m}`),
   }));
 
   return (
@@ -100,7 +94,7 @@ export default function AddScreen() {
       >
         <MealProgressCard
           config={config}
-          mealLabel={t(MEAL_KEY_TO_I18N[activeMeal])}
+          mealLabel={t(`meal.${activeMeal}`)}
           consumed={summary.consumed}
           goal={config.goal}
           macros={[

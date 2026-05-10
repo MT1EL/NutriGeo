@@ -436,6 +436,7 @@
     "browseTitle": "დაამატე",
     "addNewFood": "+ შექმენი ახალი საკვები",
     "browseTabs": {
+      "suggested": "შემოთავაზებული",
       "all": "ყველა",
       "my": "ჩემი",
       "frequent": "ხშირი",

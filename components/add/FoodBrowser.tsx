@@ -24,6 +24,7 @@ import {
 } from "react-native";
 
 const TABS: { key: BrowseTab; labelKey: string; Icon: LucideIcon }[] = [
+  { key: "suggested", labelKey: "add.browseTabs.suggested", Icon: Sparkles },
   { key: "all", labelKey: "add.browseTabs.all", Icon: LayoutGrid },
   { key: "my", labelKey: "add.browseTabs.my", Icon: ChefHat },
   { key: "frequent", labelKey: "add.browseTabs.frequent", Icon: History },

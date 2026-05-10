@@ -436,6 +436,7 @@
     "browseTitle": "Add",
     "addNewFood": "+ Create new food",
     "browseTabs": {
+      "suggested": "suggested",
       "all": "All",
       "my": "My",
       "frequent": "Frequent",

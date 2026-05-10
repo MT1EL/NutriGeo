@@ -1,6 +1,6 @@
 import { deleteFoodLog, getFoodLog } from "@/api/foodLog";
 import type { ApiResponse, FoodLogEntry } from "@/api/types";
-import { MEAL_KEY_TO_API, MealKey } from "@/constants/meals";
+import { MealKey } from "@/constants/meals";
 import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
 import i18n from "@/i18n";
@@ -13,7 +13,7 @@ export function useMealDetail(mealKey: MealKey) {
   const toast = useToast();
   const queryClient = useQueryClient();
   const { date: today } = useActiveDate();
-  const apiMealKey = MEAL_KEY_TO_API[mealKey];
+  const apiMealKey = mealKey;
 
   const foodLogQuery = useQuery({
     queryKey: ["food-log", today],
@@ -36,8 +36,7 @@ export function useMealDetail(mealKey: MealKey) {
             consumed: acc.consumed + caloriesForFood(e.food, q),
             protein:
               acc.protein + macroForFood(e.food.protein_g_per_100g, e.food, q),
-            carbs:
-              acc.carbs + macroForFood(e.food.carbs_g_per_100g, e.food, q),
+            carbs: acc.carbs + macroForFood(e.food.carbs_g_per_100g, e.food, q),
             fat: acc.fat + macroForFood(e.food.fat_g_per_100g, e.food, q),
           };
         },

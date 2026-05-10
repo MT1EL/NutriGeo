@@ -1,5 +1,5 @@
 import ThemedText from "@/components/ui/ThemedText";
-import { type MealConfig, MEAL_KEY_TO_I18N, MealKey } from "@/constants/meals";
+import { type MealConfig, MealKey } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { router } from "expo-router";
 import { X } from "lucide-react-native";
@@ -43,9 +43,7 @@ export default function MealHeader({ mealKey, config, count }: Props) {
             <config.Icon color={config.iconColor} size={24} />
           </View>
           <View style={{ gap: 2 }}>
-            <ThemedText style={styles.title}>
-              {t(MEAL_KEY_TO_I18N[mealKey])}
-            </ThemedText>
+            <ThemedText style={styles.title}>{t(`meal.${mealKey}`)}</ThemedText>
             <ThemedText type="secondary" style={styles.subtitle}>
               {t("meal.foodCount", { count })}
             </ThemedText>

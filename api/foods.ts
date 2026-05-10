@@ -1,14 +1,35 @@
-import { api } from './client';
-import type { ApiResponse, Food, Paginated } from './types';
+import { MealKey } from "@/constants/meals";
+import { api } from "./client";
+import type {
+  ApiResponse,
+  Food,
+  Paginated,
+  SuggestedFoodsResponse,
+} from "./types";
 
 export type ListFoodsParams = {
   page?: number;
   limit?: number;
 };
 
+export type suggestedFoodParams = {
+  page?: number;
+  limit?: number;
+  meal_type: MealKey;
+};
+
 export function listFoods({ page = 1, limit = 50 }: ListFoodsParams = {}) {
-  return api.get<Paginated<Food>>('/v1/foods', {
+  return api.get<Paginated<Food>>("/v1/foods", {
     query: { page, limit },
+  });
+}
+
+export function listSuggestedFoods({
+  limit = 5,
+  meal_type,
+}: suggestedFoodParams) {
+  return api.get<ApiResponse<SuggestedFoodsResponse>>("/v1/foods/suggestions", {
+    query: { limit, meal_type },
   });
 }
 
@@ -19,26 +40,26 @@ export type SearchFoodsParams = {
 };
 
 export function searchFoods({ q, page = 1, limit = 20 }: SearchFoodsParams) {
-  return api.get<Paginated<Food>>('/v1/foods/search', {
+  return api.get<Paginated<Food>>("/v1/foods/search", {
     query: { ...(q ? { q } : {}), page, limit },
   });
 }
 
 export function getFrequentFoods() {
-  return api.get<ApiResponse<Food[]>>('/v1/foods/frequent');
+  return api.get<ApiResponse<Food[]>>("/v1/foods/frequent");
 }
 
 export function getRecentFoods() {
-  return api.get<ApiResponse<Food[]>>('/v1/foods/recent');
+  return api.get<ApiResponse<Food[]>>("/v1/foods/recent");
 }
 
 export function getFavoriteFoods() {
-  return api.get<ApiResponse<Food[]>>('/v1/foods/favorites');
+  return api.get<ApiResponse<Food[]>>("/v1/foods/favorites");
 }
 
 // User's own custom-created foods (source === "user").
 export function getMyFoods() {
-  return api.get<ApiResponse<Food[]>>('/v1/foods/mine');
+  return api.get<ApiResponse<Food[]>>("/v1/foods/mine");
 }
 
 export function favoriteFood(foodId: string) {
@@ -50,7 +71,9 @@ export function unfavoriteFood(foodId: string) {
 }
 
 export function getFoodByBarcode(code: string) {
-  return api.get<ApiResponse<Food>>(`/v1/foods/barcode/${encodeURIComponent(code)}`);
+  return api.get<ApiResponse<Food>>(
+    `/v1/foods/barcode/${encodeURIComponent(code)}`,
+  );
 }
 
 export type CreateFoodInput = {
@@ -68,7 +91,7 @@ export type CreateFoodInput = {
 };
 
 export function createCustomFood(input: CreateFoodInput) {
-  return api.post<ApiResponse<Food>>('/v1/foods', input);
+  return api.post<ApiResponse<Food>>("/v1/foods", input);
 }
 
 export function updateCustomFood(id: string, input: Partial<CreateFoodInput>) {
@@ -80,13 +103,13 @@ export function deleteCustomFood(id: string) {
 }
 
 export function recognizeFoodByImage(imageUrl: string) {
-  return api.post<ApiResponse<{ candidates: Food[] }>>('/v1/foods/recognize', {
+  return api.post<ApiResponse<{ candidates: Food[] }>>("/v1/foods/recognize", {
     image_url: imageUrl,
   });
 }
 
 export function recognizeFoodByVoice(transcript: string) {
-  return api.post<ApiResponse<{ candidates: Food[] }>>('/v1/foods/voice', {
+  return api.post<ApiResponse<{ candidates: Food[] }>>("/v1/foods/voice", {
     transcript,
   });
 }

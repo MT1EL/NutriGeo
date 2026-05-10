@@ -122,7 +122,7 @@ function RegisterScreen() {
       secure: true,
     },
   ];
-  console.log(errorOf("password"));
+
   return (
     <AuthLayout
       illustrationSource={require("@/assets/images/logo.png")}

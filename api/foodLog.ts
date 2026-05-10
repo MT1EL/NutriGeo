@@ -1,12 +1,12 @@
-import { makeIdempotencyKey } from '@/utils/idempotency';
-import { api } from './client';
+import { makeIdempotencyKey } from "@/utils/idempotency";
+import { api } from "./client";
 import type {
   ApiResponse,
   FoodLogEntry,
   FoodLogQuantityUnit,
   MealKey,
   QuickAddPayload,
-} from './types';
+} from "./types";
 
 // Catalog-food path: log an existing Food at a given quantity.
 export type CreateFoodLogFoodInput = {
@@ -29,14 +29,21 @@ export type CreateFoodLogInput =
   | CreateFoodLogFoodInput
   | CreateFoodLogQuickAddInput;
 
-export function createFoodLog(input: CreateFoodLogInput, idempotencyKey?: string) {
-  return api.post<ApiResponse<FoodLogEntry>>('/v1/food-log', input, {
+export function createFoodLog(
+  input: CreateFoodLogInput,
+  idempotencyKey?: string,
+) {
+  return api.post<ApiResponse<FoodLogEntry>>("/v1/food-log", input, {
     idempotencyKey: idempotencyKey ?? makeIdempotencyKey(),
   });
 }
 
-export function getFoodLog(params: { date: string } | { from: string; to: string }) {
-  return api.get<ApiResponse<FoodLogEntry[]>>('/v1/food-log', { query: params });
+export function getFoodLog(
+  params: { date: string } | { from: string; to: string },
+) {
+  return api.get<ApiResponse<FoodLogEntry[]>>("/v1/food-log", {
+    query: params,
+  });
 }
 
 export type UpdateFoodLogInput = Partial<CreateFoodLogFoodInput> & {

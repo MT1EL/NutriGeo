@@ -10,10 +10,11 @@ import {
   getMyFoods,
   getRecentFoods,
   listFoods,
+  listSuggestedFoods,
   searchFoods,
 } from "@/api/foods";
 import type { ApiResponse, Food, FoodLogEntry, MealKey } from "@/api/types";
-import { MEAL_KEY_TO_API, MealKey as UiMealKey } from "@/constants/meals";
+import { MealKey as UiMealKey } from "@/constants/meals";
 import { useActiveDate } from "@/contexts/ActiveDateContext";
 import { useToast } from "@/contexts/ToastContext";
 import i18n from "@/i18n";
@@ -24,15 +25,20 @@ import { invalidateFoodLogQueries } from "@/utils/queryInvalidation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-export type BrowseTab = "all" | "frequent" | "favorites" | "recent" | "my";
+export type BrowseTab =
+  | "all"
+  | "frequent"
+  | "favorites"
+  | "recent"
+  | "my"
+  | "suggested";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function useAddScreen(activeMeal: UiMealKey) {
   const toast = useToast();
   const queryClient = useQueryClient();
-
-  const [browse, setBrowse] = useState<BrowseTab>("all");
+  const [browse, setBrowse] = useState<BrowseTab>("suggested");
   const [searchInput, setSearchInput] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
@@ -47,12 +53,17 @@ export function useAddScreen(activeMeal: UiMealKey) {
   // The "today" cache key is dynamic now — it tracks the active date the
   // user selected on the home screen. Mutations log entries to this date.
   const { date: today } = useActiveDate();
-  const apiMealKey: MealKey = MEAL_KEY_TO_API[activeMeal];
+  const apiMealKey: MealKey = activeMeal;
 
   // Today's full food log (shared with /home and /meal/[key]).
   const foodLogQuery = useQuery({
     queryKey: ["food-log", today],
     queryFn: () => getFoodLog({ date: today }),
+  });
+
+  const suggestedQuery = useQuery({
+    queryKey: ["suggested", activeMeal, today],
+    queryFn: () => listSuggestedFoods({ meal_type: activeMeal }),
   });
 
   // Browse tabs — only the active one fetches.
@@ -111,7 +122,9 @@ export function useAddScreen(activeMeal: UiMealKey) {
         food_id: food.id,
         meal_key: apiMealKey,
         quantity: 1,
-        logged_at: new Date().toISOString(),
+        logged_at: today
+          ? new Date(today).toISOString()
+          : new Date().toISOString(),
       }),
     onMutate: async ({ food }) => {
       await queryClient.cancelQueries({ queryKey: ["food-log", today] });
@@ -263,15 +276,17 @@ export function useAddScreen(activeMeal: UiMealKey) {
 
   const browseQuery = debouncedQuery
     ? searchQuery
-    : browse === "all"
-      ? allFoodsQuery
-      : browse === "frequent"
-        ? frequentQuery
-        : browse === "favorites"
-          ? favoritesQuery
-          : browse === "my"
-            ? myFoodsQuery
-            : recentQuery;
+    : browse === "suggested"
+      ? suggestedQuery
+      : browse === "all"
+        ? allFoodsQuery
+        : browse === "frequent"
+          ? frequentQuery
+          : browse === "favorites"
+            ? favoritesQuery
+            : browse === "my"
+              ? myFoodsQuery
+              : recentQuery;
 
   const rawBrowseFoods: Food[] = debouncedQuery
     ? (searchQuery.data?.data ?? [])

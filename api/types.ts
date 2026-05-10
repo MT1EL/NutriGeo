@@ -21,6 +21,11 @@ export type Paginated<T> = {
   };
 };
 
+export type SuggestedFoodsResponse = {
+  meal_type: "breakfast" | "lunch" | "dinner" | "snack";
+  data: SuggestedFood[];
+};
+
 export type Range = "day" | "week" | "month" | "year";
 export type MealKey = "breakfast" | "lunch" | "dinner" | "snack";
 export type Sex = "male" | "female" | "other";
@@ -118,6 +123,11 @@ export type Food = {
   // anything else = catalog food.
   source?: "user" | "system" | string;
   image_url?: string;
+};
+
+export type SuggestedFood = Food & {
+  score?: number; // ranking strength (0–1 or 0–100)
+  reason?: string; // e.g. "high_protein", "low_calorie", "default"
 };
 
 export type FoodLogQuantityUnit = "servings" | "grams";

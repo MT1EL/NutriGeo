@@ -1,5 +1,5 @@
 import type { DayMeals } from "@/api/meals";
-import { MEAL_CONFIGS, MEAL_KEY_TO_API, MEAL_KEYS } from "@/constants/meals";
+import { MEAL_CONFIGS, MEAL_KEYS } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { router } from "expo-router";
 import { ChevronRight, CirclePlus } from "lucide-react-native";
@@ -33,9 +33,7 @@ const MealsCard = ({ data }: { data?: DayMeals }) => {
 
       {MEAL_KEYS.map((key) => {
         const cfg = MEAL_CONFIGS[key];
-        const meal = data?.meals?.find(
-          (m) => m.meal_key === MEAL_KEY_TO_API[key],
-        );
+        const meal = data?.meals?.find((m) => m.meal_key === key);
         const entries = meal?.entries ?? [];
         const calories = Math.round(meal?.kcal ?? 0);
         const summary =
@@ -70,7 +68,7 @@ const MealsCard = ({ data }: { data?: DayMeals }) => {
               <View style={[styles.row, styles.spaced]}>
                 <View style={[styles.row, { gap: Spacing.sm }]}>
                   <ThemedText style={styles.mealTypeTitle}>
-                    {t(`meal.${MEAL_KEY_TO_API[key]}`)}
+                    {t(`meal.${key}`)}
                   </ThemedText>
                 </View>
                 <View style={[styles.row, { gap: 2 }]}>

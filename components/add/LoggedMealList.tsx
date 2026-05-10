@@ -2,7 +2,7 @@ import type { FoodLogEntry } from "@/api/types";
 import FoodCard from "@/components/cards/FoodCard";
 import { FoodListSkeleton } from "@/components/ui/Skeletons";
 import ThemedText from "@/components/ui/ThemedText";
-import { type MealConfig, MEAL_KEY_TO_I18N, MealKey } from "@/constants/meals";
+import { type MealConfig, MealKey } from "@/constants/meals";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { entryDisplay, entryDisplayServing } from "@/utils/foodMath";
 import { foodImageSource } from "@/utils/image";
@@ -38,7 +38,7 @@ export default function LoggedMealList({
     <View style={{ gap: Spacing.sm }}>
       <View style={styles.header}>
         <ThemedText style={styles.title}>
-          {t("add.logged", { meal: t(MEAL_KEY_TO_I18N[mealLabel]) })}
+          {t("add.logged", { meal: t(`meal.${mealLabel}`) })}
         </ThemedText>
         <ThemedText style={styles.count} type="secondary">
           {t("add.loggedCount", { count: entries.length })}
@@ -75,7 +75,11 @@ export default function LoggedMealList({
                 key={entry.id}
                 title={d.title}
                 calories={d.kcal}
-                serving={entryDisplayServing(entry, t("food.perGramShort"), t("add.quickAdd"))}
+                serving={entryDisplayServing(
+                  entry,
+                  t("food.perGramShort"),
+                  t("add.quickAdd"),
+                )}
                 proteinG={d.protein_g}
                 carbsG={d.carbs_g}
                 fatG={d.fat_g}
