@@ -6,14 +6,7 @@ import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import type { BrowseTab } from "@/hooks/use-add-screen";
 import { caloriesForFood, macroForFood, servingLabel } from "@/utils/foodMath";
 import { foodImageSource } from "@/utils/image";
-import {
-  ChefHat,
-  History,
-  LayoutGrid,
-  LucideIcon,
-  Sparkles,
-  Star,
-} from "lucide-react-native";
+import { ChefHat, LucideIcon, Sparkles, Star } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
@@ -25,11 +18,11 @@ import {
 
 const TABS: { key: BrowseTab; labelKey: string; Icon: LucideIcon }[] = [
   { key: "suggested", labelKey: "add.browseTabs.suggested", Icon: Sparkles },
-  { key: "all", labelKey: "add.browseTabs.all", Icon: LayoutGrid },
-  { key: "my", labelKey: "add.browseTabs.my", Icon: ChefHat },
-  { key: "frequent", labelKey: "add.browseTabs.frequent", Icon: History },
-  { key: "favorites", labelKey: "add.browseTabs.favorites", Icon: Star },
   { key: "recent", labelKey: "add.browseTabs.recent", Icon: Sparkles },
+  { key: "my", labelKey: "add.browseTabs.my", Icon: ChefHat },
+  { key: "favorites", labelKey: "add.browseTabs.favorites", Icon: Star },
+  // { key: "all", labelKey: "add.browseTabs.all", Icon: LayoutGrid },
+  // { key: "frequent", labelKey: "add.browseTabs.frequent", Icon: History },
 ];
 
 type Props = {
