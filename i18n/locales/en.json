@@ -51,7 +51,9 @@
 
   "legal": {
     "lastUpdatedDate": "May 1, 2026",
-    "effectiveFromDate": "from May 1, 2026"
+    "effectiveFromDate": "from May 1, 2026",
+    "agree": "By continuing, I agree",
+    "terms&conditions": "Terms and Conditions"
   },
 
   "common": {

@@ -45,16 +45,22 @@ export function searchFoods({ q, page = 1, limit = 20 }: SearchFoodsParams) {
   });
 }
 
-export function getFrequentFoods() {
-  return api.get<ApiResponse<Food[]>>("/v1/foods/frequent");
+export function getFrequentFoods({ limit = 5 }) {
+  return api.get<ApiResponse<Food[]>>("/v1/foods/frequent", {
+    query: { limit },
+  });
 }
 
-export function getRecentFoods() {
-  return api.get<ApiResponse<Food[]>>("/v1/foods/recent");
+export function getRecentFoods({ limit = 5 }) {
+  return api.get<ApiResponse<Food[]>>("/v1/foods/recent", {
+    query: { limit },
+  });
 }
 
-export function getFavoriteFoods() {
-  return api.get<ApiResponse<Food[]>>("/v1/foods/favorites");
+export function getFavoriteFoods({ limit = 5 }) {
+  return api.get<ApiResponse<Food[]>>("/v1/foods/favorites", {
+    query: { limit },
+  });
 }
 
 // User's own custom-created foods (source === "user").

@@ -1,9 +1,6 @@
-import AppleLogo from "@/components/svgs/AppleLogo";
-import GoogleLogo from "@/components/svgs/GoogleLogo";
 import Button from "@/components/ui/Button";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Type } from "@/constants/theme";
-import { useToast } from "@/contexts/ToastContext";
 import { router } from "expo-router";
 import { Salad } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
@@ -23,7 +20,6 @@ export default function Index() {
   const theme = Colors[colorScheme];
   const { bottom } = useSafeAreaInsets();
   const { t } = useTranslation();
-  const toast = useToast();
 
   return (
     <SafeAreaView
@@ -88,16 +84,16 @@ export default function Index() {
             {t("welcome.login")}
           </Button>
         </View>
-
+        {/* 
         <View style={styles.row}>
           <View style={{ flex: 1, height: 1, backgroundColor: theme.border }} />
           <ThemedText style={{ color: theme.textSecondary }}>
             {t("welcome.or_sign_in_with")}
           </ThemedText>
           <View style={{ flex: 1, height: 1, backgroundColor: theme.border }} />
-        </View>
+        </View> */}
 
-        <View style={styles.row}>
+        {/* <View style={styles.row}>
           <Button
             onPress={() => {
               toast.success(t("welcome.google_message"));
@@ -122,13 +118,15 @@ export default function Index() {
               <ThemedText>{t("welcome.continue_with_apple")}</ThemedText>
             </View>
           </Button>
-        </View>
+        </View> */}
         <View style={[styles.row, { alignItems: "center" }]}>
           <ThemedText color={theme.textSecondary}>
-            გაგრძელებით ეთანხმები
+            {t("legal.agree")}
           </ThemedText>
           <TouchableOpacity onPress={() => router.push("/terms")}>
-            <ThemedText color={theme.brand}>წესებს და პირობებს</ThemedText>
+            <ThemedText color={theme.brand}>
+              {t("legal.terms&conditions")}
+            </ThemedText>
           </TouchableOpacity>
         </View>
       </View>

@@ -31,7 +31,7 @@ type StatPill = {
 function buildStats(
   snapshot: HomeToday | undefined,
   includeStreak: boolean,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   t: any,
 ): StatPill[] {
   const streakDays = snapshot?.streak.current ?? 0;
@@ -132,7 +132,7 @@ export default function HomeHeader({
           />
         </View>
 
-        {snapshot && (
+        {/* {snapshot && (
           <View style={styles.statsStrip}>
             {stats.map(({ Icon, label, value, color }) => (
               <View key={label} style={styles.statPill}>
@@ -155,7 +155,7 @@ export default function HomeHeader({
               </View>
             ))}
           </View>
-        )}
+        )} */}
       </SafeAreaView>
     </GradientView>
   );
