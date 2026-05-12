@@ -16,10 +16,8 @@ import {
 import { uploadImage } from "@/utils/uploadImage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Bell,
   Bookmark,
   ChefHat,
-  Crown,
   Globe,
   Heart,
   LogOut,
@@ -140,14 +138,14 @@ const ProfilePage = () => {
               iconColor="#34A867"
               href="/profile/goals"
             />
-            <ProfileMenuRow
+            {/* <ProfileMenuRow
               Icon={Heart}
               label={t("profile.health")}
               hint={t("profile.healthHint")}
               tint={colorScheme === "dark" ? "#3A2030" : "#FCEAF1"}
               iconColor="#E85A8C"
               href="/profile/health"
-            />
+            /> */}
           </BaseCard>
 
           <ThemedText style={styles.sectionTitle}>
@@ -188,21 +186,21 @@ const ProfilePage = () => {
             {t("profile.appSection")}
           </ThemedText>
           <BaseCard style={styles.cardList}>
-            <ProfileMenuRow
+            {/* <ProfileMenuRow
               Icon={Crown}
               label={t("premium.screenTitle")}
               hint={t("premium.screenSubtitle")}
               tint={colorScheme === "dark" ? "#3A2A0A" : "#FFF4DA"}
               iconColor="#FFB020"
               href="/profile/premium"
-            />
-            <ProfileMenuRow
+            /> */}
+            {/* <ProfileMenuRow
               Icon={Bell}
               label={t("profile.notifications")}
               tint={colorScheme === "dark" ? "#3A2E10" : "#FEF6E4"}
               iconColor="#E8A02C"
               href="/profile/notifications"
-            />
+            /> */}
             <ProfileMenuRow
               Icon={Globe}
               label={t("profile.language")}

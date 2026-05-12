@@ -1,7 +1,6 @@
 import RecipeCard from "@/components/cards/RecipeCard";
 import Header from "@/components/headers";
 import FeaturedRecipeHero from "@/components/recipes/FeaturedRecipeHero";
-import MealPlanCard from "@/components/recipes/MealPlanCard";
 import RecipeCategoryChips from "@/components/recipes/RecipeCategoryChips";
 import Skeleton from "@/components/ui/Skeleton";
 import {
@@ -50,7 +49,7 @@ export default function RecipesScreen() {
       ) : (
         hero && <FeaturedRecipeHero recipe={hero} />
       )}
-      <MealPlanCard />
+      {/* <MealPlanCard /> */}
       {rest.length > 0 ? (
         <View style={styles.sectionHeader}>
           <ThemedText style={styles.sectionTitle}>

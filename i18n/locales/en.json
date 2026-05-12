@@ -434,7 +434,8 @@
     "quickAddHint": "Just calories",
     "searchResult": "Search results",
     "browseTitle": "Add",
-    "addNewFood": "+ Create new food",
+    "addNewFood": "Custom food",
+    "addNewFoodHint": "Save a food to reuse anytime”",
     "browseTabs": {
       "suggested": "suggested",
       "all": "All",

@@ -5,11 +5,9 @@ import Skeleton from "@/components/ui/Skeleton";
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
-import { ChevronRight, Sparkles } from "lucide-react-native";
-import React from "react";
+import { Sparkles } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, useColorScheme, View } from "react-native";
+import { StyleSheet, useColorScheme, View } from "react-native";
 
 // Personalized one-liner from /v1/advice/daily. Server picks the rule and
 // localizes the text; client just renders it. CTA is server-supplied when
@@ -58,7 +56,7 @@ export default function HomeTipCard() {
             <Skeleton height={14} width="80%" />
           </View>
         )}
-        <Pressable
+        {/* <Pressable
           onPress={() => router.push(ctaTarget as never)}
           hitSlop={6}
           style={({ pressed }) => [styles.cta, pressed && { opacity: 0.6 }]}
@@ -67,7 +65,7 @@ export default function HomeTipCard() {
             {ctaLabel}
           </ThemedText>
           <ChevronRight color={theme.brand} size={14} />
-        </Pressable>
+        </Pressable> */}
       </View>
     </BaseCard>
   );

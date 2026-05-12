@@ -10,7 +10,6 @@ import { useSettings } from "@/hooks/use-settings";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import {
-  Database,
   FileText,
   HelpCircle,
   Info,
@@ -18,7 +17,6 @@ import {
   Shield,
   Star,
   Trash2,
-  Upload,
 } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { Alert, Linking, StyleSheet, useColorScheme } from "react-native";
@@ -105,7 +103,7 @@ export default function SettingsScreen() {
         disabled={isSavingSettings}
       />
 
-      <SettingsGroup title={t("settings.data")}>
+      {/* <SettingsGroup title={t("settings.data")}>
         <SettingsRow
           Icon={Upload}
           iconColor={theme.brand}
@@ -124,7 +122,7 @@ export default function SettingsScreen() {
           onPress={confirmBackup}
           premiumLocked={!isPremium}
         />
-      </SettingsGroup>
+      </SettingsGroup> */}
 
       <SettingsGroup title={t("settings.security")}>
         <SettingsRow

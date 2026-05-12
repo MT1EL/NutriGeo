@@ -8,8 +8,6 @@ import {
   HelpCircle,
   LucideIcon,
   Mail,
-  MessageCircle,
-  Phone,
 } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -73,24 +71,24 @@ export default function HelpScreen() {
       tintDark: "#1F3A28",
       action: () => Linking.openURL("mailto:hello@forma.app"),
     },
-    {
-      Icon: MessageCircle,
-      label: t("help.chat"),
-      hint: t("help.chatHint"),
-      color: "#5B6CE0",
-      tint: "#EEF0FB",
-      tintDark: "#222B4A",
-      action: () => Linking.openURL("https://forma.app/chat"),
-    },
-    {
-      Icon: Phone,
-      label: t("help.hotline"),
-      hint: "+995 32 2 00 00 00",
-      color: "#FF7A45",
-      tint: "#FEEDE2",
-      tintDark: "#3A2010",
-      action: () => Linking.openURL("tel:+995322000000"),
-    },
+    // {
+    //   Icon: MessageCircle,
+    //   label: t("help.chat"),
+    //   hint: t("help.chatHint"),
+    //   color: "#5B6CE0",
+    //   tint: "#EEF0FB",
+    //   tintDark: "#222B4A",
+    //   action: () => Linking.openURL("https://forma.app/chat"),
+    // },
+    // {
+    //   Icon: Phone,
+    //   label: t("help.hotline"),
+    //   hint: "+995 32 2 00 00 00",
+    //   color: "#FF7A45",
+    //   tint: "#FEEDE2",
+    //   tintDark: "#3A2010",
+    //   action: () => Linking.openURL("tel:+995322000000"),
+    // },
   ];
 
   const toggle = (i: number) => {

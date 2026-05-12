@@ -4,14 +4,8 @@ import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import { usePremium } from "@/hooks/use-premium";
 import { router } from "expo-router";
 import { CalendarDays, ChevronRight, Crown } from "lucide-react-native";
-import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Pressable,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, useColorScheme, View } from "react-native";
 
 // Top-of-Recipes-tab entry into the weekly meal plan. Free users get a
 // crown-locked card that routes to the upgrade screen; premium users get
@@ -51,10 +45,7 @@ export default function MealPlanCard() {
             },
           ]}
         >
-          <CalendarDays
-            color={isPremium ? "#FFFFFF" : theme.brand}
-            size={22}
-          />
+          <CalendarDays color={isPremium ? "#FFFFFF" : theme.brand} size={22} />
         </View>
         <View style={{ flex: 1, gap: 4 }}>
           <View style={styles.titleRow}>
@@ -67,7 +58,9 @@ export default function MealPlanCard() {
                 : t("mealPlan.tabCardLockedTitle")}
             </ThemedText>
             {!isPremium && (
-              <View style={[styles.badge, { backgroundColor: theme.brandSoft }]}>
+              <View
+                style={[styles.badge, { backgroundColor: theme.brandSoft }]}
+              >
                 <Crown color={theme.brand} size={11} />
               </View>
             )}

@@ -1,6 +1,6 @@
 import ThemedText from "@/components/ui/ThemedText";
 import { Colors, Radius, Spacing, Type } from "@/constants/theme";
-import { ScanBarcode, Zap } from "lucide-react-native";
+import { UtensilsCrossed, Zap } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
@@ -12,10 +12,12 @@ import {
 type Props = {
   onScanBarcode: () => void;
   onQuickAdd: () => void;
+  onCreateFood: () => void;
 };
 
 export default function QuickActionsRow({
   onScanBarcode,
+  onCreateFood,
   onQuickAdd,
 }: Props) {
   const { t } = useTranslation();
@@ -23,14 +25,22 @@ export default function QuickActionsRow({
   const theme = Colors[colorScheme];
 
   const tiles = [
+    // {
+    //   key: "barcode",
+    //   Icon: ScanBarcode,
+    //   label: t("add.barcode"),
+    //   hint: t("add.barcodeHint"),
+    //   color: "#5B6CE0",
+    //   tint: colorScheme === "dark" ? "#222B4A" : "#EEF0FB",
+    //   onPress: onScanBarcode,
     {
-      key: "barcode",
-      Icon: ScanBarcode,
-      label: t("add.barcode"),
-      hint: t("add.barcodeHint"),
-      color: "#5B6CE0",
-      tint: colorScheme === "dark" ? "#222B4A" : "#EEF0FB",
-      onPress: onScanBarcode,
+      key: "yours",
+      Icon: UtensilsCrossed,
+      label: t("add.addNewFood"),
+      hint: t("add.addNewFoodHint"),
+      color: theme.macroProtein,
+      tint: theme.macroProteinTint,
+      onPress: onCreateFood,
     },
     {
       key: "quick",
@@ -45,7 +55,9 @@ export default function QuickActionsRow({
 
   return (
     <View style={{ gap: Spacing.sm }}>
-      <ThemedText style={styles.sectionTitle}>{t("add.quickActions")}</ThemedText>
+      <ThemedText style={styles.sectionTitle}>
+        {t("add.quickActions")}
+      </ThemedText>
       <View style={styles.row}>
         {tiles.map(({ key, Icon, label, hint, color, tint, onPress }) => (
           <TouchableOpacity

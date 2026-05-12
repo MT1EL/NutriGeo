@@ -6,7 +6,6 @@ import { Colors, Radius, Spacing, Type } from "@/constants/theme";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import {
-  Code,
   ExternalLink,
   FileText,
   Heart,
@@ -84,12 +83,12 @@ export default function AboutScreen() {
           hint="hello@forma.app"
           onPress={() => Linking.openURL("mailto:hello@forma.app")}
         />
-        <SettingsRow
+        {/* <SettingsRow
           Icon={Code}
           label={t("about.openSource")}
           hint="github.com/forma"
           onPress={() => Linking.openURL("https://github.com/")}
-        />
+        /> */}
       </SettingsGroup>
 
       <SettingsGroup title={t("about.title")}>

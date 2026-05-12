@@ -434,7 +434,8 @@
     "quickAddHint": "უბრალოდ კალორია",
     "searchResult": "ძიების შედეგი",
     "browseTitle": "დაამატე",
-    "addNewFood": "+ შექმენი ახალი საკვები",
+    "addNewFood": "შენი საკვები",
+    "addNewFoodHint": "შექმენი შენი საკვები",
     "browseTabs": {
       "suggested": "შემოთავაზებული",
       "all": "ყველა",

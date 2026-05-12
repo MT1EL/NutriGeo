@@ -4,11 +4,9 @@ import LoggedMealList from "@/components/add/LoggedMealList";
 import QuickActionsRow from "@/components/add/QuickActionsRow";
 import { MealProgressCard } from "@/components/cards/MealProgressCard";
 import Header from "@/components/headers";
-import BarcodeScannerSheet from "@/components/sheets/BarcodeScannerSheet";
 import CustomFoodSheet from "@/components/sheets/CustomFoodSheet";
 import FoodDetailSheet from "@/components/sheets/FoodDetailSheet";
 import QuickAddSheet from "@/components/sheets/QuickAddSheet";
-import Button from "@/components/ui/Button";
 import { isMealKey, MEAL_CONFIGS, MEAL_KEYS, MealKey } from "@/constants/meals";
 import { Colors, Spacing } from "@/constants/theme";
 import { useAddScreen } from "@/hooks/use-add-screen";
@@ -126,6 +124,7 @@ export default function AddScreen() {
         />
 
         <QuickActionsRow
+          onCreateFood={() => setCreateSheetVisible(true)}
           onScanBarcode={() => setScannerOpen(true)}
           onQuickAdd={() => setQuickAddOpen(true)}
         />
@@ -158,10 +157,6 @@ export default function AddScreen() {
           }}
           onAdd={addFood}
         />
-
-        <Button onPress={() => setCreateSheetVisible(true)} variant="secondary">
-          {t("add.addNewFood")}
-        </Button>
       </ScrollView>
 
       <FoodDetailSheet
@@ -189,7 +184,7 @@ export default function AddScreen() {
           setEditingFood(null);
         }}
       />
-      <BarcodeScannerSheet
+      {/* <BarcodeScannerSheet
         visible={scannerOpen}
         onClose={() => setScannerOpen(false)}
         onFoodFound={(food) => {
@@ -197,7 +192,7 @@ export default function AddScreen() {
           setSheetFood(food);
           setSheetEntry(null);
         }}
-      />
+      /> */}
       <QuickAddSheet
         visible={quickAddOpen}
         onClose={() => setQuickAddOpen(false)}
